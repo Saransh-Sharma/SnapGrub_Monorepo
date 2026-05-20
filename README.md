@@ -4,7 +4,7 @@ SnapGrub is a camera-first calorie tracking product. This repository is the mono
 
 ## Structure
 
-- `apps/ios` - iOS mobile app code.
+- `apps/mobile` - Flutter mobile app code for iOS and Android.
 - `apps/backend` - Backend service code.
 - `docs/initial-product` - Initial product specs, roadmap documents, technical plans, and mock images.
 

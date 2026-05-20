@@ -40,7 +40,18 @@ __pycache__/
 .venv/
 venv/
 
-# Xcode / iOS
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+
+# Android
+.gradle/
+local.properties
+captures/
+
+# Xcode / iOS generated files
 DerivedData/
 *.xcuserstate
 *.xcworkspace/xcuserdata/
