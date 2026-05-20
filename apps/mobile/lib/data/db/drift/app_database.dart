@@ -1,0 +1,56 @@
+import 'package:drift/drift.dart';
+import 'package:snapgrub/data/db/drift/connection.dart';
+import 'package:snapgrub/data/db/tables/body_measurements_local.dart';
+import 'package:snapgrub/data/db/tables/correction_events_local.dart';
+import 'package:snapgrub/data/db/tables/custom_foods_local.dart';
+import 'package:snapgrub/data/db/tables/daily_rollups_local.dart';
+import 'package:snapgrub/data/db/tables/devices_local.dart';
+import 'package:snapgrub/data/db/tables/feature_flags_local.dart';
+import 'package:snapgrub/data/db/tables/meal_items_local.dart';
+import 'package:snapgrub/data/db/tables/meal_templates_local.dart';
+import 'package:snapgrub/data/db/tables/meals_local.dart';
+import 'package:snapgrub/data/db/tables/nutrition_goals_local.dart';
+import 'package:snapgrub/data/db/tables/outbox_commands.dart';
+import 'package:snapgrub/data/db/tables/profiles_local.dart';
+import 'package:snapgrub/data/db/tables/sync_state.dart';
+
+part 'app_database.g.dart';
+
+@DriftDatabase(
+  tables: [
+    ProfilesLocal,
+    NutritionGoalsLocal,
+    BodyMeasurementsLocal,
+    DevicesLocal,
+    FeatureFlagsLocal,
+    SyncState,
+    OutboxCommands,
+    MealsLocal,
+    MealItemsLocal,
+    MealTemplatesLocal,
+    CustomFoodsLocal,
+    DailyRollupsLocal,
+    CorrectionEventsLocal,
+  ],
+)
+class AppDatabase extends _$AppDatabase {
+  AppDatabase([QueryExecutor? executor]) : super(executor ?? openConnection());
+
+  @override
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onCreate: (m) => m.createAll(),
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            await m.createTable(mealsLocal);
+            await m.createTable(mealItemsLocal);
+            await m.createTable(mealTemplatesLocal);
+            await m.createTable(customFoodsLocal);
+            await m.createTable(dailyRollupsLocal);
+            await m.createTable(correctionEventsLocal);
+          }
+        },
+      );
+}
