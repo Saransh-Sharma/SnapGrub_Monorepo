@@ -1,0 +1,17 @@
+{
+  "name": "snapgrub-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "validate:openapi": "redocly lint packages/api-contracts/openapi.yaml",
+    "check:contracts": "npm run validate:openapi && bash scripts/generate-api-clients.sh --check",
+    "backend:typecheck": "deno check services/backend/supabase/functions/*/index.ts",
+    "backend:lint:migrations": "bash scripts/lint-supabase-migrations.sh",
+    "backend:test:rls": "node services/backend/supabase/tests/rls_isolation.mjs"
+  },
+  "devDependencies": {
+    "@redocly/cli": "^2.31.2",
+    "@supabase/supabase-js": "^2.106.1",
+    "yaml": "^2.9.0"
+  }
+}
