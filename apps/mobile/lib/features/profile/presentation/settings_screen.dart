@@ -48,6 +48,13 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () => ref.read(profileControllerProvider.notifier).refresh(),
           ),
           ListTile(
+            title: const Text('Privacy'),
+            subtitle: const Text('AI consent, media retention, export, delete'),
+            leading: const Icon(Icons.privacy_tip_outlined),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.go('/settings/privacy'),
+          ),
+          ListTile(
             title: const Text('Sign out'),
             leading: const Icon(Icons.logout),
             onTap: () async {

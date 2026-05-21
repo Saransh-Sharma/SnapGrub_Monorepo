@@ -104,6 +104,49 @@ class ProfileRepository {
     }
   }
 
+  Future<void> savePrivacySettings({
+    required String userId,
+    required bool cloudMediaStorage,
+    required bool saveOriginalPhotos,
+    required bool aiImprovementConsent,
+  }) async {
+    final clientRequestId = const Uuid().v4();
+    await (_db.update(_db.profilesLocal)..where((tbl) => tbl.id.equals(userId)))
+        .write(
+      ProfilesLocalCompanion(
+        cloudMediaStorage: Value(cloudMediaStorage),
+        saveOriginalPhotos: Value(saveOriginalPhotos),
+        aiImprovementConsent: Value(aiImprovementConsent),
+        syncStatus: const Value('pending'),
+      ),
+    );
+
+    final request = SettingsPatchRequestDto(
+      clientRequestId: clientRequestId,
+      profilePatch: {
+        'cloud_media_storage': cloudMediaStorage,
+        'save_original_photos': saveOriginalPhotos,
+        'ai_improvement_consent': aiImprovementConsent,
+      },
+    );
+
+    try {
+      final response = await _remote.patchSettings(
+        clientRequestId: clientRequestId,
+        request: request,
+      );
+      await cacheSettings(response);
+    } catch (error) {
+      if (!_isRetryable(error)) rethrow;
+      await _outbox.enqueue(
+        userId: userId,
+        commandType: 'settings.patch',
+        clientRequestId: clientRequestId,
+        payload: request.toJson(),
+      );
+    }
+  }
+
   Future<void> drainSettingsPatchOutbox(String userId) async {
     if (!_remote.isConfigured) return;
     final pending = await _outbox.pendingSettingsPatchCommands(userId);
