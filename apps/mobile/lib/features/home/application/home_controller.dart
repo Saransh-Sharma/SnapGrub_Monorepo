@@ -16,6 +16,7 @@ final homeUserContextProvider = FutureProvider<HomeUserContext?>((ref) async {
     proteinGoal: profile.activeGoal?.proteinG,
     carbsGoal: profile.activeGoal?.carbsG,
     fatGoal: profile.activeGoal?.fatG,
+    weeklyInsightsEnabled: profile.featureFlags['weekly_insights.enabled'] == true,
   );
 });
 
@@ -42,6 +43,7 @@ class HomeUserContext {
     this.proteinGoal,
     this.carbsGoal,
     this.fatGoal,
+    this.weeklyInsightsEnabled = false,
   });
 
   final String userId;
@@ -50,4 +52,5 @@ class HomeUserContext {
   final double? proteinGoal;
   final double? carbsGoal;
   final double? fatGoal;
+  final bool weeklyInsightsEnabled;
 }

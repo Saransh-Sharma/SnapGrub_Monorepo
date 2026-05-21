@@ -14,6 +14,8 @@ import 'package:snapgrub/data/db/tables/nutrition_goals_local.dart';
 import 'package:snapgrub/data/db/tables/outbox_commands.dart';
 import 'package:snapgrub/data/db/tables/profiles_local.dart';
 import 'package:snapgrub/data/db/tables/sync_state.dart';
+import 'package:snapgrub/data/db/tables/user_food_defaults_local.dart';
+import 'package:snapgrub/data/db/tables/weekly_insights_local.dart';
 
 part 'app_database.g.dart';
 
@@ -33,13 +35,15 @@ part 'app_database.g.dart';
     CustomFoodsLocal,
     DailyRollupsLocal,
     CorrectionEventsLocal,
+    WeeklyInsightsLocal,
+    UserFoodDefaultsLocal,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? openConnection());
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -60,6 +64,10 @@ class AppDatabase extends _$AppDatabase {
             await m.addColumn(outboxCommands, outboxCommands.payloadHash);
             await m.addColumn(outboxCommands, outboxCommands.dependencyCommandId);
             await m.addColumn(outboxCommands, outboxCommands.lastError);
+          }
+          if (from < 5) {
+            await m.createTable(weeklyInsightsLocal);
+            await m.createTable(userFoodDefaultsLocal);
           }
         },
       );

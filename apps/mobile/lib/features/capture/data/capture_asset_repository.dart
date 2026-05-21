@@ -115,6 +115,7 @@ class CaptureAssetRepository {
         uploadedAt: Value(DateTime.now().toUtc()),
       ),
     );
+    await _outbox.markAssetUploadSynced(id);
   }
 
   Uint8List _encodeUnderTarget(img.Image image, int targetBytes) {

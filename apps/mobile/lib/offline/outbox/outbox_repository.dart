@@ -117,6 +117,56 @@ class OutboxRepository {
     return (row.read(count) ?? 0) > 0;
   }
 
+  Future<List<OutboxCommand>> conflictCommands(String userId) {
+    return (_db.select(_db.outboxCommands)
+          ..where(_db.outboxCommands.userId.equals(userId) & _db.outboxCommands.status.equals('conflict'))
+          ..orderBy([(tbl) => OrderingTerm.asc(tbl.createdAt)]))
+        .get();
+  }
+
+  Future<void> retryCommand(String id) async {
+    await (_db.update(_db.outboxCommands)..where((tbl) => tbl.id.equals(id))).write(
+      OutboxCommandsCompanion(
+        status: const Value('pending'),
+        nextRetryAt: const Value<DateTime?>(null),
+        lastError: const Value<String?>(null),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  Future<void> discardCommand(String id) async {
+    await (_db.update(_db.outboxCommands)..where((tbl) => tbl.id.equals(id))).write(
+      OutboxCommandsCompanion(
+        status: const Value('synced'),
+        lastError: const Value<String?>(null),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  Future<void> markAssetUploadSynced(String assetId) async {
+    final commands = await pendingAssetUploadCommandsForAllStatuses(assetId);
+    for (final command in commands) {
+      await markSynced(command.id);
+    }
+  }
+
+  Future<List<OutboxCommand>> pendingAssetUploadCommandsForAllStatuses(String assetId) async {
+    final rows = await (_db.select(_db.outboxCommands)
+          ..where(_db.outboxCommands.commandType.equals('asset.upload') &
+              _db.outboxCommands.status.isIn(const ['pending', 'failed', 'blocked'])))
+        .get();
+    return rows.where((command) {
+      try {
+        final payload = jsonDecode(command.payloadJson) as Map;
+        return payload['asset_id'] == assetId;
+      } catch (_) {
+        return false;
+      }
+    }).toList();
+  }
+
   Future<void> markSynced(String id) async {
     await (_db.update(_db.outboxCommands)..where((tbl) => tbl.id.equals(id))).write(
       OutboxCommandsCompanion(

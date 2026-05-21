@@ -35,6 +35,8 @@ class PhotoAnalysisRepository {
       throw StateError('Supabase is not configured.');
     }
     await _remote.uploadAsset(asset);
+    // Photo analysis performs a foreground upload so the user can continue immediately.
+    // Mark the queued asset command synced to avoid a duplicate upload on the next outbox drain.
     await _assets.markUploaded(asset.id);
     final response = await _remote.createAnalysis(
       PhotoAnalysisCreateRequestDto(

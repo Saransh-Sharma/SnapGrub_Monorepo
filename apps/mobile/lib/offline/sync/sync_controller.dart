@@ -6,6 +6,7 @@ import 'package:snapgrub/features/auth/application/auth_controller.dart';
 import 'package:snapgrub/features/auth/domain/auth_state.dart';
 import 'package:snapgrub/features/custom_foods/data/custom_food_repository.dart';
 import 'package:snapgrub/features/meal_editor/data/meal_repository.dart';
+import 'package:snapgrub/data/repositories/profile_repository.dart';
 import 'package:snapgrub/features/templates/data/template_repository.dart';
 import 'package:snapgrub/offline/outbox/outbox_repository.dart';
 import 'package:snapgrub/offline/sync/sync_command_repository.dart';
@@ -48,11 +49,13 @@ class SyncController extends AsyncNotifier<SyncStatus> {
     _syncInFlight = true;
     state = const AsyncData(SyncStatus.syncing);
     try {
-      await ref.read(syncCommandRepositoryProvider).drainPhase6Commands(userId);
+      await ref.read(syncCommandRepositoryProvider).drainEarlyCommands(userId);
+      await ref.read(profileRepositoryProvider).drainSettingsPatchOutbox(userId);
       await ref.read(customFoodRepositoryProvider).drainOutbox(userId);
       await ref.read(templateRepositoryProvider).drainOutbox(userId);
       await ref.read(mealRepositoryProvider).drainMealOutbox(userId);
-      await ref.read(syncCommandRepositoryProvider).drainPhase6Commands(userId);
+      await ref.read(syncCommandRepositoryProvider).drainDeferredCommands(userId);
+      await ref.read(syncCommandRepositoryProvider).pullAuthoritativeState(userId);
       state = AsyncData(await _statusForCurrentUser());
     } catch (error) {
       state = const AsyncData(SyncStatus.failed);

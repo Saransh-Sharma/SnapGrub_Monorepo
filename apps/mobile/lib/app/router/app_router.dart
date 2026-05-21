@@ -19,6 +19,7 @@ import 'package:snapgrub/features/profile/presentation/settings_screen.dart';
 import 'package:snapgrub/features/templates/presentation/templates_screen.dart';
 import 'package:snapgrub/features/text_entry/presentation/text_entry_screen.dart';
 import 'package:snapgrub/features/voice_entry/presentation/voice_entry_screen.dart';
+import 'package:snapgrub/offline/sync/sync_status_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final auth = ref.watch(authControllerProvider);
@@ -89,6 +90,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/settings',
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: '/sync',
+        builder: (context, state) => const SyncStatusScreen(),
       ),
     ],
     redirect: (context, state) {

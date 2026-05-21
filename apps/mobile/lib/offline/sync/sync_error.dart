@@ -15,3 +15,11 @@ bool isRetryableSyncError(Object error) {
       isConflictSyncError(error));
 }
 
+class NonRetryableSyncException implements Exception {
+  const NonRetryableSyncException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
+}
