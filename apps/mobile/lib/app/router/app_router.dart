@@ -48,7 +48,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/meal-editor',
         builder: (context, state) => MealEditorScreen(
           mealId: state.uri.queryParameters['id'],
-          initialDraft: state.extra is MealDraft ? state.extra! as MealDraft : null,
+          initialDraft:
+              state.extra is MealDraft ? state.extra! as MealDraft : null,
         ),
       ),
       GoRoute(
@@ -114,7 +115,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return location == '/onboarding' ? null : '/onboarding';
       }
 
-      if (location == '/splash' || location == '/auth' || location == '/onboarding') {
+      if (location == '/splash' ||
+          location == '/auth' ||
+          location == '/onboarding') {
         return '/home';
       }
       return null;
