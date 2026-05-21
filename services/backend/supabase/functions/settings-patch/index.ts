@@ -74,6 +74,7 @@ Deno.serve(async (req) => {
 
     return jsonResponse(responseBody);
   } catch (error) {
+    console.error("settings-patch failed", error);
     const status = error instanceof ApiError ? error.status : 500;
     return jsonResponse(errorBody(error, requestId), status);
   }
@@ -95,7 +96,7 @@ async function sha256Hex(value: string) {
 }
 
 function mapPostgresError(error: { message?: string; code?: string }) {
-  if (error.code === "22023") {
+  if (error.code === "22023" || error.code === "23514") {
     return new ApiError("INVALID_INPUT", error.message ?? "Invalid input", 400, false);
   }
   return error;
