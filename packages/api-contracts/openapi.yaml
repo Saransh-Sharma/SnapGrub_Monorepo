@@ -184,6 +184,27 @@ paths:
           $ref: "#/components/responses/Error"
         "401":
           $ref: "#/components/responses/Error"
+  /weekly-insights-generate:
+    post:
+      operationId: weeklyInsightsGenerate
+      summary: Generate weekly insight snapshots for a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WeeklyInsightsGenerateRequest"
+      responses:
+        "200":
+          description: Generated weekly insights
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WeeklyInsightsGenerateResponse"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
   /meals:
     get:
       operationId: listMeals
@@ -994,6 +1015,67 @@ components:
         export_request:
           type: object
           additionalProperties: true
+        server_time:
+          type: string
+          format: date-time
+        request_id:
+          $ref: "#/components/schemas/RequestId"
+    WeeklyInsight:
+      type: object
+      required: [id, user_id, week_start, insight_type, title, summary, payload, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        week_start:
+          type: string
+          format: date
+        insight_type:
+          type: string
+          enum:
+            - protein_target_hit_rate
+            - most_repeated_meal
+            - highest_variance_meal_slot
+            - logging_streak
+            - average_intake_vs_target
+            - next_week_suggestion
+        title:
+          type: string
+        summary:
+          type: string
+        payload:
+          type: object
+          additionalProperties: true
+        status:
+          type: string
+          enum: [ready, insufficient_data]
+        generated_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    WeeklyInsightsGenerateRequest:
+      type: object
+      required: [user_id]
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        week_start:
+          type: string
+          format: date
+    WeeklyInsightsGenerateResponse:
+      type: object
+      required: [weekly_insights, server_time, request_id]
+      properties:
+        weekly_insights:
+          type: array
+          items:
+            $ref: "#/components/schemas/WeeklyInsight"
         server_time:
           type: string
           format: date-time
