@@ -53,13 +53,15 @@ class _MealCard extends ConsumerWidget {
             Row(
               children: [
                 Expanded(
-                  child: Text(meal.title, style: Theme.of(context).textTheme.titleMedium),
+                  child: Text(meal.title,
+                      style: Theme.of(context).textTheme.titleMedium),
                 ),
                 Chip(label: Text(meal.syncStatus.name)),
               ],
             ),
             const SizedBox(height: 8),
-            Text('${meal.caloriesKcal.round()} kcal · P ${meal.proteinG.round()}g · C ${meal.carbsG.round()}g · F ${meal.fatG.round()}g'),
+            Text(
+                '${meal.caloriesKcal.round()} kcal · P ${meal.proteinG.round()}g · C ${meal.carbsG.round()}g · F ${meal.fatG.round()}g'),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,

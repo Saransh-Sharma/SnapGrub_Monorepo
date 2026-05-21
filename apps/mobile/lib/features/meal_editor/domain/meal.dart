@@ -239,18 +239,30 @@ class MealDraft {
   String? photoAssetId;
   final List<String> analysisWarnings;
 
-  double get caloriesKcal => items.fold(0, (sum, item) => sum + item.caloriesKcal);
+  double get caloriesKcal =>
+      items.fold(0, (sum, item) => sum + item.caloriesKcal);
   double get proteinG => items.fold(0, (sum, item) => sum + item.proteinG);
   double get carbsG => items.fold(0, (sum, item) => sum + item.carbsG);
   double get fatG => items.fold(0, (sum, item) => sum + item.fatG);
 
   void validate() {
-    if (title.trim().isEmpty) throw ArgumentError('Meal title is required.');
-    if (items.isEmpty) throw ArgumentError('Add at least one item.');
+    if (title.trim().isEmpty) {
+      throw ArgumentError('Meal title is required.');
+    }
+    if (items.isEmpty) {
+      throw ArgumentError('Add at least one item.');
+    }
     for (final item in items) {
-      if (item.name.trim().isEmpty) throw ArgumentError('Item name is required.');
-      if (item.quantity <= 0) throw ArgumentError('Quantity must be greater than zero.');
-      if (item.caloriesKcal < 0 || item.proteinG < 0 || item.carbsG < 0 || item.fatG < 0) {
+      if (item.name.trim().isEmpty) {
+        throw ArgumentError('Item name is required.');
+      }
+      if (item.quantity <= 0) {
+        throw ArgumentError('Quantity must be greater than zero.');
+      }
+      if (item.caloriesKcal < 0 ||
+          item.proteinG < 0 ||
+          item.carbsG < 0 ||
+          item.fatG < 0) {
         throw ArgumentError('Nutrition values cannot be negative.');
       }
     }

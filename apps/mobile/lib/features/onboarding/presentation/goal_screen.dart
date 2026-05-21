@@ -21,7 +21,9 @@ class OnboardingGoalScreen extends ConsumerWidget {
           ],
           selected: {draft.goalType},
           onSelectionChanged: (value) {
-            ref.read(onboardingControllerProvider.notifier).updateGoal(value.single);
+            ref
+                .read(onboardingControllerProvider.notifier)
+                .updateGoal(value.single);
           },
         ),
         const SizedBox(height: 24),
@@ -32,7 +34,9 @@ class OnboardingGoalScreen extends ConsumerWidget {
           ],
           selected: {draft.unitSystem},
           onSelectionChanged: (value) {
-            ref.read(onboardingControllerProvider.notifier).updateUnitSystem(value.single);
+            ref
+                .read(onboardingControllerProvider.notifier)
+                .updateUnitSystem(value.single);
           },
         ),
       ],

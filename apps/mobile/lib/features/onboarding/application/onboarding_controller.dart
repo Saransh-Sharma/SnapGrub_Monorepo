@@ -14,24 +14,30 @@ class OnboardingController extends Notifier<OnboardingDraft> {
 
   void updateGoal(String value) => state = state.copyWith(goalType: value);
 
-  void updateUnitSystem(String value) => state = state.copyWith(unitSystem: value);
+  void updateUnitSystem(String value) =>
+      state = state.copyWith(unitSystem: value);
 
   void updateWeight(String value) {
     final parsed = double.tryParse(value);
     if (parsed == null) return;
-    state = state.copyWith(weightKg: state.unitSystem == 'imperial' ? parsed * 0.45359237 : parsed);
+    state = state.copyWith(
+        weightKg:
+            state.unitSystem == 'imperial' ? parsed * 0.45359237 : parsed);
   }
 
   void updateTargetWeight(String value) {
     final parsed = double.tryParse(value);
     if (parsed == null) return;
-    state = state.copyWith(targetWeightKg: state.unitSystem == 'imperial' ? parsed * 0.45359237 : parsed);
+    state = state.copyWith(
+        targetWeightKg:
+            state.unitSystem == 'imperial' ? parsed * 0.45359237 : parsed);
   }
 
   void updateHeight(String value) {
     final parsed = double.tryParse(value);
     if (parsed == null) return;
-    state = state.copyWith(heightCm: state.unitSystem == 'imperial' ? parsed * 2.54 : parsed);
+    state = state.copyWith(
+        heightCm: state.unitSystem == 'imperial' ? parsed * 2.54 : parsed);
   }
 
   void updateActivityLevel(String value) {
@@ -44,7 +50,8 @@ class OnboardingController extends Notifier<OnboardingDraft> {
   }
 
   void updateCalories(String value) {
-    state = state.copyWith(caloriesKcal: double.tryParse(value) ?? state.caloriesKcal);
+    state = state.copyWith(
+        caloriesKcal: double.tryParse(value) ?? state.caloriesKcal);
   }
 
   void updateProtein(String value) {

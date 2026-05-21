@@ -20,7 +20,8 @@ class MealRemoteService {
       day == null ? 'meals' : 'meals?day=$day',
       method: HttpMethod.get,
     );
-    return MealListResponseDto.fromJson(Map<String, dynamic>.from(response.data as Map));
+    return MealListResponseDto.fromJson(
+        Map<String, dynamic>.from(response.data as Map));
   }
 
   Future<MealWriteResponseDto> createMeal({
@@ -33,7 +34,8 @@ class MealRemoteService {
       headers: {'Idempotency-Key': clientRequestId},
       body: request.toJson(),
     );
-    return MealWriteResponseDto.fromJson(Map<String, dynamic>.from(response.data as Map));
+    return MealWriteResponseDto.fromJson(
+        Map<String, dynamic>.from(response.data as Map));
   }
 
   Future<MealWriteResponseDto> updateMeal({
@@ -48,7 +50,8 @@ class MealRemoteService {
       headers: {'Idempotency-Key': clientRequestId},
       body: request.toJson(),
     );
-    return MealWriteResponseDto.fromJson(Map<String, dynamic>.from(response.data as Map));
+    return MealWriteResponseDto.fromJson(
+        Map<String, dynamic>.from(response.data as Map));
   }
 
   Future<MealWriteResponseDto> deleteMeal({
@@ -66,6 +69,7 @@ class MealRemoteService {
         if (expectedRevision != null) 'expected_revision': expectedRevision,
       },
     );
-    return MealWriteResponseDto.fromJson(Map<String, dynamic>.from(response.data as Map));
+    return MealWriteResponseDto.fromJson(
+        Map<String, dynamic>.from(response.data as Map));
   }
 }
