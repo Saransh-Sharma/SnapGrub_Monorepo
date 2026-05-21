@@ -83,6 +83,10 @@ Deno.serve(async (req) => {
         p_expected_revision: body.expected_revision ?? null,
       });
       if (error) throw mapPostgresError(error);
+      await client.rpc("refresh_user_food_defaults_for_meal", {
+        p_user_id: user.id,
+        p_meal_id: data.meal.id,
+      });
 
       const responseBody = {
         meal: data.meal,

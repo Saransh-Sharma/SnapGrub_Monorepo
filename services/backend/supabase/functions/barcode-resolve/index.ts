@@ -71,7 +71,7 @@ async function readLocalProduct(client: ReturnType<typeof serviceClient>, barcod
   if (error) throw error;
   const product = data?.branded_products;
   if (Array.isArray(product)) return product[0] as Record<string, unknown> | undefined;
-  return product as Record<string, unknown> | null;
+  return product == null ? null : product as Record<string, unknown>;
 }
 
 async function fetchOpenFoodFacts(barcode: string) {

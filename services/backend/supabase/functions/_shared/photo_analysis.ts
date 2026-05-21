@@ -275,12 +275,13 @@ function normalizeComponent(item: Record<string, unknown>, index: number): MealI
   };
 }
 
-function normalizeWarning(value: unknown) {
+function normalizeWarning(value: unknown): { code: string; message: string; severity: "info" | "review" | "high" } {
   if (typeof value === "string") {
     return { code: "review", message: value, severity: "review" as const };
   }
   const item = value as Record<string, unknown>;
-  const severity = item?.severity === "high" || item?.severity === "info" ? item.severity : "review";
+  const severity: "info" | "review" | "high" =
+    item?.severity === "high" || item?.severity === "info" ? item.severity : "review";
   return {
     code: stringOr(item?.code, "review"),
     message: stringOr(item?.message, "Please review this estimate."),

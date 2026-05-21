@@ -20,7 +20,7 @@ Deno.serve(async (req) => {
     const normalized = query.toLowerCase();
     const pattern = `%${normalized.replace(/[%_]/g, "")}%`;
 
-    const [canonical, aliases, branded, custom, recent] = await Promise.all([
+    const [canonical, aliases, branded, custom, defaults, recent] = await Promise.all([
       client
         .from("canonical_foods")
         .select("*, food_nutrients(*), food_portions(*)")
@@ -42,7 +42,14 @@ Deno.serve(async (req) => {
         .select("*")
         .eq("user_id", user.id)
         .is("deleted_at", null)
-        .ilike("normalized_name", pattern)
+        .ilike("name", pattern)
+        .limit(limit),
+      client
+        .from("user_food_defaults")
+        .select("*")
+        .eq("user_id", user.id)
+        .ilike("food_name", pattern)
+        .order("use_count", { ascending: false })
         .limit(limit),
       client
         .from("meal_items")
@@ -53,7 +60,7 @@ Deno.serve(async (req) => {
         .limit(limit),
     ]);
 
-    for (const result of [canonical, aliases, branded, custom, recent]) {
+    for (const result of [canonical, aliases, branded, custom, defaults, recent]) {
       if (result.error) throw result.error;
     }
 
@@ -64,6 +71,7 @@ Deno.serve(async (req) => {
       ),
       ...((branded.data ?? []) as Record<string, unknown>[]).map(brandedToResult),
       ...((custom.data ?? []) as Record<string, unknown>[]).map(customToResult),
+      ...((defaults.data ?? []) as Record<string, unknown>[]).map(defaultToResult),
       ...((recent.data ?? []) as Record<string, unknown>[]).map(recentToResult),
     ]).slice(0, limit);
 
@@ -147,6 +155,29 @@ function customToResult(row: Record<string, unknown>): FoodResult {
       source_id: String(row.id),
       license_tag: "user-owned",
       source_quality: "user_entered",
+    },
+  };
+}
+
+function defaultToResult(row: Record<string, unknown>): FoodResult {
+  return {
+    id: `default:${row.food_ref_kind}:${row.food_ref_id}`,
+    result_type: "recent",
+    name: String(row.food_name ?? "Frequent food"),
+    brand: null,
+    serving_quantity: numberOrNull(row.preferred_quantity) ?? 1,
+    serving_unit: stringOrNull(row.preferred_unit) ?? "serving",
+    serving_grams: numberOrNull(row.preferred_grams),
+    calories_kcal: numberOrNull(row.calories_kcal) ?? 0,
+    protein_g: numberOrNull(row.protein_g) ?? 0,
+    carbs_g: numberOrNull(row.carbs_g) ?? 0,
+    fat_g: numberOrNull(row.fat_g) ?? 0,
+    confidence: 0.86,
+    provenance: {
+      source_type: "user_food_default",
+      source_id: String(row.id),
+      license_tag: "user-owned",
+      source_quality: "learned_default",
     },
   };
 }

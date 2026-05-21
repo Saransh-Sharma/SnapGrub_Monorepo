@@ -11,4 +11,5 @@ npm run backend:test:rls
 npm run backend:test:meal-core
 npm run backend:test:phase5
 npm run backend:test:phase6
+npm run backend:test:phase7
 ```
