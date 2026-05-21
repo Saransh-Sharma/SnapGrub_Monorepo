@@ -26,7 +26,8 @@ class AnalyticsRepository {
   final OutboxRepository _outbox;
   final Ref _ref;
 
-  Future<void> track(String eventName, {Map<String, Object?> properties = const {}}) async {
+  Future<void> track(String eventName,
+      {Map<String, Object?> properties = const {}}) async {
     final event = {
       'event_name': eventName,
       'properties': properties,
@@ -41,7 +42,9 @@ class AnalyticsRepository {
         await _outbox.enqueue(
           userId: auth!.userId!,
           commandType: 'analytics.batch',
-          payload: {'events': [event]},
+          payload: {
+            'events': [event]
+          },
           clientRequestId: clientRequestId,
         );
       }

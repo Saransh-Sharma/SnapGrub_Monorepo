@@ -62,7 +62,8 @@ class AppDatabase extends _$AppDatabase {
           }
           if (from < 4) {
             await m.addColumn(outboxCommands, outboxCommands.payloadHash);
-            await m.addColumn(outboxCommands, outboxCommands.dependencyCommandId);
+            await m.addColumn(
+                outboxCommands, outboxCommands.dependencyCommandId);
             await m.addColumn(outboxCommands, outboxCommands.lastError);
           }
           if (from < 5) {

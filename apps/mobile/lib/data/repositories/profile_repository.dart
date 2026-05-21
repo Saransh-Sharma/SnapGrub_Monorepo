@@ -43,9 +43,12 @@ class ProfileRepository {
   final DeviceIdentityService _deviceIdentity;
 
   Future<ProfileState> loadLocal(String userId) async {
-    final profileRow = await (_db.select(_db.profilesLocal)..where((tbl) => tbl.id.equals(userId))).getSingleOrNull();
+    final profileRow = await (_db.select(_db.profilesLocal)
+          ..where((tbl) => tbl.id.equals(userId)))
+        .getSingleOrNull();
     final goalRow = await (_db.select(_db.nutritionGoalsLocal)
-          ..where((tbl) => tbl.userId.equals(userId) & tbl.isActive.equals(true)))
+          ..where(
+              (tbl) => tbl.userId.equals(userId) & tbl.isActive.equals(true)))
         .getSingleOrNull();
     final flags = await _db.select(_db.featureFlagsLocal).get();
 
@@ -106,7 +109,8 @@ class ProfileRepository {
     final pending = await _outbox.pendingSettingsPatchCommands(userId);
     for (final command in pending) {
       try {
-        final payload = Map<String, dynamic>.from(jsonDecode(command.payloadJson) as Map);
+        final payload =
+            Map<String, dynamic>.from(jsonDecode(command.payloadJson) as Map);
         final request = SettingsPatchRequestDto(
           clientRequestId: command.clientRequestId,
           profilePatch: _nullableMap(payload['profile_patch']),
@@ -123,7 +127,8 @@ class ProfileRepository {
         if (isConflictSyncError(error)) {
           await _outbox.markConflict(command.id, error);
         } else {
-          await _outbox.markFailed(command.id, retryable: _isRetryable(error), error: error);
+          await _outbox.markFailed(command.id,
+              retryable: _isRetryable(error), error: error);
         }
       }
     }
@@ -139,7 +144,8 @@ class ProfileRepository {
             timezone: profile.timezone,
             unitSystem: Value(profile.unitSystem),
             countryCode: Value(profile.countryCode),
-            cuisinePreferencesJson: Value(encodeStringList(profile.cuisinePreferences)),
+            cuisinePreferencesJson:
+                Value(encodeStringList(profile.cuisinePreferences)),
             cloudMediaStorage: Value(profile.cloudMediaStorage),
             saveOriginalPhotos: Value(profile.saveOriginalPhotos),
             aiImprovementConsent: Value(profile.aiImprovementConsent),
@@ -169,7 +175,8 @@ class ProfileRepository {
           );
     }
 
-    for (final entry in (response.featureFlags as Map<String, Object?>).entries) {
+    for (final entry
+        in (response.featureFlags as Map<String, Object?>).entries) {
       await _db.into(_db.featureFlagsLocal).insertOnConflictUpdate(
             FeatureFlagsLocalCompanion.insert(
               key: entry.key,
@@ -189,7 +196,8 @@ class ProfileRepository {
             timezone: profile.timezone,
             unitSystem: Value(profile.unitSystem),
             countryCode: Value(profile.countryCode),
-            cuisinePreferencesJson: Value(encodeStringList(profile.cuisinePreferences)),
+            cuisinePreferencesJson:
+                Value(encodeStringList(profile.cuisinePreferences)),
             cloudMediaStorage: Value(profile.cloudMediaStorage),
             saveOriginalPhotos: Value(profile.saveOriginalPhotos),
             aiImprovementConsent: Value(profile.aiImprovementConsent),
@@ -220,17 +228,21 @@ class ProfileRepository {
     }
   }
 
-  Future<void> _saveDraftLocally(String userId, OnboardingDraft draft, String syncStatus) async {
+  Future<void> _saveDraftLocally(
+      String userId, OnboardingDraft draft, String syncStatus) async {
     final completedAt = DateTime.now().toUtc();
     await _db.into(_db.profilesLocal).insertOnConflictUpdate(
           ProfilesLocalCompanion.insert(
             id: userId,
-            displayName: Value(draft.displayName.trim().isEmpty ? null : draft.displayName.trim()),
+            displayName: Value(draft.displayName.trim().isEmpty
+                ? null
+                : draft.displayName.trim()),
             locale: Value(draft.locale),
             timezone: draft.timezone,
             unitSystem: Value(draft.unitSystem),
             countryCode: Value(draft.countryCode),
-            cuisinePreferencesJson: Value(encodeStringList(draft.cuisinePreferences)),
+            cuisinePreferencesJson:
+                Value(encodeStringList(draft.cuisinePreferences)),
             onboardingCompletedAt: Value(completedAt),
             syncStatus: Value(syncStatus),
           ),
@@ -245,7 +257,8 @@ class ProfileRepository {
             proteinG: draft.proteinG,
             carbsG: draft.carbsG,
             fatG: draft.fatG,
-            startsOn: DateTime(completedAt.year, completedAt.month, completedAt.day),
+            startsOn:
+                DateTime(completedAt.year, completedAt.month, completedAt.day),
             isActive: const Value(true),
             syncStatus: Value(syncStatus),
           ),
@@ -266,12 +279,14 @@ class ProfileRepository {
     }
   }
 
-  SettingsPatchRequestDto _settingsRequestFromDraft(String clientRequestId, OnboardingDraft draft) {
+  SettingsPatchRequestDto _settingsRequestFromDraft(
+      String clientRequestId, OnboardingDraft draft) {
     final measurement = draft.bodyMeasurement;
     return SettingsPatchRequestDto(
       clientRequestId: clientRequestId,
       profilePatch: {
-        'display_name': draft.displayName.trim().isEmpty ? null : draft.displayName.trim(),
+        'display_name':
+            draft.displayName.trim().isEmpty ? null : draft.displayName.trim(),
         'locale': draft.locale,
         'timezone': draft.timezone,
         'unit_system': draft.unitSystem,
@@ -305,7 +320,8 @@ class ProfileRepository {
 
   Future<void> _deleteLocalActiveGoalPlaceholder(String userId) {
     return (_db.delete(_db.nutritionGoalsLocal)
-          ..where((tbl) => tbl.userId.equals(userId) & tbl.id.equals('local-active-goal')))
+          ..where((tbl) =>
+              tbl.userId.equals(userId) & tbl.id.equals('local-active-goal')))
         .go();
   }
 
