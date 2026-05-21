@@ -9,7 +9,8 @@ import 'package:snapgrub/offline/outbox/outbox_repository.dart';
 import 'package:snapgrub_api_contracts/snapgrub_api_contracts.dart';
 
 void main() {
-  test('offline onboarding creates one pending settings.patch command', () async {
+  test('offline onboarding creates one pending settings.patch command',
+      () async {
     final db = AppDatabase(NativeDatabase.memory());
     addTearDown(db.close);
 

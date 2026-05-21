@@ -38,7 +38,8 @@ void main() {
     expect(() => draft.validate(), throwsArgumentError);
   });
 
-  test('custom food draft validates required fields and non-negative macros', () {
+  test('custom food draft validates required fields and non-negative macros',
+      () {
     final draft = CustomFoodDraft(
       name: 'Home curd',
       caloriesKcal: 120,

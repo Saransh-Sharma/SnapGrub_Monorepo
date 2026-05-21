@@ -8,7 +8,8 @@ import 'package:snapgrub/data/services/profile_remote_service.dart';
 import 'package:snapgrub/offline/outbox/outbox_repository.dart';
 
 void main() {
-  test('local profile and goal reads are scoped to the signed-in user', () async {
+  test('local profile and goal reads are scoped to the signed-in user',
+      () async {
     final db = AppDatabase(NativeDatabase.memory());
     addTearDown(db.close);
 
