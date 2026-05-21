@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Phase 0-5 implementation is in place at source level. Current work is Phase 6 readiness: verification, native platform restoration, and offline sync/idempotency hardening.
+Phase 0-7 implementation is in place at source level. Current work is verification, native platform restoration, and Supabase-backed acceptance testing.
 
 ## Capability Map
 
@@ -15,8 +15,9 @@ flowchart LR
   P4["Phase 4\nphoto analysis"]
   P5["Phase 5\nbarcode/OCR/text/voice"]
   P6["Phase 6\noffline sync hardening"]
+  P7["Phase 7\ninsights + retention"]
 
-  P0 --> P1 --> P2 --> P3 --> P4 --> P5 --> P6
+  P0 --> P1 --> P2 --> P3 --> P4 --> P5 --> P6 --> P7
 ```
 
 ## Implemented
@@ -33,14 +34,17 @@ flowchart LR
 - Phase 4 photo-analysis contracts, migrations, Edge Functions, local capture asset pipeline, and Meal Editor draft handoff exist.
 - Phase 5 barcode, OCR assist, text entry, voice entry, catalog migration, and parser Edge Functions exist.
 - Phase 6 readiness now includes idempotent template/custom-food/body-measurement/export functions, analytics idempotency, server-owned daily rollups, idempotency cleanup, and expanded mobile outbox command support.
+- Phase 6 source now includes deterministic sync drain order, queued/direct photo upload de-duplication, authoritative pull-after-push for server-owned tables, and a visible sync conflict recovery surface.
+- Phase 7 source now includes `weekly_insights`, `user_food_defaults`, weekly insight generation, learned-default refresh from saved meals, local insight/default caches, and Progress/Frequent Food UI surfaces behind `weekly_insights.enabled`.
 
 ## Verification Blockers
 
-- Flutter/Dart/Supabase CLI/Deno toolchain must be installed in the execution environment.
+- Flutter/Dart/Supabase CLI toolchain must be installed in the execution environment.
 - Real Flutter Android/iOS platform projects must be generated and committed.
 - Android/iOS platform folders currently contain only `.gitkeep`; real flavor projects remain a Phase 0 compliance gap.
 - Supabase local env keys must be exported before RLS and meal-core smoke tests are authoritative.
+- Drift generated code must be regenerated after schema version 5 table additions.
 
 ## Next Phase Entry
 
-Proceed to Phase 6 acceptance only after Phase 5 smoke tests pass, real platform folders are generated, and the full backend/mobile toolchain is available locally or in CI.
+Proceed to acceptance only after Phase 5-7 smoke tests pass, real platform folders are generated, Drift codegen is committed, and the full backend/mobile toolchain is available locally or in CI.
