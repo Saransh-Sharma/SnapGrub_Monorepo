@@ -43,7 +43,8 @@ class ProgressScreen extends ConsumerWidget {
                 defaults.when(
                   loading: () => const LinearProgressIndicator(),
                   error: (error, _) => Text(error.toString()),
-                  data: (items) => FrequentMealsSection(defaults: items, contextData: data),
+                  data: (items) =>
+                      FrequentMealsSection(defaults: items, contextData: data),
                 ),
               ],
             ),
@@ -96,7 +97,9 @@ class _ProgressBody extends StatelessWidget {
           child: ListTile(
             leading: const Icon(Icons.restaurant_menu),
             title: Text('${rollup.mealCount} meals logged'),
-            subtitle: Text(rollup.hasPhotoMeal ? 'Includes photo-sourced meals' : 'Manual/template meals today'),
+            subtitle: Text(rollup.hasPhotoMeal
+                ? 'Includes photo-sourced meals'
+                : 'Manual/template meals today'),
           ),
         ),
       ],
@@ -172,7 +175,8 @@ class WeeklyInsightCard extends StatelessWidget {
               children: [
                 const Icon(Icons.insights_outlined),
                 const SizedBox(width: 8),
-                Text('Weekly check-in', style: Theme.of(context).textTheme.titleMedium),
+                Text('Weekly check-in',
+                    style: Theme.of(context).textTheme.titleMedium),
               ],
             ),
             const SizedBox(height: 12),
@@ -180,7 +184,8 @@ class WeeklyInsightCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text(primary.summary),
             const SizedBox(height: 12),
-            for (final insight in insights.where((item) => item.id != primary.id).take(3))
+            for (final insight
+                in insights.where((item) => item.id != primary.id).take(3))
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Text('${insight.title}: ${insight.summary}'),
@@ -204,7 +209,8 @@ class StreakCard extends StatelessWidget {
       child: ListTile(
         leading: const Icon(Icons.calendar_month_outlined),
         title: const Text('Logging rhythm'),
-        subtitle: Text(streak?.summary ?? 'Log a few meals to see your weekly rhythm.'),
+        subtitle: Text(
+            streak?.summary ?? 'Log a few meals to see your weekly rhythm.'),
       ),
     );
   }
@@ -227,7 +233,8 @@ class FrequentMealsSection extends ConsumerWidget {
         child: ListTile(
           leading: Icon(Icons.repeat),
           title: Text('Frequent meals'),
-          subtitle: Text('Repeat foods will appear here after they are logged.'),
+          subtitle:
+              Text('Repeat foods will appear here after they are logged.'),
         ),
       );
     }
@@ -240,7 +247,8 @@ class FrequentMealsSection extends ConsumerWidget {
           Card(
             child: ListTile(
               title: Text(item.foodName),
-              subtitle: Text('${_formatQuantity(item.preferredQuantity)} ${item.preferredUnit} · used ${item.useCount} times'),
+              subtitle: Text(
+                  '${_formatQuantity(item.preferredQuantity)} ${item.preferredUnit} · used ${item.useCount} times'),
               trailing: IconButton(
                 tooltip: 'Quick add',
                 icon: const Icon(Icons.add_circle_outline),
@@ -255,9 +263,15 @@ class FrequentMealsSection extends ConsumerWidget {
                       MealDraftItem(
                         name: item.foodName,
                         foodRefKind: item.foodRefKind,
-                        canonicalFoodId: item.foodRefKind == 'canonical' ? item.foodRefId : null,
-                        brandedProductId: item.foodRefKind == 'branded' ? item.foodRefId : null,
-                        customFoodId: item.foodRefKind == 'custom' ? item.foodRefId : null,
+                        canonicalFoodId: item.foodRefKind == 'canonical'
+                            ? item.foodRefId
+                            : null,
+                        brandedProductId: item.foodRefKind == 'branded'
+                            ? item.foodRefId
+                            : null,
+                        customFoodId: item.foodRefKind == 'custom'
+                            ? item.foodRefId
+                            : null,
                         quantity: item.preferredQuantity,
                         unit: item.preferredUnit,
                         gramsEstimated: item.preferredGrams,

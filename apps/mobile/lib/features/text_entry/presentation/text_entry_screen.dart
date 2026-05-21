@@ -42,12 +42,16 @@ class _TextEntryScreenState extends ConsumerState<TextEntryScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          if (_error != null) Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+          if (_error != null)
+            Text(_error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error)),
           const SizedBox(height: 8),
           FilledButton.icon(
             onPressed: _loading ? null : _parse,
             icon: _loading
-                ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                ? const SizedBox.square(
+                    dimension: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2))
                 : const Icon(Icons.arrow_forward),
             label: const Text('Review'),
           ),

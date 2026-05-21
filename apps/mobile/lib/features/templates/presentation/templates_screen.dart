@@ -25,7 +25,10 @@ class TemplatesScreen extends ConsumerWidget {
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (error, _) => Text(error.toString()),
             data: (items) {
-              if (items.isEmpty) return const Text('Save a meal as a template to reuse it here.');
+              if (items.isEmpty) {
+                return const Text(
+                    'Save a meal as a template to reuse it here.');
+              }
               return ListView.separated(
                 itemCount: items.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 8),
@@ -61,7 +64,9 @@ class _TemplateTile extends ConsumerWidget {
         trailing: PopupMenuButton<String>(
           onSelected: (value) async {
             if (value == 'use') {
-              final meal = await ref.read(mealRepositoryProvider).saveDraft(template.toDraft(timezone: timezone));
+              final meal = await ref
+                  .read(mealRepositoryProvider)
+                  .saveDraft(template.toDraft(timezone: timezone));
               if (context.mounted) context.go('/meal-editor?id=${meal.id}');
             } else if (value == 'delete') {
               await ref.read(templateRepositoryProvider).delete(template);

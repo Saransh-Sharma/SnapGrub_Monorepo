@@ -24,26 +24,24 @@ class MealTemplate {
   final DateTime? deletedAt;
 
   MealDraft toDraft({required String timezone}) {
-    final items = (snapshot['items'] as List? ?? const [])
-        .map((raw) {
-          final item = Map<String, Object?>.from(raw as Map);
-          return MealDraftItem(
-            name: item['name'] as String? ?? '',
-            quantity: (item['quantity'] as num?)?.toDouble() ?? 1,
-            unit: item['unit'] as String? ?? 'serving',
-            gramsEstimated: (item['grams_estimated'] as num?)?.toDouble(),
-            caloriesKcal: (item['calories_kcal'] as num?)?.toDouble() ?? 0,
-            proteinG: (item['protein_g'] as num?)?.toDouble() ?? 0,
-            carbsG: (item['carbs_g'] as num?)?.toDouble() ?? 0,
-            fatG: (item['fat_g'] as num?)?.toDouble() ?? 0,
-            foodRefKind: item['food_ref_kind'] as String? ?? 'manual',
-            customFoodId: item['custom_food_id'] as String?,
-            sourceType: item['source_type'] as String?,
-            sourceId: item['source_id'] as String?,
-            notes: item['notes'] as String?,
-          );
-        })
-        .toList();
+    final items = (snapshot['items'] as List? ?? const []).map((raw) {
+      final item = Map<String, Object?>.from(raw as Map);
+      return MealDraftItem(
+        name: item['name'] as String? ?? '',
+        quantity: (item['quantity'] as num?)?.toDouble() ?? 1,
+        unit: item['unit'] as String? ?? 'serving',
+        gramsEstimated: (item['grams_estimated'] as num?)?.toDouble(),
+        caloriesKcal: (item['calories_kcal'] as num?)?.toDouble() ?? 0,
+        proteinG: (item['protein_g'] as num?)?.toDouble() ?? 0,
+        carbsG: (item['carbs_g'] as num?)?.toDouble() ?? 0,
+        fatG: (item['fat_g'] as num?)?.toDouble() ?? 0,
+        foodRefKind: item['food_ref_kind'] as String? ?? 'manual',
+        customFoodId: item['custom_food_id'] as String?,
+        sourceType: item['source_type'] as String?,
+        sourceId: item['source_id'] as String?,
+        notes: item['notes'] as String?,
+      );
+    }).toList();
     return MealDraft(
       userId: userId,
       timezone: timezone,

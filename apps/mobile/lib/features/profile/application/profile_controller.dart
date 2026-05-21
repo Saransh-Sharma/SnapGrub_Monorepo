@@ -5,7 +5,8 @@ import 'package:snapgrub/features/auth/domain/auth_state.dart';
 import 'package:snapgrub/features/onboarding/domain/onboarding_draft.dart';
 import 'package:snapgrub/features/profile/domain/profile_state.dart';
 
-final profileControllerProvider = AsyncNotifierProvider<ProfileController, ProfileState>(
+final profileControllerProvider =
+    AsyncNotifierProvider<ProfileController, ProfileState>(
   ProfileController.new,
 );
 
@@ -38,6 +39,7 @@ class ProfileController extends AsyncNotifier<ProfileState> {
       return;
     }
     state = const AsyncLoading();
-    state = AsyncData(await ref.read(profileRepositoryProvider).bootstrap(userId));
+    state =
+        AsyncData(await ref.read(profileRepositoryProvider).bootstrap(userId));
   }
 }

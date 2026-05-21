@@ -20,8 +20,12 @@ class SettingsScreen extends ConsumerWidget {
       child: ListView(
         children: [
           ListTile(
-            title: Text(user?.displayName?.isNotEmpty == true ? user!.displayName! : 'Profile'),
-            subtitle: Text(user == null ? 'Not loaded' : '${user.locale} - ${user.unitSystem}'),
+            title: Text(user?.displayName?.isNotEmpty == true
+                ? user!.displayName!
+                : 'Profile'),
+            subtitle: Text(user == null
+                ? 'Not loaded'
+                : '${user.locale} - ${user.unitSystem}'),
           ),
           if (goal != null)
             ListTile(
@@ -77,10 +81,14 @@ class _GoalEditScreenState extends ConsumerState<GoalEditScreen> {
     super.initState();
     final goal = ref.read(profileControllerProvider).valueOrNull?.activeGoal;
     _goalType = goal?.goalType ?? 'lose';
-    _caloriesController = TextEditingController(text: (goal?.caloriesKcal ?? 1900).toStringAsFixed(0));
-    _proteinController = TextEditingController(text: (goal?.proteinG ?? 130).toStringAsFixed(0));
-    _carbsController = TextEditingController(text: (goal?.carbsG ?? 190).toStringAsFixed(0));
-    _fatController = TextEditingController(text: (goal?.fatG ?? 60).toStringAsFixed(0));
+    _caloriesController = TextEditingController(
+        text: (goal?.caloriesKcal ?? 1900).toStringAsFixed(0));
+    _proteinController =
+        TextEditingController(text: (goal?.proteinG ?? 130).toStringAsFixed(0));
+    _carbsController =
+        TextEditingController(text: (goal?.carbsG ?? 190).toStringAsFixed(0));
+    _fatController =
+        TextEditingController(text: (goal?.fatG ?? 60).toStringAsFixed(0));
   }
 
   @override
@@ -109,7 +117,8 @@ class _GoalEditScreenState extends ConsumerState<GoalEditScreen> {
               ButtonSegment(value: 'custom', label: Text('Custom')),
             ],
             selected: {_goalType},
-            onSelectionChanged: (value) => setState(() => _goalType = value.single),
+            onSelectionChanged: (value) =>
+                setState(() => _goalType = value.single),
           ),
           const SizedBox(height: 16),
           _NumberField(controller: _caloriesController, label: 'Calories'),
@@ -119,7 +128,8 @@ class _GoalEditScreenState extends ConsumerState<GoalEditScreen> {
           if (_error != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              child: Text(_error!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error)),
             ),
           FilledButton(
             onPressed: profileState.isLoading || profile == null
@@ -140,13 +150,19 @@ class _GoalEditScreenState extends ConsumerState<GoalEditScreen> {
                         fatG: double.parse(_fatController.text),
                         cameraPrimerSeen: true,
                       );
-                      await ref.read(profileControllerProvider.notifier).completeOnboarding(profile.id, draft);
+                      await ref
+                          .read(profileControllerProvider.notifier)
+                          .completeOnboarding(profile.id, draft);
                       if (context.mounted) Navigator.of(context).pop();
                     } catch (error) {
-                      setState(() => _error = error.toString().replaceFirst('Invalid argument(s): ', ''));
+                      setState(() => _error = error
+                          .toString()
+                          .replaceFirst('Invalid argument(s): ', ''));
                     }
                   },
-            child: profileState.isLoading ? const Text('Saving...') : const Text('Save goal'),
+            child: profileState.isLoading
+                ? const Text('Saving...')
+                : const Text('Save goal'),
           ),
         ],
       ),
