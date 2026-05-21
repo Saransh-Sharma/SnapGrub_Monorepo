@@ -1,6 +1,6 @@
 # Supabase Tests
 
-Phase 0-3 test coverage starts with SQL smoke tests, RLS isolation, and meal-core RPC smoke checks.
+Phase 0-6 test coverage starts with SQL smoke tests, RLS isolation, meal-core RPC checks, multimodal smoke checks, and sync-readiness checks.
 
 Run locally after installing the Supabase CLI:
 
@@ -10,4 +10,5 @@ supabase db reset
 npm run backend:test:rls
 npm run backend:test:meal-core
 npm run backend:test:phase5
+npm run backend:test:phase6
 ```

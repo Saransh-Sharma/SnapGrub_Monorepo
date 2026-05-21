@@ -1,19 +1,5 @@
 import { ApiError } from "./errors.ts";
 
-type SupabaseClient = {
-  from: (table: string) => {
-    select: (columns: string) => unknown;
-    insert: (values: Record<string, unknown>) => unknown;
-  };
-};
-
-type QueryBuilder = {
-  eq: (column: string, value: string) => QueryBuilder;
-  maybeSingle: () => Promise<{ data: Record<string, unknown> | null; error: unknown }>;
-};
-
-type InsertBuilder = Promise<{ error: unknown }> | { then: Promise<{ error: unknown }>["then"] };
-
 export type IdempotencyReplay = {
   request_hash: string;
   response_status: number | null;
@@ -21,17 +7,16 @@ export type IdempotencyReplay = {
 };
 
 export async function maybeReplayIdempotency(
-  client: SupabaseClient,
+  client: any,
   userId: string,
   endpoint: string,
   key: string,
   bodyText: string,
 ): Promise<IdempotencyReplay | null> {
   const requestHash = await sha256Hex(bodyText);
-  const query = client
+  const { data: previous, error } = await client
     .from("api_idempotency")
-    .select("request_hash, response_status, response_body") as QueryBuilder;
-  const { data: previous, error } = await query
+    .select("request_hash, response_status, response_body")
     .eq("user_id", userId)
     .eq("endpoint", endpoint)
     .eq("key", key)
@@ -45,7 +30,7 @@ export async function maybeReplayIdempotency(
 }
 
 export async function storeIdempotency(
-  client: SupabaseClient,
+  client: any,
   userId: string,
   endpoint: string,
   key: string,
@@ -53,15 +38,14 @@ export async function storeIdempotency(
   responseStatus: number,
   responseBody: Record<string, unknown>,
 ) {
-  const insert = client.from("api_idempotency").insert({
+  const { error } = await client.from("api_idempotency").insert({
     user_id: userId,
     endpoint,
     key,
     request_hash: await sha256Hex(bodyText),
     response_status: responseStatus,
     response_body: responseBody,
-  }) as InsertBuilder;
-  const { error } = await insert;
+  });
   if (error) throw error;
 }
 
@@ -70,4 +54,3 @@ export async function sha256Hex(value: string) {
   const digest = await crypto.subtle.digest("SHA-256", bytes);
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
-

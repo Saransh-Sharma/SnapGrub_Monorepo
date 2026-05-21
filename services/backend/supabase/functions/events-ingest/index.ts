@@ -1,5 +1,6 @@
 import { jsonResponse, optionsResponse } from "../_shared/cors.ts";
 import { ApiError, errorBody } from "../_shared/errors.ts";
+import { maybeReplayIdempotency, storeIdempotency } from "../_shared/idempotency.ts";
 import { anonClient, serviceClient } from "../_shared/supabase.ts";
 
 Deno.serve(async (req) => {
@@ -11,7 +12,8 @@ Deno.serve(async (req) => {
       throw new ApiError("INVALID_INPUT", "Method not allowed", 405);
     }
 
-    const body = await req.json().catch(() => ({}));
+    const bodyText = await req.text();
+    const body = parseJsonBody(bodyText);
     if (!Array.isArray(body.events) || body.events.length === 0 || body.events.length > 50) {
       throw new ApiError("INVALID_INPUT", "events must contain 1 to 50 items", 400);
     }
@@ -21,6 +23,13 @@ Deno.serve(async (req) => {
     if (token) {
       const { data } = await anonClient().auth.getUser(token);
       userId = data.user?.id ?? null;
+    }
+    const client = serviceClient();
+    const clientRequestId = typeof body.client_request_id === "string" ? body.client_request_id : null;
+    const idempotencyKey = req.headers.get("idempotency-key") ?? clientRequestId;
+    if (userId && idempotencyKey) {
+      const replay = await maybeReplayIdempotency(client, userId, "events-ingest", idempotencyKey, bodyText);
+      if (replay) return jsonResponse(replay.response_body, replay.response_status ?? 200);
     }
 
     const rows = body.events.map((event: Record<string, unknown>) => {
@@ -46,15 +55,29 @@ Deno.serve(async (req) => {
       };
     });
 
-    const { error } = await serviceClient().from("analytics_events").insert(rows);
+    const { error } = await client.from("analytics_events").insert(rows);
     if (error) throw error;
 
-    return jsonResponse({ accepted: rows.length, request_id: requestId });
+    const responseBody = { accepted: rows.length, request_id: requestId };
+    if (userId && idempotencyKey) {
+      await storeIdempotency(client, userId, "events-ingest", idempotencyKey, bodyText, 200, responseBody);
+    }
+
+    return jsonResponse(responseBody);
   } catch (error) {
     const status = error instanceof ApiError ? error.status : 500;
     return jsonResponse(errorBody(error, requestId), status);
   }
 });
+
+function parseJsonBody(bodyText: string): Record<string, unknown> {
+  if (!bodyText) return {};
+  try {
+    return JSON.parse(bodyText);
+  } catch (_) {
+    throw new ApiError("INVALID_INPUT", "Request body must be valid JSON", 400, false);
+  }
+}
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);

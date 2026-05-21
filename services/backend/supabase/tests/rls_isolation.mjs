@@ -73,7 +73,7 @@ try {
     });
     if (goalError) throw goalError;
 
-    const { error: measurementError } = await user.client.from('body_measurements').insert({
+    const { error: measurementError } = await admin.from('body_measurements').insert({
       user_id: user.id,
       weight_kg: 82,
       source: 'manual',
@@ -117,7 +117,7 @@ try {
     });
     if (mealItemError) throw mealItemError;
 
-    const { error: templateError } = await user.client.from('meal_templates').insert({
+    const { error: templateError } = await admin.from('meal_templates').insert({
       user_id: user.id,
       client_id: `${user.id}-template`,
       title: 'Manual lunch',
@@ -126,7 +126,7 @@ try {
     });
     if (templateError) throw templateError;
 
-    const { error: customFoodError } = await user.client.from('custom_foods').insert({
+    const { error: customFoodError } = await admin.from('custom_foods').insert({
       user_id: user.id,
       client_id: `${user.id}-custom-food`,
       name: 'Home dal',
@@ -137,7 +137,7 @@ try {
     });
     if (customFoodError) throw customFoodError;
 
-    const { error: rollupError } = await user.client.from('daily_rollups').insert({
+    const { error: rollupError } = await admin.from('daily_rollups').insert({
       user_id: user.id,
       day: new Date().toISOString().slice(0, 10),
       calories_kcal: 300,
@@ -259,8 +259,7 @@ try {
     .update({ weight_kg: 81 })
     .eq('user_id', userA.id)
     .select('*');
-  if (ownMeasurementUpdateError) throw ownMeasurementUpdateError;
-  assert(updatedOwnMeasurements.length === 1, 'User A should update own measurement.');
+  assert(ownMeasurementUpdateError || updatedOwnMeasurements.length === 0, 'User A must not update body measurements directly.');
 
   const { data: otherMeasurements } = await userA.client.from('body_measurements').select('*').eq('user_id', userB.id);
   assert(otherMeasurements.length === 0, 'User A must not read User B measurements.');
