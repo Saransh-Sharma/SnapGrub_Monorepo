@@ -22,20 +22,20 @@ Deno.serve(async (req) => {
         .eq("user_id", user.id)
         .is("deleted_at", null)
         .order("logged_at", { ascending: false })
-        .limit(limit);
+        .limit(day ? 500 : limit);
 
       if (day) {
-        const start = new Date(`${day}T00:00:00.000Z`);
-        if (Number.isNaN(start.getTime())) {
+        if (!isDateString(day)) {
           throw new ApiError("INVALID_INPUT", "day must be a valid date", 400, false);
         }
-        const end = new Date(start);
-        end.setUTCDate(end.getUTCDate() + 1);
-        query = query.gte("logged_at", start.toISOString()).lt("logged_at", end.toISOString());
       }
 
       const { data: meals, error } = await query;
       if (error) throw error;
+      const normalizedMeals = (meals ?? [])
+        .map(normalizeMealRow)
+        .filter((meal) => day == null || mealDay(meal) === day)
+        .slice(0, limit);
 
       const rollupQuery = client.from("daily_rollups").select("*").eq("user_id", user.id);
       if (day) rollupQuery.eq("day", day);
@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
       if (rollupError) throw rollupError;
 
       return jsonResponse({
-        meals: (meals ?? []).map(normalizeMealRow),
+        meals: normalizedMeals,
         daily_rollups: dailyRollups ?? [],
         server_time: new Date().toISOString(),
         request_id: requestId,
@@ -55,6 +55,7 @@ Deno.serve(async (req) => {
       return jsonResponse({
         meal,
         daily_rollup: await readRollupForMeal(client, user.id, meal),
+        correction_events: await readCorrectionEvents(client, user.id, mealId),
         server_time: new Date().toISOString(),
         request_id: requestId,
       });
@@ -86,7 +87,7 @@ Deno.serve(async (req) => {
       const responseBody = {
         meal: data.meal,
         daily_rollup: data.daily_rollup,
-        correction_events: [],
+        correction_events: data.correction_events ?? [],
         server_time: new Date().toISOString(),
         request_id: requestId,
       };
@@ -114,7 +115,7 @@ Deno.serve(async (req) => {
       const responseBody = {
         meal: data.meal,
         daily_rollup: data.daily_rollup,
-        correction_events: [],
+        correction_events: data.correction_events ?? [],
         server_time: new Date().toISOString(),
         request_id: requestId,
       };
@@ -191,8 +192,7 @@ async function readMeal(client: ReturnType<typeof serviceClient>, userId: string
 }
 
 async function readRollupForMeal(client: ReturnType<typeof serviceClient>, userId: string, meal: Record<string, unknown>) {
-  const loggedAt = new Date(meal.logged_at as string);
-  const day = loggedAt.toISOString().slice(0, 10);
+  const day = mealDay(meal);
   const { data, error } = await client
     .from("daily_rollups")
     .select("*")
@@ -201,6 +201,17 @@ async function readRollupForMeal(client: ReturnType<typeof serviceClient>, userI
     .maybeSingle();
   if (error) throw error;
   return data;
+}
+
+async function readCorrectionEvents(client: ReturnType<typeof serviceClient>, userId: string, mealId: string) {
+  const { data, error } = await client
+    .from("correction_events")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("meal_id", mealId)
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
 }
 
 function normalizeMealRow(row: Record<string, unknown>) {
@@ -214,6 +225,31 @@ function normalizeMealRow(row: Record<string, unknown>) {
       return left - right;
     }),
   };
+}
+
+function isDateString(value: string) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(new Date(`${value}T00:00:00.000Z`).getTime());
+}
+
+function mealDay(meal: Record<string, unknown>) {
+  const loggedAt = new Date(meal.logged_at as string);
+  if (Number.isNaN(loggedAt.getTime())) return "";
+  const timezone = typeof meal.timezone === "string" && meal.timezone.trim() ? meal.timezone : "UTC";
+  try {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: timezone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).formatToParts(loggedAt);
+    const year = parts.find((part) => part.type === "year")?.value;
+    const month = parts.find((part) => part.type === "month")?.value;
+    const day = parts.find((part) => part.type === "day")?.value;
+    if (year && month && day) return `${year}-${month}-${day}`;
+  } catch (_) {
+    return loggedAt.toISOString().slice(0, 10);
+  }
+  return loggedAt.toISOString().slice(0, 10);
 }
 
 async function maybeReplayIdempotency(
