@@ -52,6 +52,9 @@ jobs:
       - run: npm run backend:test:phase7
         env:
           NODE_OPTIONS: --experimental-websocket
+      - run: npm run backend:test:phase8
+        env:
+          NODE_OPTIONS: --experimental-websocket
 
   mobile:
     runs-on: ubuntu-latest
