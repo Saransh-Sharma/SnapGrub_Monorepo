@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:snapgrub/data/services/supabase_client_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 final customFoodRemoteServiceProvider = Provider<CustomFoodRemoteService>((ref) {
   return CustomFoodRemoteService(ref.watch(supabaseClientProvider));
@@ -14,27 +15,34 @@ class CustomFoodRemoteService {
 
   Future<Map<String, dynamic>> upsert(Map<String, Object?> payload) async {
     if (_client == null) throw StateError('Supabase is not configured.');
-    final response = await _client
-        .from('custom_foods')
-        .upsert(payload, onConflict: 'user_id,client_id')
-        .select()
-        .single();
-    return Map<String, dynamic>.from(response as Map);
+    final clientRequestId = payload['client_request_id'] as String?;
+    final response = await _client.functions.invoke(
+      'custom-foods',
+      method: HttpMethod.post,
+      headers: clientRequestId == null ? null : {'Idempotency-Key': clientRequestId},
+      body: payload,
+    );
+    return Map<String, dynamic>.from((response.data as Map)['custom_food'] as Map);
   }
 
   Future<Map<String, dynamic>> softDelete({
     required String userId,
     required String clientId,
     required DateTime deletedAt,
+    required String clientRequestId,
   }) async {
     if (_client == null) throw StateError('Supabase is not configured.');
-    final response = await _client
-        .from('custom_foods')
-        .update({'deleted_at': deletedAt.toUtc().toIso8601String()})
-        .eq('user_id', userId)
-        .eq('client_id', clientId)
-        .select()
-        .single();
-    return Map<String, dynamic>.from(response as Map);
+    final response = await _client.functions.invoke(
+      'custom-foods',
+      method: HttpMethod.post,
+      headers: {'Idempotency-Key': clientRequestId},
+      body: {
+        'client_request_id': clientRequestId,
+        'user_id': userId,
+        'client_id': clientId,
+        'deleted_at': deletedAt.toUtc().toIso8601String(),
+      },
+    );
+    return Map<String, dynamic>.from((response.data as Map)['custom_food'] as Map);
   }
 }

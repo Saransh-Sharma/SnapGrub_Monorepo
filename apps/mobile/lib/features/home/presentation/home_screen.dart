@@ -39,22 +39,26 @@ class HomeScreen extends ConsumerWidget {
           if (contextData == null) return const Text('Sign in to continue.');
           final rollupData = rollup.valueOrNull;
           final mealData = meals.valueOrNull ?? const [];
-          return ListView(
-            children: [
-              const SnapStrip(),
-              const SizedBox(height: 16),
-              if (rollupData != null) DailyProgressCard(rollup: rollupData, contextData: contextData),
-              if (rollupData != null) ...[
+          return RefreshIndicator(
+            onRefresh: () => ref.read(syncControllerProvider.notifier).syncNow(trigger: SyncTrigger.pullToRefresh),
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                const SnapStrip(),
+                const SizedBox(height: 16),
+                if (rollupData != null) DailyProgressCard(rollup: rollupData, contextData: contextData),
+                if (rollupData != null) ...[
+                  const SizedBox(height: 12),
+                  MacroSummaryCard(rollup: rollupData, contextData: contextData),
+                ],
                 const SizedBox(height: 12),
-                MacroSummaryCard(rollup: rollupData, contextData: contextData),
+                const QuickActionsRow(),
+                const SizedBox(height: 16),
+                Text('Recent meals', style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 8),
+                RecentMealsCarousel(meals: mealData),
               ],
-              const SizedBox(height: 12),
-              const QuickActionsRow(),
-              const SizedBox(height: 16),
-              Text('Recent meals', style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 8),
-              RecentMealsCarousel(meals: mealData),
-            ],
+            ),
           );
         },
       ),

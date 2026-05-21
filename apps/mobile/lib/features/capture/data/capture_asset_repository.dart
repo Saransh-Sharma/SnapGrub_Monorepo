@@ -11,16 +11,25 @@ import 'package:path_provider/path_provider.dart';
 import 'package:snapgrub/data/db/drift/app_database.dart';
 import 'package:snapgrub/data/db/drift/database_provider.dart';
 import 'package:snapgrub/features/capture/domain/capture_asset.dart';
+import 'package:snapgrub/offline/outbox/outbox_repository.dart';
 import 'package:uuid/uuid.dart';
 
 final captureAssetRepositoryProvider = Provider<CaptureAssetRepository>((ref) {
-  return CaptureAssetRepository(ref.watch(appDatabaseProvider));
+  return CaptureAssetRepository(
+    db: ref.watch(appDatabaseProvider),
+    outbox: ref.watch(outboxRepositoryProvider),
+  );
 });
 
 class CaptureAssetRepository {
-  const CaptureAssetRepository(this._db);
+  const CaptureAssetRepository({
+    required AppDatabase db,
+    required OutboxRepository outbox,
+  })  : _db = db,
+        _outbox = outbox;
 
   final AppDatabase _db;
+  final OutboxRepository _outbox;
 
   Future<CaptureAsset> createFromCapture({
     required String userId,
@@ -77,7 +86,25 @@ class CaptureAssetRepository {
             height: Value(asset.height),
             sizeBytes: Value(asset.sizeBytes),
           ),
-        );
+	        );
+    await _outbox.enqueue(
+      userId: userId,
+      commandType: 'asset.upload',
+      clientRequestId: const Uuid().v4(),
+      payload: {
+        'asset_id': asset.id,
+        'local_path': asset.localPath,
+        'storage_bucket': asset.storageBucket,
+        'storage_path': asset.storagePath,
+        'thumb_local_path': asset.thumbLocalPath,
+        'thumb_storage_path': asset.thumbStoragePath,
+        'sha256': asset.sha256,
+        'mime_type': asset.mimeType,
+        'width': asset.width,
+        'height': asset.height,
+        'size_bytes': asset.sizeBytes,
+      },
+    );
     return asset;
   }
 

@@ -8,6 +8,7 @@ import 'package:snapgrub/features/custom_foods/data/custom_food_remote_service.d
 import 'package:snapgrub/features/custom_foods/domain/custom_food.dart';
 import 'package:snapgrub/features/meal_editor/domain/meal.dart';
 import 'package:snapgrub/offline/outbox/outbox_repository.dart';
+import 'package:snapgrub/offline/sync/sync_error.dart';
 import 'package:uuid/uuid.dart';
 
 final customFoodRepositoryProvider = Provider<CustomFoodRepository>((ref) {
@@ -125,12 +126,20 @@ class CustomFoodRepository {
                 userId: payload['user_id'] as String,
                 clientId: payload['client_id'] as String,
                 deletedAt: DateTime.parse(payload['deleted_at'] as String),
+                clientRequestId: command.clientRequestId,
               )
-            : await _remote.upsert(payload);
+            : await _remote.upsert({
+                ...payload,
+                'client_request_id': command.clientRequestId,
+              });
         await _cacheRemoteRow(row);
         await _outbox.markSynced(command.id);
-      } catch (_) {
-        await _outbox.markFailed(command.id, retryable: true);
+      } catch (error) {
+        if (isConflictSyncError(error)) {
+          await _outbox.markConflict(command.id, error);
+        } else {
+          await _outbox.markFailed(command.id, retryable: isRetryableSyncError(error), error: error);
+        }
       }
     }
   }

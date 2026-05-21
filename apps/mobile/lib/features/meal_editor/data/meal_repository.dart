@@ -7,6 +7,7 @@ import 'package:snapgrub/data/db/drift/database_provider.dart';
 import 'package:snapgrub/features/meal_editor/data/meal_remote_service.dart';
 import 'package:snapgrub/features/meal_editor/domain/meal.dart' as domain;
 import 'package:snapgrub/offline/outbox/outbox_repository.dart';
+import 'package:snapgrub/offline/sync/sync_error.dart';
 import 'package:snapgrub_api_contracts/snapgrub_api_contracts.dart';
 import 'package:uuid/uuid.dart';
 
@@ -199,8 +200,12 @@ class MealRepository {
           await cacheMealResponse(response);
         }
         await _outbox.markSynced(command.id);
-      } catch (_) {
-        await _outbox.markFailed(command.id, retryable: true);
+      } catch (error) {
+        if (isConflictSyncError(error)) {
+          await _outbox.markConflict(command.id, error);
+        } else {
+          await _outbox.markFailed(command.id, retryable: isRetryableSyncError(error), error: error);
+        }
       }
     }
   }
