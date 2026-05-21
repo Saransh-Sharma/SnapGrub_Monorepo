@@ -156,6 +156,61 @@ try {
       after_value: { title: 'Manual lunch' },
     });
     if (correctionError) throw correctionError;
+
+    const { data: asset, error: assetError } = await user.client.from('meal_assets').insert({
+      user_id: user.id,
+      storage_bucket: 'meal-originals-private',
+      storage_path: `${user.id}/rls-test.jpg`,
+      sha256: crypto.randomUUID().replaceAll('-', ''),
+      mime_type: 'image/jpeg',
+      size_bytes: 1000,
+    }).select('*').single();
+    if (assetError) throw assetError;
+
+    const { data: job, error: jobError } = await admin.from('analysis_jobs').insert({
+      user_id: user.id,
+      client_request_id: `${user.id}-analysis`,
+      analysis_mode: 'photo',
+      status: 'completed',
+      asset_id: asset.id,
+      input_payload: { storage_path: asset.storage_path },
+    }).select('*').single();
+    if (jobError) throw jobError;
+
+    const { data: revision, error: revisionError } = await admin.from('analysis_revisions').insert({
+      analysis_job_id: job.id,
+      user_id: user.id,
+      revision_no: 1,
+      title: 'AI lunch',
+      meal_type: 'lunch',
+      calories_kcal: 300,
+      protein_g: 20,
+      carbs_g: 35,
+      fat_g: 8,
+      confidence_overall: 0.7,
+      result_payload: { title: 'AI lunch', components: [] },
+    }).select('*').single();
+    if (revisionError) throw revisionError;
+
+    const { error: candidateError } = await admin.from('analysis_candidates').insert({
+      analysis_revision_id: revision.id,
+      rank: 1,
+      candidate_title: 'Alternative lunch',
+      confidence: 0.5,
+      payload: { title: 'Alternative lunch' },
+    });
+    if (candidateError) throw candidateError;
+
+    const { error: invocationError } = await admin.from('model_invocations').insert({
+      analysis_job_id: job.id,
+      user_id: user.id,
+      provider: 'mock',
+      model_name: 'mock-photo-analysis',
+      status: 'completed',
+      request_payload: {},
+      response_payload: {},
+    });
+    if (invocationError) throw invocationError;
   }
 
   const { data: ownProfile } = await userA.client.from('profiles').select('*').eq('id', userA.id);
@@ -250,6 +305,24 @@ try {
 
   const { data: otherCorrections } = await userA.client.from('correction_events').select('*').eq('user_id', userB.id);
   assert(otherCorrections.length === 0, 'User A must not read User B correction events.');
+
+  const { data: ownAssets } = await userA.client.from('meal_assets').select('*').eq('user_id', userA.id);
+  assert(ownAssets.length === 1, 'User A should read own meal assets.');
+
+  const { data: otherAssets } = await userA.client.from('meal_assets').select('*').eq('user_id', userB.id);
+  assert(otherAssets.length === 0, 'User A must not read User B meal assets.');
+
+  const { data: ownAnalysisJobs } = await userA.client.from('analysis_jobs').select('*').eq('user_id', userA.id);
+  assert(ownAnalysisJobs.length === 1, 'User A should read own analysis jobs.');
+
+  const { data: otherAnalysisJobs } = await userA.client.from('analysis_jobs').select('*').eq('user_id', userB.id);
+  assert(otherAnalysisJobs.length === 0, 'User A must not read User B analysis jobs.');
+
+  const { data: otherRevisions } = await userA.client.from('analysis_revisions').select('*').eq('user_id', userB.id);
+  assert(otherRevisions.length === 0, 'User A must not read User B analysis revisions.');
+
+  const { data: otherInvocations } = await userA.client.from('model_invocations').select('*').eq('user_id', userB.id);
+  assert(otherInvocations.length === 0, 'User A must not read User B model invocations.');
 
   console.log('RLS isolation checks passed.');
 } finally {

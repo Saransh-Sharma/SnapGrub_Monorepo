@@ -17,5 +17,10 @@ where schemaname = 'public'
     'meal_templates',
     'custom_foods',
     'daily_rollups',
-    'correction_events'
+    'correction_events',
+    'meal_assets',
+    'analysis_jobs',
+    'analysis_revisions',
+    'analysis_candidates',
+    'model_invocations'
   );
