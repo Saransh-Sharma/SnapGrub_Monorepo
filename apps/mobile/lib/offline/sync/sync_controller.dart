@@ -11,7 +11,8 @@ import 'package:snapgrub/features/templates/data/template_repository.dart';
 import 'package:snapgrub/offline/outbox/outbox_repository.dart';
 import 'package:snapgrub/offline/sync/sync_command_repository.dart';
 
-final syncControllerProvider = AsyncNotifierProvider<SyncController, SyncStatus>(
+final syncControllerProvider =
+    AsyncNotifierProvider<SyncController, SyncStatus>(
   SyncController.new,
 );
 
@@ -26,7 +27,8 @@ class SyncController extends AsyncNotifier<SyncStatus> {
     ref.onDispose(() {
       _connectivitySubscription?.cancel();
     });
-    _connectivitySubscription ??= Connectivity().onConnectivityChanged.listen((results) {
+    _connectivitySubscription ??=
+        Connectivity().onConnectivityChanged.listen((results) {
       if (_hasNetwork(results)) {
         unawaited(syncNow(trigger: SyncTrigger.networkRestored));
       }
@@ -50,12 +52,18 @@ class SyncController extends AsyncNotifier<SyncStatus> {
     state = const AsyncData(SyncStatus.syncing);
     try {
       await ref.read(syncCommandRepositoryProvider).drainEarlyCommands(userId);
-      await ref.read(profileRepositoryProvider).drainSettingsPatchOutbox(userId);
+      await ref
+          .read(profileRepositoryProvider)
+          .drainSettingsPatchOutbox(userId);
       await ref.read(customFoodRepositoryProvider).drainOutbox(userId);
       await ref.read(templateRepositoryProvider).drainOutbox(userId);
       await ref.read(mealRepositoryProvider).drainMealOutbox(userId);
-      await ref.read(syncCommandRepositoryProvider).drainDeferredCommands(userId);
-      await ref.read(syncCommandRepositoryProvider).pullAuthoritativeState(userId);
+      await ref
+          .read(syncCommandRepositoryProvider)
+          .drainDeferredCommands(userId);
+      await ref
+          .read(syncCommandRepositoryProvider)
+          .pullAuthoritativeState(userId);
       state = AsyncData(await _statusForCurrentUser());
     } catch (error) {
       state = const AsyncData(SyncStatus.failed);
@@ -67,10 +75,14 @@ class SyncController extends AsyncNotifier<SyncStatus> {
   Future<SyncStatus> _statusForCurrentUser() async {
     final auth = await ref.read(authControllerProvider.future);
     final userId = auth.userId;
-    if (auth.status != AuthStatus.signedIn || userId == null) return SyncStatus.idle;
-    final pending = await ref.read(outboxRepositoryProvider).pendingCount(userId);
+    if (auth.status != AuthStatus.signedIn || userId == null) {
+      return SyncStatus.idle;
+    }
+    final pending =
+        await ref.read(outboxRepositoryProvider).pendingCount(userId);
     if (pending == 0) return SyncStatus.synced;
-    final hasConflict = await ref.read(outboxRepositoryProvider).hasConflict(userId);
+    final hasConflict =
+        await ref.read(outboxRepositoryProvider).hasConflict(userId);
     return hasConflict ? SyncStatus.conflict : SyncStatus.pending;
   }
 
@@ -79,4 +91,11 @@ class SyncController extends AsyncNotifier<SyncStatus> {
   }
 }
 
-enum SyncTrigger { manual, foreground, networkRestored, login, pullToRefresh, background }
+enum SyncTrigger {
+  manual,
+  foreground,
+  networkRestored,
+  login,
+  pullToRefresh,
+  background
+}
