@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://snapgrub.app/schemas/PhotoAnalysisResponse.schema.json",
+  "title": "PhotoAnalysisResponse",
+  "type": "object",
+  "required": ["analysis_id", "status", "server_time", "request_id"],
+  "properties": {
+    "analysis_id": { "type": "string", "format": "uuid" },
+    "asset_id": { "type": ["string", "null"], "format": "uuid" },
+    "status": { "type": "string", "enum": ["queued", "processing", "completed", "failed"] },
+    "result": {
+      "anyOf": [
+        { "$ref": "EditableMealDraft.schema.json" },
+        { "type": "null" }
+      ]
+    },
+    "error_code": { "type": ["string", "null"] },
+    "retryable": { "type": "boolean" },
+    "server_time": { "type": "string", "format": "date-time" },
+    "request_id": { "type": "string", "format": "uuid" }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://snapgrub.app/schemas/Meal.schema.json",
+  "title": "Meal",
+  "type": "object",
+  "required": ["id", "user_id", "client_id", "title", "meal_type", "source", "logged_at", "timezone", "items"],
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "user_id": { "type": "string", "format": "uuid" },
+    "client_id": { "type": "string" },
+    "title": { "type": "string" },
+    "meal_type": { "type": "string", "enum": ["breakfast", "lunch", "dinner", "snack", "unknown"] },
+    "source": { "type": "string", "enum": ["photo", "barcode", "text", "voice", "manual", "duplicate"] },
+    "logged_at": { "type": "string", "format": "date-time" },
+    "timezone": { "type": "string" },
+    "items": {
+      "type": "array",
+      "items": { "$ref": "MealItem.schema.json" }
+    }
+  }
+}

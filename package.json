@@ -7,7 +7,9 @@
     "check:contracts": "npm run validate:openapi && bash scripts/generate-api-clients.sh --check",
     "backend:typecheck": "deno check services/backend/supabase/functions/*/index.ts",
     "backend:lint:migrations": "bash scripts/lint-supabase-migrations.sh",
-    "backend:test:rls": "node services/backend/supabase/tests/rls_isolation.mjs"
+    "backend:test:rls": "node services/backend/supabase/tests/rls_isolation.mjs",
+    "backend:test:meal-core": "node services/backend/supabase/tests/meal_core_smoke.mjs",
+    "backend:test:phase5": "node services/backend/supabase/tests/phase5_multimodal_smoke.mjs"
   },
   "devDependencies": {
     "@redocly/cli": "^2.31.2",

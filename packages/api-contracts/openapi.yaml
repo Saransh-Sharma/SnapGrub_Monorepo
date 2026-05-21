@@ -1,0 +1,1432 @@
+openapi: 3.1.0
+info:
+  title: SnapGrub API
+  version: 0.2.0
+  description: Phase 0-3 contracts for auth bootstrap, settings, event ingest, and meal core.
+  license:
+    name: Proprietary
+    url: https://snapgrub.app/legal
+servers:
+  - url: https://{projectRef}.supabase.co/functions/v1
+    variables:
+      projectRef:
+        default: snapgrub-dev
+security:
+  - bearerAuth: []
+paths:
+  /profile-bootstrap:
+    post:
+      operationId: profileBootstrap
+      summary: Bootstrap authenticated profile state
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfileBootstrapRequest"
+      responses:
+        "200":
+          description: Bootstrap state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileBootstrapResponse"
+        "401":
+          $ref: "#/components/responses/Error"
+        "400":
+          $ref: "#/components/responses/Error"
+  /settings-patch:
+    patch:
+      operationId: settingsPatch
+      summary: Patch profile, active goal, and optional body measurement
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SettingsPatchRequest"
+      responses:
+        "200":
+          description: Updated profile state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SettingsPatchResponse"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+  /events-ingest:
+    post:
+      operationId: eventsIngest
+      summary: Ingest batched analytics events
+      security:
+        - bearerAuth: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EventsIngestRequest"
+      responses:
+        "200":
+          description: Accepted event count
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [accepted, request_id]
+                properties:
+                  accepted:
+                    type: integer
+                  request_id:
+                    $ref: "#/components/schemas/RequestId"
+        "400":
+          $ref: "#/components/responses/Error"
+  /meals:
+    get:
+      operationId: listMeals
+      summary: List authenticated user's meals
+      parameters:
+        - name: day
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+      responses:
+        "200":
+          description: Meal list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MealListResponse"
+        "401":
+          $ref: "#/components/responses/Error"
+    post:
+      operationId: createMeal
+      summary: Create a meal and replace its item set transactionally
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MealWriteRequest"
+      responses:
+        "200":
+          description: Authoritative meal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MealWriteResponse"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+  /meals/{meal_id}:
+    get:
+      operationId: getMeal
+      summary: Get one authenticated user's meal
+      parameters:
+        - name: meal_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Meal detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MealWriteResponse"
+        "401":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+    patch:
+      operationId: updateMeal
+      summary: Update a meal and replace its item set transactionally
+      parameters:
+        - name: meal_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MealWriteRequest"
+      responses:
+        "200":
+          description: Authoritative meal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MealWriteResponse"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+    delete:
+      operationId: deleteMeal
+      summary: Soft-delete a meal
+      parameters:
+        - name: meal_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [client_request_id]
+              properties:
+                client_request_id:
+                  $ref: "#/components/schemas/ClientRequestId"
+                expected_revision:
+                  type: integer
+      responses:
+        "200":
+          description: Deleted meal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MealWriteResponse"
+        "401":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+  /analysis-photo-create:
+    post:
+      operationId: analysisPhotoCreate
+      summary: Analyze a user-owned meal photo and return an editable meal draft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PhotoAnalysisCreateRequest"
+      responses:
+        "200":
+          description: Photo analysis job and editable result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PhotoAnalysisResponse"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+  /analysis-get/{analysis_id}:
+    get:
+      operationId: analysisGet
+      summary: Get one authenticated user's photo analysis job
+      parameters:
+        - name: analysis_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Photo analysis job and latest result when available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PhotoAnalysisResponse"
+        "401":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+  /foods-search:
+    post:
+      operationId: foodsSearch
+      summary: Search canonical, branded, custom, and recent food sources
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FoodSearchRequest"
+      responses:
+        "200":
+          description: Food search results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FoodsSearchResponse"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+  /barcode-resolve:
+    post:
+      operationId: barcodeResolve
+      summary: Resolve a product barcode into an editable draft or fallback state
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BarcodeResolveRequest"
+      responses:
+        "200":
+          description: Barcode resolution result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BarcodeResolveResponse"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+  /analysis-text-create:
+    post:
+      operationId: analysisTextCreate
+      summary: Parse typed meal text into an editable meal draft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TextAnalysisCreateRequest"
+      responses:
+        "200":
+          description: Text analysis result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MultimodalAnalysisResponse"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+  /analysis-label-create:
+    post:
+      operationId: analysisLabelCreate
+      summary: Parse nutrition-label OCR text into an editable packaged-food draft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LabelAnalysisCreateRequest"
+      responses:
+        "200":
+          description: Label analysis result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MultimodalAnalysisResponse"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+  /analysis-voice-create:
+    post:
+      operationId: analysisVoiceCreate
+      summary: Parse an edited voice transcript into an editable meal draft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VoiceAnalysisCreateRequest"
+      responses:
+        "200":
+          description: Voice transcript analysis result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MultimodalAnalysisResponse"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema:
+        type: string
+        minLength: 8
+  responses:
+    Error:
+      description: Standard error envelope
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+  schemas:
+    RequestId:
+      type: string
+      format: uuid
+    ClientRequestId:
+      type: string
+      format: uuid
+    ErrorEnvelope:
+      type: object
+      required: [code, message, user_message, retryable, request_id, details]
+      properties:
+        code:
+          type: string
+          enum: [AUTH_REQUIRED, INVALID_INPUT, NOT_FOUND, IDEMPOTENCY_CONFLICT, CONFLICT, UNKNOWN]
+        message:
+          type: string
+        user_message:
+          type: string
+        retryable:
+          type: boolean
+        request_id:
+          $ref: "#/components/schemas/RequestId"
+        details:
+          type: object
+          additionalProperties: true
+    UnitSystem:
+      type: string
+      enum: [metric, imperial]
+    GoalType:
+      type: string
+      enum: [lose, maintain, gain, custom]
+    Profile:
+      type: object
+      required:
+        - id
+        - locale
+        - timezone
+        - unit_system
+        - cuisine_preferences
+        - cloud_media_storage
+        - save_original_photos
+        - ai_improvement_consent
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        display_name:
+          type: [string, "null"]
+        avatar_path:
+          type: [string, "null"]
+        locale:
+          type: string
+        timezone:
+          type: string
+        unit_system:
+          $ref: "#/components/schemas/UnitSystem"
+        country_code:
+          type: [string, "null"]
+        cuisine_preferences:
+          type: array
+          items:
+            type: string
+        cloud_media_storage:
+          type: boolean
+        save_original_photos:
+          type: boolean
+        ai_improvement_consent:
+          type: boolean
+        onboarding_completed_at:
+          type: [string, "null"]
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    NutritionGoal:
+      type: object
+      required:
+        - id
+        - user_id
+        - goal_type
+        - calories_kcal
+        - protein_g
+        - carbs_g
+        - fat_g
+        - starts_on
+        - is_active
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        goal_type:
+          $ref: "#/components/schemas/GoalType"
+        calories_kcal:
+          type: number
+        protein_g:
+          type: number
+        carbs_g:
+          type: number
+        fat_g:
+          type: number
+        fiber_g:
+          type: [number, "null"]
+        starts_on:
+          type: string
+          format: date
+        ends_on:
+          type: [string, "null"]
+          format: date
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    Device:
+      type: object
+      required: [id, user_id, install_id, platform, last_seen_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        install_id:
+          type: string
+        platform:
+          type: string
+          enum: [ios, android]
+        app_version:
+          type: [string, "null"]
+        build_number:
+          type: [string, "null"]
+        last_seen_at:
+          type: string
+          format: date-time
+    FeatureFlags:
+      type: object
+      additionalProperties:
+        oneOf:
+          - type: boolean
+          - type: string
+          - type: number
+          - type: object
+          - type: array
+    ProfileBootstrapRequest:
+      type: object
+      required: [install_id, platform, timezone]
+      properties:
+        install_id:
+          type: string
+        platform:
+          type: string
+          enum: [ios, android]
+        app_version:
+          type: [string, "null"]
+        build_number:
+          type: [string, "null"]
+        locale:
+          type: string
+          default: en-US
+        timezone:
+          type: string
+    ProfileBootstrapResponse:
+      type: object
+      required: [profile, active_goal, device, feature_flags, server_time, request_id]
+      properties:
+        profile:
+          $ref: "#/components/schemas/Profile"
+        active_goal:
+          anyOf:
+            - $ref: "#/components/schemas/NutritionGoal"
+            - type: "null"
+        device:
+          $ref: "#/components/schemas/Device"
+        feature_flags:
+          $ref: "#/components/schemas/FeatureFlags"
+        server_time:
+          type: string
+          format: date-time
+        request_id:
+          $ref: "#/components/schemas/RequestId"
+    ProfilePatch:
+      type: object
+      properties:
+        display_name:
+          type: [string, "null"]
+        locale:
+          type: string
+        timezone:
+          type: string
+        unit_system:
+          $ref: "#/components/schemas/UnitSystem"
+        country_code:
+          type: [string, "null"]
+        cuisine_preferences:
+          type: array
+          items:
+            type: string
+        cloud_media_storage:
+          type: boolean
+        save_original_photos:
+          type: boolean
+        ai_improvement_consent:
+          type: boolean
+        onboarding_completed_at:
+          type: [string, "null"]
+          format: date-time
+    ActiveGoalPatch:
+      type: object
+      required: [goal_type, calories_kcal, protein_g, carbs_g, fat_g]
+      properties:
+        goal_type:
+          $ref: "#/components/schemas/GoalType"
+        calories_kcal:
+          type: number
+          minimum: 500
+          maximum: 6000
+        protein_g:
+          type: number
+          minimum: 0
+          maximum: 500
+        carbs_g:
+          type: number
+          minimum: 0
+          maximum: 800
+        fat_g:
+          type: number
+          minimum: 0
+          maximum: 400
+        fiber_g:
+          type: [number, "null"]
+          minimum: 0
+          maximum: 200
+        starts_on:
+          type: string
+          format: date
+        ends_on:
+          type: [string, "null"]
+          format: date
+    BodyMeasurementPatch:
+      type: object
+      properties:
+        measured_at:
+          type: string
+          format: date-time
+        weight_kg:
+          type: [number, "null"]
+          minimum: 20
+          maximum: 400
+        body_fat_pct:
+          type: [number, "null"]
+          minimum: 2
+          maximum: 80
+        source:
+          type: string
+          enum: [manual, onboarding, imported]
+    SettingsPatchRequest:
+      type: object
+      required: [client_request_id]
+      properties:
+        client_request_id:
+          $ref: "#/components/schemas/ClientRequestId"
+        profile_patch:
+          $ref: "#/components/schemas/ProfilePatch"
+        active_goal_patch:
+          $ref: "#/components/schemas/ActiveGoalPatch"
+        body_measurement:
+          anyOf:
+            - $ref: "#/components/schemas/BodyMeasurementPatch"
+            - type: "null"
+    SettingsPatchResponse:
+      type: object
+      required: [profile, active_goal, server_time, request_id]
+      properties:
+        profile:
+          $ref: "#/components/schemas/Profile"
+        active_goal:
+          anyOf:
+            - $ref: "#/components/schemas/NutritionGoal"
+            - type: "null"
+        body_measurement:
+          type: [object, "null"]
+        server_time:
+          type: string
+          format: date-time
+        request_id:
+          $ref: "#/components/schemas/RequestId"
+    AnalyticsEvent:
+      type: object
+      required: [event_name, occurred_at]
+      properties:
+        event_name:
+          type: string
+        device_id:
+          type: [string, "null"]
+          format: uuid
+        properties:
+          type: object
+          additionalProperties: true
+        occurred_at:
+          type: string
+          format: date-time
+    EventsIngestRequest:
+      type: object
+      required: [events]
+      properties:
+        events:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items:
+            $ref: "#/components/schemas/AnalyticsEvent"
+    MealSource:
+      type: string
+      enum: [photo, barcode, text, voice, manual, duplicate]
+    MealType:
+      type: string
+      enum: [breakfast, lunch, dinner, snack, unknown]
+    MealItem:
+      type: object
+      required:
+        - id
+        - meal_id
+        - user_id
+        - client_id
+        - position
+        - name
+        - food_ref_kind
+        - quantity
+        - unit
+        - calories_kcal
+        - protein_g
+        - carbs_g
+        - fat_g
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        meal_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        client_id:
+          type: string
+        position:
+          type: integer
+        name:
+          type: string
+        food_ref_kind:
+          type: string
+          enum: [canonical, branded, custom, manual]
+        canonical_food_id:
+          type: [string, "null"]
+          format: uuid
+        branded_product_id:
+          type: [string, "null"]
+          format: uuid
+        custom_food_id:
+          type: [string, "null"]
+          format: uuid
+        quantity:
+          type: number
+        unit:
+          type: string
+        grams_estimated:
+          type: [number, "null"]
+        calories_kcal:
+          type: number
+        protein_g:
+          type: number
+        carbs_g:
+          type: number
+        fat_g:
+          type: number
+        confidence:
+          type: [number, "null"]
+        source_type:
+          type: [string, "null"]
+        source_id:
+          type: [string, "null"]
+        notes:
+          type: [string, "null"]
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    Meal:
+      type: object
+      required:
+        - id
+        - user_id
+        - client_id
+        - title
+        - meal_type
+        - source
+        - logged_at
+        - timezone
+        - calories_kcal
+        - protein_g
+        - carbs_g
+        - fat_g
+        - revision
+        - items
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        client_id:
+          type: string
+        analysis_job_id:
+          type: [string, "null"]
+          format: uuid
+        title:
+          type: string
+        meal_type:
+          $ref: "#/components/schemas/MealType"
+        source:
+          $ref: "#/components/schemas/MealSource"
+        logged_at:
+          type: string
+          format: date-time
+        timezone:
+          type: string
+        calories_kcal:
+          type: number
+        protein_g:
+          type: number
+        carbs_g:
+          type: number
+        fat_g:
+          type: number
+        confidence_overall:
+          type: [number, "null"]
+        provenance_type:
+          type: [string, "null"]
+        photo_asset_id:
+          type: [string, "null"]
+          format: uuid
+        revision:
+          type: integer
+        deleted_at:
+          type: [string, "null"]
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/MealItem"
+    MealItemWrite:
+      type: object
+      required: [client_id, position, name, quantity, unit, calories_kcal, protein_g, carbs_g, fat_g]
+      properties:
+        client_id:
+          type: string
+        position:
+          type: integer
+        name:
+          type: string
+          minLength: 1
+        food_ref_kind:
+          type: string
+          enum: [canonical, branded, custom, manual]
+          default: manual
+        canonical_food_id:
+          type: [string, "null"]
+          format: uuid
+        branded_product_id:
+          type: [string, "null"]
+          format: uuid
+        custom_food_id:
+          type: [string, "null"]
+          format: uuid
+        quantity:
+          type: number
+          exclusiveMinimum: 0
+        unit:
+          type: string
+        grams_estimated:
+          type: [number, "null"]
+        calories_kcal:
+          type: number
+          minimum: 0
+        protein_g:
+          type: number
+          minimum: 0
+        carbs_g:
+          type: number
+          minimum: 0
+        fat_g:
+          type: number
+          minimum: 0
+        confidence:
+          type: [number, "null"]
+        source_type:
+          type: [string, "null"]
+        source_id:
+          type: [string, "null"]
+        notes:
+          type: [string, "null"]
+    MealWriteRequest:
+      type: object
+      required:
+        - client_request_id
+        - client_id
+        - title
+        - meal_type
+        - source
+        - logged_at
+        - timezone
+        - items
+      properties:
+        client_request_id:
+          $ref: "#/components/schemas/ClientRequestId"
+        id:
+          type: [string, "null"]
+          format: uuid
+        client_id:
+          type: string
+        expected_revision:
+          type: integer
+        title:
+          type: string
+          minLength: 1
+        meal_type:
+          $ref: "#/components/schemas/MealType"
+        source:
+          $ref: "#/components/schemas/MealSource"
+        logged_at:
+          type: string
+          format: date-time
+        timezone:
+          type: string
+        confidence_overall:
+          type: [number, "null"]
+        provenance_type:
+          type: [string, "null"]
+        analysis_job_id:
+          type: [string, "null"]
+          format: uuid
+        photo_asset_id:
+          type: [string, "null"]
+          format: uuid
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/MealItemWrite"
+    DailyRollup:
+      type: object
+      required: [user_id, day, calories_kcal, protein_g, carbs_g, fat_g, meal_count, has_photo_meal, updated_at]
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        day:
+          type: string
+          format: date
+        calories_kcal:
+          type: number
+        protein_g:
+          type: number
+        carbs_g:
+          type: number
+        fat_g:
+          type: number
+        meal_count:
+          type: integer
+        has_photo_meal:
+          type: boolean
+        updated_at:
+          type: string
+          format: date-time
+    CorrectionEvent:
+      type: object
+      required: [id, user_id, event_type, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        meal_id:
+          type: [string, "null"]
+          format: uuid
+        analysis_job_id:
+          type: [string, "null"]
+          format: uuid
+        event_type:
+          type: string
+        field_name:
+          type: [string, "null"]
+        before_value:
+          type: [object, "null"]
+        after_value:
+          type: [object, "null"]
+        reason:
+          type: [string, "null"]
+        created_at:
+          type: string
+          format: date-time
+    MealWriteResponse:
+      type: object
+      required: [meal, daily_rollup, correction_events, server_time, request_id]
+      properties:
+        meal:
+          $ref: "#/components/schemas/Meal"
+        daily_rollup:
+          $ref: "#/components/schemas/DailyRollup"
+        correction_events:
+          type: array
+          items:
+            $ref: "#/components/schemas/CorrectionEvent"
+        server_time:
+          type: string
+          format: date-time
+        request_id:
+          $ref: "#/components/schemas/RequestId"
+    MealListResponse:
+      type: object
+      required: [meals, daily_rollups, server_time, request_id]
+      properties:
+        meals:
+          type: array
+          items:
+            $ref: "#/components/schemas/Meal"
+        daily_rollups:
+          type: array
+          items:
+            $ref: "#/components/schemas/DailyRollup"
+        server_time:
+          type: string
+          format: date-time
+        request_id:
+          $ref: "#/components/schemas/RequestId"
+    AnalysisStatus:
+      type: string
+      enum: [queued, processing, completed, failed]
+    PhotoAnalysisCreateRequest:
+      type: object
+      required: [client_request_id, storage_path, locale, timezone]
+      properties:
+        client_request_id:
+          $ref: "#/components/schemas/ClientRequestId"
+        storage_bucket:
+          type: string
+          default: meal-originals-private
+        storage_path:
+          type: string
+          minLength: 3
+        thumb_storage_path:
+          type: [string, "null"]
+        asset_sha256:
+          type: [string, "null"]
+        mime_type:
+          type: string
+          default: image/jpeg
+        width:
+          type: [integer, "null"]
+        height:
+          type: [integer, "null"]
+        size_bytes:
+          type: [integer, "null"]
+        meal_type_hint:
+          anyOf:
+            - $ref: "#/components/schemas/MealType"
+            - type: "null"
+        locale:
+          type: string
+        timezone:
+          type: string
+        cuisine_hints:
+          type: array
+          items:
+            type: string
+        user_hint_text:
+          type: [string, "null"]
+    AnalysisWarning:
+      type: object
+      required: [code, message, severity]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        severity:
+          type: string
+          enum: [info, review, high]
+    AnalysisConfidence:
+      type: object
+      required:
+        - overall
+        - item_identification
+        - portion_estimation
+        - nutrition_source_quality
+        - warnings
+      properties:
+        overall:
+          type: number
+          minimum: 0
+          maximum: 1
+        item_identification:
+          type: number
+          minimum: 0
+          maximum: 1
+        portion_estimation:
+          type: number
+          minimum: 0
+          maximum: 1
+        nutrition_source_quality:
+          type: number
+          minimum: 0
+          maximum: 1
+        warnings:
+          type: array
+          items:
+            $ref: "#/components/schemas/AnalysisWarning"
+    EditableMealDraft:
+      type: object
+      required:
+        - title
+        - meal_type
+        - logged_at
+        - timezone
+        - total
+        - confidence
+        - components
+        - provenance
+      properties:
+        title:
+          type: string
+        meal_type:
+          $ref: "#/components/schemas/MealType"
+        logged_at:
+          type: string
+          format: date-time
+        timezone:
+          type: string
+        total:
+          type: object
+          required: [calories_kcal, protein_g, carbs_g, fat_g]
+          properties:
+            calories_kcal:
+              type: number
+              minimum: 0
+            protein_g:
+              type: number
+              minimum: 0
+            carbs_g:
+              type: number
+              minimum: 0
+            fat_g:
+              type: number
+              minimum: 0
+        confidence:
+          $ref: "#/components/schemas/AnalysisConfidence"
+        components:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/MealItemWrite"
+        alternatives:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        provenance:
+          type: object
+          additionalProperties: true
+    PhotoAnalysisResponse:
+      type: object
+      required: [analysis_id, status, server_time, request_id]
+      properties:
+        analysis_id:
+          type: string
+          format: uuid
+        asset_id:
+          type: [string, "null"]
+          format: uuid
+        status:
+          $ref: "#/components/schemas/AnalysisStatus"
+        result:
+          anyOf:
+            - $ref: "#/components/schemas/EditableMealDraft"
+            - type: "null"
+        error_code:
+          type: [string, "null"]
+        retryable:
+          type: boolean
+          default: false
+        server_time:
+          type: string
+          format: date-time
+        request_id:
+          $ref: "#/components/schemas/RequestId"
+    CatalogProvenance:
+      type: object
+      required: [source_type, source_id, license_tag, source_quality]
+      properties:
+        source_type:
+          type: string
+        source_id:
+          type: [string, "null"]
+        license_tag:
+          type: [string, "null"]
+        source_quality:
+          type: [string, "null"]
+        raw:
+          type: object
+          additionalProperties: true
+    FoodSearchRequest:
+      type: object
+      required: [query]
+      properties:
+        query:
+          type: string
+          minLength: 1
+        locale:
+          type: string
+          default: en-US
+        region:
+          type: [string, "null"]
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 25
+          default: 10
+    FoodSearchResult:
+      type: object
+      required:
+        - id
+        - result_type
+        - name
+        - calories_kcal
+        - protein_g
+        - carbs_g
+        - fat_g
+        - confidence
+        - provenance
+      properties:
+        id:
+          type: string
+        result_type:
+          type: string
+          enum: [canonical, branded, custom, recent]
+        name:
+          type: string
+        brand:
+          type: [string, "null"]
+        serving_quantity:
+          type: [number, "null"]
+        serving_unit:
+          type: [string, "null"]
+        serving_grams:
+          type: [number, "null"]
+        calories_kcal:
+          type: number
+        protein_g:
+          type: number
+        carbs_g:
+          type: number
+        fat_g:
+          type: number
+        confidence:
+          type: number
+        provenance:
+          $ref: "#/components/schemas/CatalogProvenance"
+    FoodsSearchResponse:
+      type: object
+      required: [results, server_time, request_id]
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/FoodSearchResult"
+        server_time:
+          type: string
+          format: date-time
+        request_id:
+          $ref: "#/components/schemas/RequestId"
+    BarcodeResolveRequest:
+      type: object
+      required: [barcode, locale, timezone]
+      properties:
+        barcode:
+          type: string
+          minLength: 6
+        locale:
+          type: string
+        timezone:
+          type: string
+        region:
+          type: [string, "null"]
+    BarcodeResolveResponse:
+      type: object
+      required: [barcode, status, server_time, request_id]
+      properties:
+        barcode:
+          type: string
+        status:
+          type: string
+          enum: [matched, not_found, fallback]
+        product:
+          anyOf:
+            - $ref: "#/components/schemas/FoodSearchResult"
+            - type: "null"
+        draft:
+          anyOf:
+            - $ref: "#/components/schemas/EditableMealDraft"
+            - type: "null"
+        fallback_reason:
+          type: [string, "null"]
+        server_time:
+          type: string
+          format: date-time
+        request_id:
+          $ref: "#/components/schemas/RequestId"
+    TextAnalysisCreateRequest:
+      type: object
+      required: [client_request_id, text, locale, timezone]
+      properties:
+        client_request_id:
+          $ref: "#/components/schemas/ClientRequestId"
+        text:
+          type: string
+          minLength: 1
+        meal_type_hint:
+          anyOf:
+            - $ref: "#/components/schemas/MealType"
+            - type: "null"
+        locale:
+          type: string
+        timezone:
+          type: string
+        cuisine_hints:
+          type: array
+          items:
+            type: string
+    LabelAnalysisCreateRequest:
+      type: object
+      required: [client_request_id, ocr_text, locale, timezone]
+      properties:
+        client_request_id:
+          $ref: "#/components/schemas/ClientRequestId"
+        ocr_text:
+          type: string
+          minLength: 1
+        barcode:
+          type: [string, "null"]
+        product_name_hint:
+          type: [string, "null"]
+        locale:
+          type: string
+        timezone:
+          type: string
+        raw_image_opt_in:
+          type: boolean
+          default: false
+    VoiceAnalysisCreateRequest:
+      type: object
+      required: [client_request_id, transcript, locale, timezone]
+      properties:
+        client_request_id:
+          $ref: "#/components/schemas/ClientRequestId"
+        transcript:
+          type: string
+          minLength: 1
+        transcript_confidence:
+          type: [number, "null"]
+          minimum: 0
+          maximum: 1
+        meal_type_hint:
+          anyOf:
+            - $ref: "#/components/schemas/MealType"
+            - type: "null"
+        locale:
+          type: string
+        timezone:
+          type: string
+        cuisine_hints:
+          type: array
+          items:
+            type: string
+    MultimodalAnalysisResponse:
+      type: object
+      required: [analysis_id, status, result, server_time, request_id]
+      properties:
+        analysis_id:
+          type: string
+          format: uuid
+        status:
+          $ref: "#/components/schemas/AnalysisStatus"
+        result:
+          $ref: "#/components/schemas/EditableMealDraft"
+        error_code:
+          type: [string, "null"]
+        retryable:
+          type: boolean
+          default: false
+        server_time:
+          type: string
+          format: date-time
+        request_id:
+          $ref: "#/components/schemas/RequestId"

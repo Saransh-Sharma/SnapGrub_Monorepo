@@ -65,6 +65,8 @@ DerivedData/
 # Swift Package Manager
 .build/
 Packages/
+!/packages/
+!/packages/**
 Package.resolved
 
 # CocoaPods / Carthage

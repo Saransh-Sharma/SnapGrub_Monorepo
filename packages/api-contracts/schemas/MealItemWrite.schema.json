@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://snapgrub.app/schemas/MealItemWrite.schema.json",
+  "title": "MealItemWrite",
+  "type": "object",
+  "required": ["client_id", "position", "name", "quantity", "unit", "calories_kcal", "protein_g", "carbs_g", "fat_g"],
+  "properties": {
+    "client_id": { "type": "string" },
+    "position": { "type": "integer" },
+    "name": { "type": "string", "minLength": 1 },
+    "food_ref_kind": { "type": "string", "enum": ["canonical", "branded", "custom", "manual"], "default": "manual" },
+    "canonical_food_id": { "type": ["string", "null"], "format": "uuid" },
+    "branded_product_id": { "type": ["string", "null"], "format": "uuid" },
+    "custom_food_id": { "type": ["string", "null"], "format": "uuid" },
+    "quantity": { "type": "number", "exclusiveMinimum": 0 },
+    "unit": { "type": "string" },
+    "grams_estimated": { "type": ["number", "null"] },
+    "calories_kcal": { "type": "number", "minimum": 0 },
+    "protein_g": { "type": "number", "minimum": 0 },
+    "carbs_g": { "type": "number", "minimum": 0 },
+    "fat_g": { "type": "number", "minimum": 0 },
+    "confidence": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+    "source_type": { "type": ["string", "null"] },
+    "source_id": { "type": ["string", "null"] },
+    "notes": { "type": ["string", "null"] }
+  }
+}

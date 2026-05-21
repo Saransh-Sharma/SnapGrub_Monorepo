@@ -1,0 +1,35 @@
+{
+  "profile": {
+    "id": "4f8d448f-6b64-4a4d-b9ca-9f7cbfe4878c",
+    "display_name": "Sam",
+    "avatar_path": null,
+    "locale": "en-IN",
+    "timezone": "Asia/Kolkata",
+    "unit_system": "metric",
+    "country_code": "IN",
+    "cuisine_preferences": ["Indian", "North Indian"],
+    "cloud_media_storage": true,
+    "save_original_photos": false,
+    "ai_improvement_consent": false,
+    "onboarding_completed_at": null,
+    "created_at": "2026-05-20T00:00:00Z",
+    "updated_at": "2026-05-20T00:00:00Z"
+  },
+  "active_goal": null,
+  "device": {
+    "id": "3ef08bdc-2361-4e58-975f-80ee2fa5810d",
+    "user_id": "4f8d448f-6b64-4a4d-b9ca-9f7cbfe4878c",
+    "install_id": "ios-dev-install",
+    "platform": "ios",
+    "app_version": "0.1.0",
+    "build_number": "1",
+    "last_seen_at": "2026-05-20T00:00:00Z"
+  },
+  "feature_flags": {
+    "snapstrip.enabled": true,
+    "photo_analysis.enabled": true,
+    "barcode.enabled": true
+  },
+  "server_time": "2026-05-20T00:00:00Z",
+  "request_id": "98f63ea8-4ae5-406a-9d29-f5362563a234"
+}

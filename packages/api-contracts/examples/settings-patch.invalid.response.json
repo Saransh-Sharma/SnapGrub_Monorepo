@@ -1,0 +1,12 @@
+{
+  "code": "INVALID_INPUT",
+  "message": "calories_kcal is out of range",
+  "user_message": "calories_kcal is out of range",
+  "retryable": false,
+  "request_id": "98f63ea8-4ae5-406a-9d29-0f5362563a24",
+  "details": {
+    "field": "calories_kcal",
+    "min": 500,
+    "max": 6000
+  }
+}

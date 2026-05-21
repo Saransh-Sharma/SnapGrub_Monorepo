@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://snapgrub.app/schemas/MealItem.schema.json",
+  "title": "MealItem",
+  "type": "object",
+  "required": ["id", "meal_id", "client_id", "position", "name", "quantity", "unit", "calories_kcal", "protein_g", "carbs_g", "fat_g"],
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "meal_id": { "type": "string", "format": "uuid" },
+    "client_id": { "type": "string" },
+    "position": { "type": "integer" },
+    "name": { "type": "string" },
+    "quantity": { "type": "number" },
+    "unit": { "type": "string" },
+    "grams_estimated": { "type": ["number", "null"] },
+    "calories_kcal": { "type": "number" },
+    "protein_g": { "type": "number" },
+    "carbs_g": { "type": "number" },
+    "fat_g": { "type": "number" },
+    "confidence": { "type": ["number", "null"] },
+    "source_type": { "type": ["string", "null"] },
+    "source_id": { "type": ["string", "null"] }
+  }
+}

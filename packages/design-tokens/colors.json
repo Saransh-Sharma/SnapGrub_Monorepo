@@ -1,0 +1,9 @@
+{
+  "surface": "#FFF8F1",
+  "surfaceRaised": "#FFFFFF",
+  "textPrimary": "#251C17",
+  "textSecondary": "#6F625B",
+  "accent": "#1F8A5B",
+  "warning": "#B65F1F",
+  "border": "#E8D8CB"
+}

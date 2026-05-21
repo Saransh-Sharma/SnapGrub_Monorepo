@@ -1,0 +1,8 @@
+{
+  "code": "AUTH_REQUIRED",
+  "message": "Authentication is required",
+  "user_message": "Authentication is required",
+  "retryable": false,
+  "request_id": "98f63ea8-4ae5-406a-9d29-0f5362563a23",
+  "details": {}
+}

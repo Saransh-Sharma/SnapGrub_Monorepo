@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://snapgrub.app/schemas/MealTemplate.schema.json",
+  "title": "MealTemplate",
+  "type": "object",
+  "required": ["id", "user_id", "title", "snapshot", "created_at", "updated_at"],
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "user_id": { "type": "string", "format": "uuid" },
+    "title": { "type": "string" },
+    "snapshot": { "type": "object" },
+    "source_meal_id": { "type": ["string", "null"], "format": "uuid" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  }
+}

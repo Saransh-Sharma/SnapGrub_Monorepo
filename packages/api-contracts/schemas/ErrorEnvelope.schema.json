@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://snapgrub.app/schemas/ErrorEnvelope.schema.json",
+  "title": "ErrorEnvelope",
+  "type": "object",
+  "required": ["code", "message", "user_message", "retryable", "request_id", "details"],
+  "properties": {
+    "code": { "type": "string" },
+    "message": { "type": "string" },
+    "user_message": { "type": "string" },
+    "retryable": { "type": "boolean" },
+    "request_id": { "type": "string", "format": "uuid" },
+    "details": { "type": "object" }
+  }
+}

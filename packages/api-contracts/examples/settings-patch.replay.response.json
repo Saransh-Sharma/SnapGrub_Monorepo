@@ -1,0 +1,36 @@
+{
+  "profile": {
+    "id": "4f8d448f-6b64-4a4d-b9ca-9f7cbfe4878c",
+    "display_name": "Sam",
+    "avatar_path": null,
+    "locale": "en-IN",
+    "timezone": "Asia/Kolkata",
+    "unit_system": "metric",
+    "country_code": "IN",
+    "cuisine_preferences": ["Indian"],
+    "cloud_media_storage": true,
+    "save_original_photos": false,
+    "ai_improvement_consent": false,
+    "onboarding_completed_at": "2026-05-20T00:00:00Z",
+    "created_at": "2026-05-20T00:00:00Z",
+    "updated_at": "2026-05-20T00:00:00Z"
+  },
+  "active_goal": {
+    "id": "4077c15c-e02a-4a76-8f8a-70b7725f5c2a",
+    "user_id": "4f8d448f-6b64-4a4d-b9ca-9f7cbfe4878c",
+    "goal_type": "lose",
+    "calories_kcal": 1900,
+    "protein_g": 130,
+    "carbs_g": 190,
+    "fat_g": 60,
+    "fiber_g": null,
+    "starts_on": "2026-05-20",
+    "ends_on": null,
+    "is_active": true,
+    "created_at": "2026-05-20T00:00:00Z",
+    "updated_at": "2026-05-20T00:00:00Z"
+  },
+  "body_measurement": null,
+  "server_time": "2026-05-20T00:00:00Z",
+  "request_id": "98f63ea8-4ae5-406a-9d29-0f5362563a25"
+}
