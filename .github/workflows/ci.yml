@@ -30,6 +30,9 @@ jobs:
       - working-directory: services/backend/supabase
         run: supabase status -o env >> "$GITHUB_ENV"
       - run: npm run backend:test:rls
+      - run: npm run backend:test:meal-core
+      - run: npm run backend:test:phase5
+      - run: npm run backend:test:phase6
 
   mobile:
     runs-on: ubuntu-latest
