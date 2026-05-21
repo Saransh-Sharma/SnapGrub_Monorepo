@@ -1,0 +1,4 @@
+#include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"
+#include "Generated.xcconfig"
+SNAPGRUB_DISPLAY_NAME=SnapGrub Dev
+SNAPGRUB_BUNDLE_ID=com.snapgrub.dev
