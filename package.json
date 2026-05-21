@@ -13,7 +13,8 @@
     "backend:test:meal-core": "node services/backend/supabase/tests/meal_core_smoke.mjs",
     "backend:test:phase5": "node services/backend/supabase/tests/phase5_multimodal_smoke.mjs",
     "backend:test:phase6": "node services/backend/supabase/tests/phase6_sync_smoke.mjs",
-    "backend:test:phase7": "node services/backend/supabase/tests/phase7_insights_smoke.mjs"
+    "backend:test:phase7": "node services/backend/supabase/tests/phase7_insights_smoke.mjs",
+    "backend:test:phase8": "node services/backend/supabase/tests/phase8_privacy_smoke.mjs"
   },
   "devDependencies": {
     "@redocly/cli": "^2.31.2",
