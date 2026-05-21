@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: SnapGrub API
   version: 0.2.0
-  description: Phase 0-3 contracts for auth bootstrap, settings, event ingest, and meal core.
+  description: Phase 0-6 contracts for auth bootstrap, settings, meal core, multimodal entry, and offline sync mutations.
   license:
     name: Proprietary
     url: https://snapgrub.app/legal
@@ -62,6 +62,8 @@ paths:
     post:
       operationId: eventsIngest
       summary: Ingest batched analytics events
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
       security:
         - bearerAuth: []
         - {}
@@ -85,6 +87,102 @@ paths:
                   request_id:
                     $ref: "#/components/schemas/RequestId"
         "400":
+          $ref: "#/components/responses/Error"
+  /custom-foods:
+    post:
+      operationId: customFoodsUpsert
+      summary: Idempotently upsert or tombstone a custom food
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomFoodMutationRequest"
+      responses:
+        "200":
+          description: Authoritative custom food
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomFoodMutationResponse"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+  /meal-templates:
+    post:
+      operationId: mealTemplatesUpsert
+      summary: Idempotently upsert or tombstone a meal template
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MealTemplateMutationRequest"
+      responses:
+        "200":
+          description: Authoritative meal template
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MealTemplateMutationResponse"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+  /body-measurements:
+    post:
+      operationId: bodyMeasurementCreate
+      summary: Idempotently create a body measurement
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodyMeasurementCreateRequest"
+      responses:
+        "200":
+          description: Authoritative body measurement
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BodyMeasurementCreateResponse"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+  /exports-create:
+    post:
+      operationId: exportCreate
+      summary: Idempotently enqueue a user data export
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExportCreateRequest"
+      responses:
+        "202":
+          description: Export request queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExportCreateResponse"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
           $ref: "#/components/responses/Error"
   /meals:
     get:
@@ -716,12 +814,191 @@ components:
       type: object
       required: [events]
       properties:
+        client_request_id:
+          $ref: "#/components/schemas/ClientRequestId"
         events:
           type: array
           minItems: 1
           maxItems: 50
           items:
             $ref: "#/components/schemas/AnalyticsEvent"
+    CustomFood:
+      type: object
+      required: [id, user_id, client_id, name, calories_kcal, protein_g, carbs_g, fat_g, created_at, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        client_id:
+          type: string
+        name:
+          type: string
+        brand:
+          type: [string, "null"]
+        serving_quantity:
+          type: [number, "null"]
+        serving_unit:
+          type: [string, "null"]
+        serving_grams:
+          type: [number, "null"]
+        calories_kcal:
+          type: number
+        protein_g:
+          type: number
+        carbs_g:
+          type: number
+        fat_g:
+          type: number
+        deleted_at:
+          type: [string, "null"]
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    CustomFoodMutationRequest:
+      type: object
+      required: [client_request_id, client_id]
+      properties:
+        client_request_id:
+          $ref: "#/components/schemas/ClientRequestId"
+        id:
+          type: [string, "null"]
+          format: uuid
+        client_id:
+          type: string
+        name:
+          type: string
+        brand:
+          type: [string, "null"]
+        serving_quantity:
+          type: [number, "null"]
+        serving_unit:
+          type: [string, "null"]
+        serving_grams:
+          type: [number, "null"]
+        calories_kcal:
+          type: number
+          minimum: 0
+        protein_g:
+          type: number
+          minimum: 0
+        carbs_g:
+          type: number
+          minimum: 0
+        fat_g:
+          type: number
+          minimum: 0
+        deleted_at:
+          type: [string, "null"]
+          format: date-time
+    CustomFoodMutationResponse:
+      type: object
+      required: [custom_food, server_time, request_id]
+      properties:
+        custom_food:
+          $ref: "#/components/schemas/CustomFood"
+        server_time:
+          type: string
+          format: date-time
+        request_id:
+          $ref: "#/components/schemas/RequestId"
+    MealTemplateMutationRequest:
+      type: object
+      required: [client_request_id, client_id]
+      properties:
+        client_request_id:
+          $ref: "#/components/schemas/ClientRequestId"
+        id:
+          type: [string, "null"]
+          format: uuid
+        client_id:
+          type: string
+        title:
+          type: string
+        snapshot:
+          type: object
+          additionalProperties: true
+        source_meal_id:
+          type: [string, "null"]
+          format: uuid
+        deleted_at:
+          type: [string, "null"]
+          format: date-time
+    MealTemplateMutationResponse:
+      type: object
+      required: [meal_template, server_time, request_id]
+      properties:
+        meal_template:
+          type: object
+          additionalProperties: true
+        server_time:
+          type: string
+          format: date-time
+        request_id:
+          $ref: "#/components/schemas/RequestId"
+    BodyMeasurementCreateRequest:
+      type: object
+      required: [client_request_id]
+      properties:
+        client_request_id:
+          $ref: "#/components/schemas/ClientRequestId"
+        measured_at:
+          type: string
+          format: date-time
+        weight_kg:
+          type: [number, "null"]
+          minimum: 20
+          maximum: 400
+        body_fat_pct:
+          type: [number, "null"]
+          minimum: 2
+          maximum: 80
+        source:
+          type: string
+          enum: [manual, onboarding, imported]
+    BodyMeasurementCreateResponse:
+      type: object
+      required: [body_measurement, server_time, request_id]
+      properties:
+        body_measurement:
+          type: object
+          additionalProperties: true
+        server_time:
+          type: string
+          format: date-time
+        request_id:
+          $ref: "#/components/schemas/RequestId"
+    ExportCreateRequest:
+      type: object
+      required: [client_request_id]
+      properties:
+        client_request_id:
+          $ref: "#/components/schemas/ClientRequestId"
+        export_type:
+          type: string
+          enum: [journal_csv, nutrition_json]
+          default: journal_csv
+        filters:
+          type: object
+          additionalProperties: true
+    ExportCreateResponse:
+      type: object
+      required: [export_request, server_time, request_id]
+      properties:
+        export_request:
+          type: object
+          additionalProperties: true
+        server_time:
+          type: string
+          format: date-time
+        request_id:
+          $ref: "#/components/schemas/RequestId"
     MealSource:
       type: string
       enum: [photo, barcode, text, voice, manual, duplicate]
