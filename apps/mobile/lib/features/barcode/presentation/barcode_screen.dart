@@ -59,11 +59,13 @@ class _BarcodeScreenState extends ConsumerState<BarcodeScreen> {
             const SizedBox(height: 16),
             if (_handling) const LinearProgressIndicator(),
           ] else ...[
-            Text('Barcode ${_barcode ?? ''}', style: Theme.of(context).textTheme.titleMedium),
+            Text('Barcode ${_barcode ?? ''}',
+                style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 12),
             TextField(
               controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Product name', border: OutlineInputBorder()),
+              decoration: const InputDecoration(
+                  labelText: 'Product name', border: OutlineInputBorder()),
             ),
             const SizedBox(height: 12),
             Row(
@@ -100,7 +102,8 @@ class _BarcodeScreenState extends ConsumerState<BarcodeScreen> {
           ],
           if (_error != null) ...[
             const SizedBox(height: 12),
-            Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+            Text(_error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error)),
           ],
         ],
       ),
@@ -111,13 +114,15 @@ class _BarcodeScreenState extends ConsumerState<BarcodeScreen> {
     return TextField(
       controller: controller,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()),
+      decoration:
+          InputDecoration(labelText: label, border: const OutlineInputBorder()),
     );
   }
 
   Future<void> _onDetect(BarcodeCapture capture) async {
     if (_handling) return;
-    final values = capture.barcodes.map((barcode) => barcode.rawValue).whereType<String>();
+    final values =
+        capture.barcodes.map((barcode) => barcode.rawValue).whereType<String>();
     final raw = values.isEmpty ? null : values.first;
     if (raw == null || raw.isEmpty) return;
     setState(() {
@@ -131,9 +136,11 @@ class _BarcodeScreenState extends ConsumerState<BarcodeScreen> {
       final profile = state.profile;
       if (profile == null) throw StateError('Profile is not available.');
       final service = ref.read(multimodalRemoteServiceProvider);
-      final response = await service.resolveBarcode(barcode: raw, profile: profile);
+      final response =
+          await service.resolveBarcode(barcode: raw, profile: profile);
       if (response.draft != null) {
-        final draft = service.barcodeDraft(userId: profile.id, response: response);
+        final draft =
+            service.barcodeDraft(userId: profile.id, response: response);
         if (mounted) context.go('/meal-editor', extra: draft);
         return;
       }
@@ -164,18 +171,22 @@ class _BarcodeScreenState extends ConsumerState<BarcodeScreen> {
       final image = await ImagePicker().pickImage(source: ImageSource.camera);
       if (image == null) return;
       final recognizer = TextRecognizer(script: TextRecognitionScript.latin);
-      final recognized = await recognizer.processImage(InputImage.fromFilePath(image.path));
+      final recognized =
+          await recognizer.processImage(InputImage.fromFilePath(image.path));
       await recognizer.close();
       final state = await ref.read(profileControllerProvider.future);
       final profile = state.profile;
       if (profile == null) throw StateError('Profile is not available.');
-      final draft = await ref.read(multimodalRemoteServiceProvider).parseLabelText(
-            userId: profile.id,
-            profile: profile,
-            ocrText: recognized.text,
-            barcode: _barcode,
-            productNameHint: _nameController.text.trim().isEmpty ? null : _nameController.text.trim(),
-          );
+      final draft =
+          await ref.read(multimodalRemoteServiceProvider).parseLabelText(
+                userId: profile.id,
+                profile: profile,
+                ocrText: recognized.text,
+                barcode: _barcode,
+                productNameHint: _nameController.text.trim().isEmpty
+                    ? null
+                    : _nameController.text.trim(),
+              );
       if (mounted) context.go('/meal-editor', extra: draft);
     } catch (error) {
       if (mounted) setState(() => _error = error.toString());
@@ -203,7 +214,9 @@ class _BarcodeScreenState extends ConsumerState<BarcodeScreen> {
       source: MealSource.barcode,
       provenanceType: 'barcode_manual',
       confidenceOverall: 0.4,
-      analysisWarnings: const ['Barcode was not found. Review custom product nutrition before saving.'],
+      analysisWarnings: const [
+        'Barcode was not found. Review custom product nutrition before saving.'
+      ],
       items: [
         MealDraftItem(
           name: name,

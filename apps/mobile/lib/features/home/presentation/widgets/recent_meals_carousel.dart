@@ -35,7 +35,8 @@ class RecentMealsCarousel extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(meal.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+                      Text(meal.title,
+                          maxLines: 1, overflow: TextOverflow.ellipsis),
                       const Spacer(),
                       Text('${meal.caloriesKcal.round()} kcal'),
                       Text(meal.syncStatus.name),

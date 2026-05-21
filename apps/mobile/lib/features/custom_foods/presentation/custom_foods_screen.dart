@@ -39,7 +39,8 @@ class CustomFoodsScreen extends ConsumerWidget {
               return ListView.separated(
                 itemCount: items.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 8),
-                itemBuilder: (context, index) => _CustomFoodTile(food: items[index]),
+                itemBuilder: (context, index) =>
+                    _CustomFoodTile(food: items[index]),
               );
             },
           );
@@ -59,7 +60,8 @@ class _CustomFoodTile extends ConsumerWidget {
     return Card(
       child: ListTile(
         title: Text(food.name),
-        subtitle: Text('${food.caloriesKcal.round()} kcal · P ${food.proteinG.round()}g · C ${food.carbsG.round()}g · F ${food.fatG.round()}g'),
+        subtitle: Text(
+            '${food.caloriesKcal.round()} kcal · P ${food.proteinG.round()}g · C ${food.carbsG.round()}g · F ${food.fatG.round()}g'),
         trailing: PopupMenuButton<String>(
           onSelected: (value) async {
             if (value == 'edit') {
@@ -107,7 +109,8 @@ Future<void> _showFoodEditor(
     isScrollControlled: true,
     builder: (context) {
       return Padding(
-        padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.viewInsetsOf(context).bottom + 16),
+        padding: EdgeInsets.fromLTRB(
+            16, 16, 16, MediaQuery.viewInsetsOf(context).bottom + 16),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -126,33 +129,59 @@ Future<void> _showFoodEditor(
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Expanded(child: _NumberInput(label: 'Serving', initial: draft.servingQuantity, onChanged: (v) => draft.servingQuantity = v)),
+                  Expanded(
+                      child: _NumberInput(
+                          label: 'Serving',
+                          initial: draft.servingQuantity,
+                          onChanged: (v) => draft.servingQuantity = v)),
                   const SizedBox(width: 8),
                   Expanded(
                     child: TextField(
                       decoration: const InputDecoration(labelText: 'Unit'),
-                      controller: TextEditingController(text: draft.servingUnit ?? ''),
+                      controller:
+                          TextEditingController(text: draft.servingUnit ?? ''),
                       onChanged: (value) => draft.servingUnit = value,
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Expanded(child: _NumberInput(label: 'Grams', initial: draft.servingGrams, nullable: true, onChanged: (v) => draft.servingGrams = v)),
+                  Expanded(
+                      child: _NumberInput(
+                          label: 'Grams',
+                          initial: draft.servingGrams,
+                          nullable: true,
+                          onChanged: (v) => draft.servingGrams = v)),
                 ],
               ),
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Expanded(child: _NumberInput(label: 'Kcal', initial: draft.caloriesKcal, onChanged: (v) => draft.caloriesKcal = v ?? 0)),
+                  Expanded(
+                      child: _NumberInput(
+                          label: 'Kcal',
+                          initial: draft.caloriesKcal,
+                          onChanged: (v) => draft.caloriesKcal = v ?? 0)),
                   const SizedBox(width: 8),
-                  Expanded(child: _NumberInput(label: 'Protein', initial: draft.proteinG, onChanged: (v) => draft.proteinG = v ?? 0)),
+                  Expanded(
+                      child: _NumberInput(
+                          label: 'Protein',
+                          initial: draft.proteinG,
+                          onChanged: (v) => draft.proteinG = v ?? 0)),
                 ],
               ),
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Expanded(child: _NumberInput(label: 'Carbs', initial: draft.carbsG, onChanged: (v) => draft.carbsG = v ?? 0)),
+                  Expanded(
+                      child: _NumberInput(
+                          label: 'Carbs',
+                          initial: draft.carbsG,
+                          onChanged: (v) => draft.carbsG = v ?? 0)),
                   const SizedBox(width: 8),
-                  Expanded(child: _NumberInput(label: 'Fat', initial: draft.fatG, onChanged: (v) => draft.fatG = v ?? 0)),
+                  Expanded(
+                      child: _NumberInput(
+                          label: 'Fat',
+                          initial: draft.fatG,
+                          onChanged: (v) => draft.fatG = v ?? 0)),
                 ],
               ),
               const SizedBox(height: 12),
@@ -160,12 +189,16 @@ Future<void> _showFoodEditor(
                 valueListenable: error,
                 builder: (context, value, _) => value == null
                     ? const SizedBox.shrink()
-                    : Text(value, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                    : Text(value,
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.error)),
               ),
               FilledButton.icon(
                 onPressed: () async {
                   try {
-                    await ref.read(customFoodRepositoryProvider).save(userId, draft);
+                    await ref
+                        .read(customFoodRepositoryProvider)
+                        .save(userId, draft);
                     if (context.mounted) Navigator.of(context).pop();
                   } catch (e) {
                     error.value = e.toString();
@@ -199,10 +232,15 @@ class _NumberInput extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextField(
       decoration: InputDecoration(labelText: label),
-      controller: TextEditingController(text: initial == null ? '' : initial!.toStringAsFixed(initial! % 1 == 0 ? 0 : 1)),
+      controller: TextEditingController(
+          text: initial == null
+              ? ''
+              : initial!.toStringAsFixed(initial! % 1 == 0 ? 0 : 1)),
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))],
-      onChanged: (value) => onChanged(nullable && value.trim().isEmpty ? null : double.tryParse(value) ?? 0),
+      onChanged: (value) => onChanged(nullable && value.trim().isEmpty
+          ? null
+          : double.tryParse(value) ?? 0),
     );
   }
 }

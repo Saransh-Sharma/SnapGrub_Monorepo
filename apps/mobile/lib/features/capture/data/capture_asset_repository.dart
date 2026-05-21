@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:camera/camera.dart';
 import 'package:crypto/crypto.dart';
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide Uint8List;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image/image.dart' as img;
 import 'package:path/path.dart' as p;
@@ -38,14 +38,18 @@ class CaptureAssetRepository {
     final id = const Uuid().v4();
     final originalBytes = await file.readAsBytes();
     final decoded = img.decodeImage(originalBytes);
-    if (decoded == null) throw StateError('Captured image could not be decoded.');
+    if (decoded == null) {
+      throw StateError('Captured image could not be decoded.');
+    }
 
     final normalized = img.bakeOrientation(decoded);
     final resized = normalized.width > 1280
-        ? img.copyResize(normalized, width: 1280, interpolation: img.Interpolation.average)
+        ? img.copyResize(normalized,
+            width: 1280, interpolation: img.Interpolation.average)
         : normalized;
     final compressed = _encodeUnderTarget(resized, 700 * 1024);
-    final thumb = img.copyResize(normalized, width: 320, interpolation: img.Interpolation.average);
+    final thumb = img.copyResize(normalized,
+        width: 320, interpolation: img.Interpolation.average);
     final thumbBytes = Uint8List.fromList(img.encodeJpg(thumb, quality: 72));
     final digest = sha256.convert(compressed).toString();
     final directory = await getApplicationDocumentsDirectory();
@@ -86,7 +90,7 @@ class CaptureAssetRepository {
             height: Value(asset.height),
             sizeBytes: Value(asset.sizeBytes),
           ),
-	        );
+        );
     await _outbox.enqueue(
       userId: userId,
       commandType: 'asset.upload',
@@ -109,7 +113,8 @@ class CaptureAssetRepository {
   }
 
   Future<void> markUploaded(String id) async {
-    await (_db.update(_db.mealAssetsLocal)..where((tbl) => tbl.id.equals(id))).write(
+    await (_db.update(_db.mealAssetsLocal)..where((tbl) => tbl.id.equals(id)))
+        .write(
       MealAssetsLocalCompanion(
         uploadStatus: const Value('uploaded'),
         uploadedAt: Value(DateTime.now().toUtc()),

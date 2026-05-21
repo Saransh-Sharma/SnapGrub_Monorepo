@@ -16,7 +16,8 @@ final homeUserContextProvider = FutureProvider<HomeUserContext?>((ref) async {
     proteinGoal: profile.activeGoal?.proteinG,
     carbsGoal: profile.activeGoal?.carbsG,
     fatGoal: profile.activeGoal?.fatG,
-    weeklyInsightsEnabled: profile.featureFlags['weekly_insights.enabled'] == true,
+    weeklyInsightsEnabled:
+        profile.featureFlags['weekly_insights.enabled'] == true,
   );
 });
 
@@ -26,13 +27,17 @@ final todayMealsProvider = StreamProvider<List<Meal>>((ref) async* {
     yield const [];
     return;
   }
-  yield* ref.watch(mealRepositoryProvider).watchMealsForDay(context.userId, DateTime.now());
+  yield* ref
+      .watch(mealRepositoryProvider)
+      .watchMealsForDay(context.userId, DateTime.now());
 });
 
 final todayRollupProvider = StreamProvider<DailyRollup>((ref) async* {
   final context = await ref.watch(homeUserContextProvider.future);
   if (context == null) return;
-  yield* ref.watch(mealRepositoryProvider).watchRollup(context.userId, DateTime.now());
+  yield* ref
+      .watch(mealRepositoryProvider)
+      .watchRollup(context.userId, DateTime.now());
 });
 
 class HomeUserContext {

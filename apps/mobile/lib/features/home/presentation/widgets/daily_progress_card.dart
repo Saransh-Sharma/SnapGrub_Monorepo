@@ -15,7 +15,8 @@ class DailyProgressCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final goal = contextData.calorieGoal ?? 2000;
-    final progress = goal <= 0 ? 0.0 : (rollup.caloriesKcal / goal).clamp(0.0, 1.0);
+    final progress =
+        goal <= 0 ? 0.0 : (rollup.caloriesKcal / goal).clamp(0.0, 1.0);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),

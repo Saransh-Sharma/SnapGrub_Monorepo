@@ -60,8 +60,12 @@ class CustomFoodDraft {
   double fatG;
 
   void validate() {
-    if (name.trim().isEmpty) throw ArgumentError('Food name is required.');
-    if ((servingQuantity ?? 0) <= 0) throw ArgumentError('Serving quantity must be greater than zero.');
+    if (name.trim().isEmpty) {
+      throw ArgumentError('Food name is required.');
+    }
+    if ((servingQuantity ?? 0) <= 0) {
+      throw ArgumentError('Serving quantity must be greater than zero.');
+    }
     if (caloriesKcal < 0 || proteinG < 0 || carbsG < 0 || fatG < 0) {
       throw ArgumentError('Nutrition values cannot be negative.');
     }

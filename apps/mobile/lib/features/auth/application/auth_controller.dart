@@ -16,7 +16,9 @@ class AuthController extends AsyncNotifier<AuthState> {
   Future<AuthState> build() async {
     ref.onDispose(() => _subscription?.cancel());
     final config = ref.watch(appConfigProvider);
-    if (!config.hasSupabaseConfig) return const AuthState.configurationMissing();
+    if (!config.hasSupabaseConfig) {
+      return const AuthState.configurationMissing();
+    }
 
     final client = ref.watch(supabaseClientProvider);
     final user = client?.auth.currentUser;
@@ -29,7 +31,9 @@ class AuthController extends AsyncNotifier<AuthState> {
       );
     });
 
-    return user == null ? const AuthState.signedOut() : AuthState.signedIn(user.id);
+    return user == null
+        ? const AuthState.signedOut()
+        : AuthState.signedIn(user.id);
   }
 
   Future<void> requestMagicLink(String email) async {

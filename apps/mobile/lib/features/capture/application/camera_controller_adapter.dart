@@ -10,6 +10,12 @@ class CameraControllerAdapter {
   bool get isInitialized => _controller?.value.isInitialized ?? false;
   CameraController? get controller => _controller;
 
+  Future<bool> refreshPermissionStatus() async {
+    final status = await Permission.camera.status;
+    _hasPermission = status.isGranted || status.isLimited;
+    return _hasPermission;
+  }
+
   Future<bool> requestPermission() async {
     final status = await Permission.camera.request();
     _hasPermission = status.isGranted || status.isLimited;
@@ -17,6 +23,7 @@ class CameraControllerAdapter {
   }
 
   Future<void> initialize() async {
+    await refreshPermissionStatus();
     if (!_hasPermission) return;
     _cameras ??= await availableCameras();
     if (_cameras == null || _cameras!.isEmpty) {

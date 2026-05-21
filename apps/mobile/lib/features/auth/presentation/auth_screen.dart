@@ -58,7 +58,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                     await ref
                         .read(authControllerProvider.notifier)
                         .requestMagicLink(_emailController.text.trim());
-                    setState(() => _message = 'Check your email for a sign-in link.');
+                    setState(() =>
+                        _message = 'Check your email for a sign-in link.');
                   },
             child: auth.isLoading
                 ? const SizedBox.square(

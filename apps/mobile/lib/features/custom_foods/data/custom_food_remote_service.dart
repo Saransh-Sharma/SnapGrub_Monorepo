@@ -2,7 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:snapgrub/data/services/supabase_client_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-final customFoodRemoteServiceProvider = Provider<CustomFoodRemoteService>((ref) {
+final customFoodRemoteServiceProvider =
+    Provider<CustomFoodRemoteService>((ref) {
   return CustomFoodRemoteService(ref.watch(supabaseClientProvider));
 });
 
@@ -19,10 +20,12 @@ class CustomFoodRemoteService {
     final response = await _client.functions.invoke(
       'custom-foods',
       method: HttpMethod.post,
-      headers: clientRequestId == null ? null : {'Idempotency-Key': clientRequestId},
+      headers:
+          clientRequestId == null ? null : {'Idempotency-Key': clientRequestId},
       body: payload,
     );
-    return Map<String, dynamic>.from((response.data as Map)['custom_food'] as Map);
+    return Map<String, dynamic>.from(
+        (response.data as Map)['custom_food'] as Map);
   }
 
   Future<Map<String, dynamic>> softDelete({
@@ -43,6 +46,7 @@ class CustomFoodRemoteService {
         'deleted_at': deletedAt.toUtc().toIso8601String(),
       },
     );
-    return Map<String, dynamic>.from((response.data as Map)['custom_food'] as Map);
+    return Map<String, dynamic>.from(
+        (response.data as Map)['custom_food'] as Map);
   }
 }
