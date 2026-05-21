@@ -10,4 +10,4 @@ Phase 1 onboarding collects enough profile and goal data to start the app withou
 - Invalid values should show actionable messages.
 - Offline submit saves locally and shows pending sync state.
 
-Future camera/SnapStrip UX belongs in Phase 2 docs after readiness gates pass.
+Camera/SnapStrip UX belongs to Home. Photo capture is implemented for Phase 4, so the Home surface should show graceful permission, loading, capture, analysis, retry, and manual fallback states. Barcode, OCR/text, and voice remain Phase 5+ actions and should stay visibly gated rather than hidden behind dead controls.

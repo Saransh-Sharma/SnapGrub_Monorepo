@@ -1,25 +1,40 @@
 # Offline Sync
 
-Phase 1 implements the smallest local-first sync surface needed for onboarding/settings: `settings.patch`.
+SnapGrub uses local-first writes for settings and Phase 3 meal logging. The outbox records retryable commands by authenticated `userId` and drains them when remote services are configured.
 
 ## How It Works
 
-1. The app validates onboarding/settings locally.
-2. It writes profile, active goal, and optional body measurement into Drift.
-3. It calls `settings-patch` when remote config is available.
-4. Retryable failures create one pending `settings.patch` outbox command.
-5. Bootstrap or manual refresh drains pending settings commands.
-6. Successful drain marks the command `synced` and updates local state from the server response.
+```mermaid
+sequenceDiagram
+  participant UI as Flutter UI
+  participant Repo as Repository
+  participant DB as Drift
+  participant Outbox as Outbox
+  participant Remote as Supabase
 
-## Current Limits
+  UI->>Repo: save settings/meal/template/custom food
+  Repo->>DB: validate and write local state
+  Repo->>Outbox: enqueue retryable command
+  UI-->>UI: render pending/synced local state
+  Outbox->>Remote: drain command when online/configured
+  Remote-->>Repo: authoritative response
+  Repo->>DB: cache server row/rollup/correction event
+  Repo->>Outbox: mark synced or schedule retry
+```
 
-- Only `settings.patch` is supported.
-- Network-restored hooks are deferred.
-- Meal/photo/catalog sync is not implemented.
+## Command Families
+
+- `settings.patch`: profile, active goal, optional body measurement through `settings-patch`.
+- `meal.create`, `meal.update`, `meal.delete`: meal writes through the `meals` Edge Function.
+- `template.upsert`, `template.delete`: RLS-backed sync to `meal_templates`.
+- `custom_food.upsert`, `custom_food.delete`: RLS-backed sync to `custom_foods`.
+
+Photo analysis does not add an outbox command family: asset upload and analysis creation run immediately through Supabase Storage and `analysis-photo-create`. The confirmed photo meal then uses the existing `meal.create`/`meal.update` outbox path. Phase 5 barcode/OCR/voice commands should not be added until their contracts and server behavior exist.
 
 ## Safe Change Rules
 
 - Scope outbox commands by `userId`.
 - Do not queue validation or auth failures.
 - Preserve `client_request_id` for idempotency.
-- Avoid adding new command types without documenting replay, conflict, and failure behavior.
+- Cache authoritative server responses after sync, including meal rollups and correction events.
+- Avoid adding new command types without documenting replay, conflict, failure behavior, and QA cases.

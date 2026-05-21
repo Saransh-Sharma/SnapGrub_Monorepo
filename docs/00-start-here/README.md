@@ -2,7 +2,9 @@
 
 This is the preferred entrypoint for SnapGrub engineering docs.
 
-SnapGrub is currently in Phase 0/1 stabilization: repository foundation, API contracts, Supabase auth/profile/settings, Flutter onboarding, local-first profile storage, and minimal `settings.patch` outbox sync. Phase 2 SnapStrip/camera work should not start until the Phase 0/1 gate passes.
+SnapGrub has Phase 0-4 foundations implemented: contract-first API package, Supabase auth/profile/settings, Flutter onboarding, Phase 2 SnapStrip shell, Phase 3 local-first manual meal logging with journal/progress/templates/custom foods, and Phase 4 photo analysis that turns captured images into editable Meal Editor drafts.
+
+Phase 5+ remains future work: barcode resolution, OCR assist, voice parsing, export/account deletion, and weekly insights.
 
 ## First Stops
 
@@ -15,6 +17,19 @@ SnapGrub is currently in Phase 0/1 stabilization: repository foundation, API con
 - QA gates: [../10-quality/README.md](../10-quality/README.md)
 - Current phase status: [../14-project-management/phase-status.md](../14-project-management/phase-status.md)
 
+## Current Quick Path
+
+- API: [../03-api-contracts/endpoints.md](../03-api-contracts/endpoints.md)
+- Database: [../04-database/schema.md](../04-database/schema.md)
+- Frontend: [../05-frontend/architecture.md](../05-frontend/architecture.md)
+- Backend: [../06-backend/meal-core-rpcs.md](../06-backend/meal-core-rpcs.md)
+- QA: [../10-quality/manual-test-plan.md](../10-quality/manual-test-plan.md)
+- Phase 4 QA: [../10-quality/phase-4-photo-analysis-acceptance.md](../10-quality/phase-4-photo-analysis-acceptance.md)
+- Photo AI contract: [../07-ai-ml/future-photo-analysis-contract.md](../07-ai-ml/future-photo-analysis-contract.md)
+- ADRs: [../12-decisions/README.md](../12-decisions/README.md)
+- Risks: [../13-risk-register/README.md](../13-risk-register/README.md)
+- Release notes: [../14-project-management/release-notes.md](../14-project-management/release-notes.md)
+
 ## Local Baseline
 
 Install the required toolchain before relying on CI parity:
@@ -24,8 +39,8 @@ Install the required toolchain before relying on CI parity:
 - Supabase CLI
 - Deno
 
-Run the Phase 0/1 gate from [../10-quality/phase-0-1-gate.md](../10-quality/phase-0-1-gate.md) before starting Phase 2.
+Run the current checks from [../10-quality/README.md](../10-quality/README.md) before relying on local parity.
 
 ## Documentation Rules
 
-Use the numbered docs as the navigation layer. Existing docs under `docs/api`, `docs/architecture`, `docs/qa`, and `docs/runbooks` remain for compatibility and are linked where useful. Do not duplicate long content; update the canonical page and link related references.
+Use the numbered docs as the canonical navigation layer. Existing docs under `docs/api`, `docs/architecture`, `docs/qa`, and `docs/runbooks` remain for compatibility and are linked where useful. Do not duplicate long content; update the canonical page and link related references.

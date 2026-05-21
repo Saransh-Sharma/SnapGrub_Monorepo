@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-Phase 0/1 uses Supabase Edge Functions directly. Introducing a public gateway now would add deployment complexity before the core auth/profile path is stable.
+SnapGrub uses Supabase Edge Functions directly for the implemented Phase 0-3 API surface. Introducing a public gateway now would add deployment complexity before core logging is stable.
 
 ## Decision
 
@@ -15,6 +15,7 @@ Use Edge Function deploy names as current callable API paths:
 - `profile-bootstrap`
 - `settings-patch`
 - `events-ingest`
+- `meals`
 
 Future `/v1/...` REST paths may be added behind a gateway later.
 

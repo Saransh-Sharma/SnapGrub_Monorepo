@@ -11,6 +11,7 @@ GitHub Actions configuration lives in `.github/workflows/ci.yml`.
   - migration lint
   - Supabase start/reset
   - RLS isolation harness
+  - meal-core smoke harness
 
 - `mobile`
   - Flutter setup
@@ -21,3 +22,5 @@ GitHub Actions configuration lives in `.github/workflows/ci.yml`.
   - dev flavor APK build
 
 CI is not fully authoritative until real Android/iOS platform projects are committed.
+
+The `/packages/` directory contains source-controlled API contracts and generated clients. Keep it explicitly unignored even though Swift Package Manager ignores `Packages/`.

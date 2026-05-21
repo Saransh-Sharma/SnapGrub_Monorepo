@@ -1,16 +1,17 @@
 # Product
 
-SnapGrub MVP is a premium calorie tracking and weight-loss app with Flutter mobile clients and Supabase/Vercel-backed orchestration. The current implementation focus is Phase 0/1 foundation, auth, onboarding, profile, goals, local cache, and settings sync.
+SnapGrub MVP is a premium calorie tracking and weight-loss app with Flutter mobile clients and Supabase-backed orchestration. The current implementation covers Phase 0-3 foundations: auth/onboarding/profile, SnapStrip shell, local-first manual meal logging, journal, progress, templates, custom foods, rollups, correction events, and sync outbox.
 
 This folder captures product boundaries that affect engineering. It does not replace the large handoff documents; those are linked in [reference.md](reference.md).
 
 ## Current MVP Boundaries
 
 - Build mobile-first auth, onboarding, profile, goals, and local-first persistence.
-- Keep AI meal analysis as an editable draft in later phases, not source of truth.
-- Keep confidence, provenance, and correction events as required future data concepts.
+- Keep the Phase 2 SnapStrip shell visible but gate unimplemented multimodal actions behind feature flags.
+- Treat Phase 3 manual/duplicate meals as the source-of-truth meal ledger.
+- Preserve confidence, provenance, and correction events so Phase 4 AI output remains editable draft data.
 - Do not ship backend secrets, AI provider keys, or service-role credentials in mobile.
-- Do not start SnapStrip/camera work until Phase 0/1 readiness passes.
+- Defer photo AI, barcode resolve, OCR assist, voice parsing, exports, account deletion, and weekly insights to Phase 4+.
 
 Related docs:
 

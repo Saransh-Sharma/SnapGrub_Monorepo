@@ -1,6 +1,6 @@
 # Database
 
-Supabase Postgres stores authenticated user data, feature flags, analytics events, private storage metadata, and idempotency records.
+Supabase Postgres stores authenticated user data, feature flags, analytics events, private storage metadata, idempotency records, and Phase 3 meal ledger data.
 
 ## Current Migration Sequence
 
@@ -10,6 +10,8 @@ Supabase Postgres stores authenticated user data, feature flags, analytics event
 - `000004_storage_buckets.sql`
 - `000005_phase1_measurements_and_flags.sql`
 - `000006_settings_idempotency_rpc.sql`
+- `000007_meal_core.sql`
+- `000008_phase3_meal_completion.sql`
 
 ## Rules
 
@@ -17,9 +19,11 @@ Supabase Postgres stores authenticated user data, feature flags, analytics event
 - Document schema, RLS, and index changes here.
 - Add RLS tests for every new user-owned table.
 - Keep service-only tables unreadable by clients.
+- Keep derived rollup writes behind service-role RPCs.
+- Keep correction events append-only.
 
 More detail:
 
-- [schema-phase-0-1.md](schema-phase-0-1.md)
+- [schema.md](schema.md)
 - [rls.md](rls.md)
 - [migrations.md](migrations.md)

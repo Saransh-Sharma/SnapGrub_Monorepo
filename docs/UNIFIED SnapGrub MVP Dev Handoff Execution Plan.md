@@ -828,6 +828,8 @@ Implement:
 meal-upsert
 ```
 
+In this repository, the deployed Supabase Edge Function remains `meals`; `meal-upsert` names the transactional create/update/delete responsibility exposed through `POST /meals`, `PATCH /meals/{mealId}`, and `DELETE /meals/{mealId}`.
+
 ### API endpoints
 
 ```http
@@ -2605,4 +2607,3 @@ Do not chase “perfect AI calorie accuracy” in MVP. Build a fast, honest, edi
 ```txt
 capture → estimate → edit → save → learn defaults → improve catalog → reduce friction next time
 ```
-

@@ -1,6 +1,6 @@
 # Row-Level Security
 
-All user-owned Phase 0/1 tables must enforce tenant isolation with Supabase RLS.
+All user-owned tables must enforce tenant isolation with Supabase RLS.
 
 ## Current Expectations
 
@@ -14,6 +14,17 @@ All user-owned Phase 0/1 tables must enforce tenant isolation with Supabase RLS.
 | `feature_flag_overrides` | no direct client access |
 | `analytics_events` | authenticated users can insert own/pre-auth events only |
 | `api_idempotency` | service-side only |
+| `meals` | authenticated user can select own rows; writes go through `meals` Edge Function/RPC path |
+| `meal_items` | authenticated user can select own rows; writes follow meal ownership |
+| `meal_templates` | authenticated user can CRUD own rows through RLS-backed sync |
+| `custom_foods` | authenticated user can CRUD own rows through RLS-backed sync |
+| `daily_rollups` | authenticated user can select own rows; service-role RPCs write derived rows |
+| `correction_events` | authenticated user can select own rows; append-only writes from meal paths |
+| `meal_assets` | authenticated user can select/insert/update own asset rows; storage path prefix must match user ID |
+| `analysis_jobs` | authenticated user can select own jobs; service-role functions create/update jobs |
+| `analysis_revisions` | authenticated user can select own revisions; service-role functions insert immutable revisions |
+| `analysis_candidates` | authenticated user can select candidates through owned analysis revisions |
+| `model_invocations` | authenticated user can select own invocation summaries; service-role functions insert rows |
 
 ## Test Coverage
 
@@ -25,5 +36,7 @@ It creates two auth users and checks:
 - User A cannot read/update User B records.
 - Feature flag overrides and analytics reads are blocked.
 - Global feature flags are readable.
+- Phase 3 meal, item, template, custom-food, rollup, and correction-event isolation is checked.
+- Phase 4 meal asset, analysis job, revision, candidate, and model invocation isolation is checked.
 
 Run it after `supabase db reset` with local Supabase env variables loaded.

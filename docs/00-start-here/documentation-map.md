@@ -25,3 +25,5 @@ The numbered folders are the canonical developer docs. Older folders remain avai
 For each implementation phase, review changed migrations, OpenAPI, Edge Functions, Flutter modules, scripts, and CI files. Update the matching numbered docs first, then update compatibility docs only when needed.
 
 Important architecture choices belong in ADRs under [../12-decisions/README.md](../12-decisions/README.md), not buried inside feature docs.
+
+Implementation PRs must update docs in the same PR when they change API shape, database schema/RLS, setup commands, feature behavior, test gates, operational risk, or release status.

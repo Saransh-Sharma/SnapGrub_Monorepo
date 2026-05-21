@@ -1,12 +1,13 @@
 # Nutrition Catalog
 
-Nutrition catalog ingestion is not implemented in Phase 0/1. This folder captures future source, licensing, provenance, and ingestion rules.
+Nutrition catalog ingestion is not implemented through Phase 3. This folder captures future source, licensing, provenance, and ingestion rules.
 
 ## Current Status
 
 - Shared domain notes exist under `packages/shared-domain/nutrition`.
-- No production catalog schema or ingestion job is active.
-- Phase 1 must not add meal/catalog schema except explicitly documented future guardrails.
+- Phase 3 custom foods exist as user-owned data in `custom_foods`; they are not a global catalog.
+- `meal_items` can preserve manual/custom source metadata now and catalog IDs later.
+- No production catalog ingestion job is active.
 
 Related:
 

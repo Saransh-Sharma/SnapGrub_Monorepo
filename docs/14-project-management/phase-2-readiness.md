@@ -1,6 +1,6 @@
 # Phase 2 Readiness
 
-Phase 2 SnapStrip/camera work must not begin until all items below pass.
+This checklist is historical foundation readiness. Phase 2 SnapStrip shell work exists, but the same toolchain/platform blockers still affect authoritative CI and Phase 3 acceptance.
 
 ## Required
 
@@ -18,6 +18,8 @@ Phase 2 SnapStrip/camera work must not begin until all items below pass.
 - `flutter test` passes.
 - `flutter build apk --debug --flavor dev --dart-define=SNAPGRUB_ENV=dev` passes.
 - Manual Phase 0/1 smoke passes.
+
+Current Phase 3 acceptance is tracked in [../10-quality/phase-3-acceptance.md](../10-quality/phase-3-acceptance.md).
 
 ## Manual Smoke
 

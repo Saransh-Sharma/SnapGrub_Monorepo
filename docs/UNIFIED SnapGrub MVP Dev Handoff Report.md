@@ -293,7 +293,7 @@ using (
 | `analysis-text-create` | Supabase Edge | parse text/voice transcript into meal draft |
 | `barcode-resolve` | Supabase Edge | local lookup → cache → Open Food Facts/commercial provider |
 | `foods-search` | Supabase Edge | search canonical/custom/branded/recent foods |
-| `meal-upsert` | Supabase Edge | transactionally write meal + items + corrections |
+| `meal-upsert` | Supabase Edge responsibility exposed by the `meals` function | transactionally write meal + items + corrections |
 | `templates-upsert` | Supabase Edge | save favorite meal snapshots |
 | `settings-patch` | Supabase Edge | patch profile/goals/preferences |
 | `events-ingest` | Supabase Edge | batch analytics ingest |

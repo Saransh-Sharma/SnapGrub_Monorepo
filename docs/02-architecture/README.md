@@ -6,15 +6,23 @@ SnapGrub is a contract-first monorepo. Flutter owns the local-first user experie
 flowchart LR
   Mobile["Flutter mobile app"]
   Drift["Drift local DB"]
+  Outbox["Outbox commands"]
   Contracts["OpenAPI contracts\npackages/api-contracts"]
-  Functions["Supabase Edge Functions"]
+  Functions["Supabase Edge Functions\nprofile/settings/events/meals"]
+  RPC["Meal RPCs\nupsert/delete/rollup"]
+  Direct["RLS table sync\ntemplates/custom foods"]
   Postgres["Supabase Postgres + RLS"]
   Storage["Private Supabase Storage"]
 
   Mobile <--> Drift
-  Mobile --> Contracts
+  Drift <--> Outbox
+  Mobile -. generated DTOs .-> Contracts
   Mobile --> Functions
+  Mobile --> Direct
   Functions --> Contracts
+  Functions --> RPC
+  RPC --> Postgres
+  Direct --> Postgres
   Functions --> Postgres
   Functions --> Storage
 ```
@@ -22,7 +30,8 @@ flowchart LR
 ## Current Architecture Rules
 
 - Mobile initializes Supabase with anon config only.
-- Mobile calls Edge Functions for protected settings writes; it does not own direct table-write behavior for settings.
+- Mobile calls Edge Functions for protected settings and meal writes.
+- Mobile uses RLS-backed direct table sync only for Phase 3 templates and custom foods.
 - Backend protects user data with RLS and service-side validation.
 - API contract changes start in OpenAPI and regenerate committed clients.
 - Local data must be scoped by authenticated user ID.

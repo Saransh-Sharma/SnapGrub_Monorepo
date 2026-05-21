@@ -13,13 +13,20 @@ bash scripts/generate-api-clients.sh
 
 ## Current Callable API
 
-Phase 0/1 uses Supabase Edge Function deploy names as the API paths:
+The current mobile integration uses Supabase Edge Function deploy names as API paths:
 
 - `POST /profile-bootstrap`
 - `PATCH /settings-patch`
 - `POST /events-ingest`
+- `GET /meals`
+- `GET /meals/{meal_id}`
+- `POST /meals`
+- `PATCH /meals/{meal_id}`
+- `DELETE /meals/{meal_id}`
 
 Friendly `/v1/...` gateway paths can be introduced later behind a gateway, but the current mobile integration uses the function names.
+
+Meal write/detail responses include typed `CorrectionEvent[]`; do not replace that with untyped maps in generated clients.
 
 Related:
 

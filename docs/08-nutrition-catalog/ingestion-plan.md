@@ -11,3 +11,5 @@ Catalog ingestion is deferred. Before implementing it, define:
 - QA samples and rollback process.
 
 Do not run ingestion scripts against production data until the schema, source license, and rollback plan are documented.
+
+Phase 3 custom foods are user-authored records and should not be mixed into global catalog ingestion. Future catalog mappings should preserve `food_ref_kind`, source IDs, and license/provenance fields on meal items.
