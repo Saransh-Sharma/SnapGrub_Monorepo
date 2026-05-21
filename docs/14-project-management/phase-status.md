@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Phase 0-4 photo analysis implementation is in place. Current work is verification, documentation alignment, and environment readiness before Phase 5 barcode/OCR/text/voice work.
+Phase 0-5 implementation is in place at source level. Current work is Phase 6 readiness: verification, native platform restoration, and offline sync/idempotency hardening.
 
 ## Capability Map
 
@@ -13,9 +13,10 @@ flowchart LR
   P2["Phase 2\nHome + SnapStrip shell"]
   P3["Phase 3\nmeal ledger + local-first sync"]
   P4["Phase 4\nphoto analysis"]
-  P5["Phase 5+\nbarcode/OCR/text/voice"]
+  P5["Phase 5\nbarcode/OCR/text/voice"]
+  P6["Phase 6\noffline sync hardening"]
 
-  P0 --> P1 --> P2 --> P3 --> P4 --> P5
+  P0 --> P1 --> P2 --> P3 --> P4 --> P5 --> P6
 ```
 
 ## Implemented
@@ -30,6 +31,8 @@ flowchart LR
 - Phase 3 meal schema, local meal tables, and `meals` Edge Function exist.
 - Meal Editor, Journal, Progress, Templates, Custom Foods, rollups, and correction-event caching exist.
 - Phase 4 photo-analysis contracts, migrations, Edge Functions, local capture asset pipeline, and Meal Editor draft handoff exist.
+- Phase 5 barcode, OCR assist, text entry, voice entry, catalog migration, and parser Edge Functions exist.
+- Phase 6 readiness now includes idempotent template/custom-food/body-measurement/export functions, analytics idempotency, server-owned daily rollups, idempotency cleanup, and expanded mobile outbox command support.
 
 ## Verification Blockers
 
@@ -40,4 +43,4 @@ flowchart LR
 
 ## Next Phase Entry
 
-Proceed to Phase 5 only after [../10-quality/phase-3-acceptance.md](../10-quality/phase-3-acceptance.md) plus Phase 4 photo QA pass, real platform folders are generated, and backend AI provider secrets are configured outside the repository.
+Proceed to Phase 6 acceptance only after Phase 5 smoke tests pass, real platform folders are generated, and the full backend/mobile toolchain is available locally or in CI.

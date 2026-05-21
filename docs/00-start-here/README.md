@@ -2,9 +2,9 @@
 
 This is the preferred entrypoint for SnapGrub engineering docs.
 
-SnapGrub has Phase 0-4 foundations implemented: contract-first API package, Supabase auth/profile/settings, Flutter onboarding, Phase 2 SnapStrip shell, Phase 3 local-first manual meal logging with journal/progress/templates/custom foods, and Phase 4 photo analysis that turns captured images into editable Meal Editor drafts.
+SnapGrub has Phase 0-5 foundations implemented: contract-first API package, Supabase auth/profile/settings, Flutter onboarding, Phase 2 SnapStrip shell, Phase 3 local-first manual meal logging with journal/progress/templates/custom foods, Phase 4 photo analysis, and Phase 5 barcode/OCR/text/voice draft entry.
 
-Phase 5+ remains future work: barcode resolution, OCR assist, voice parsing, export/account deletion, and weekly insights.
+Phase 6 readiness work is in progress for offline sync hardening, idempotency coverage, conflict surfacing, export request enqueueing, and durable asset/analytics replay.
 
 ## First Stops
 

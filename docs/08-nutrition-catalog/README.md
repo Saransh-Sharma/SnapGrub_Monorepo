@@ -1,13 +1,14 @@
 # Nutrition Catalog
 
-Nutrition catalog ingestion is not implemented through Phase 3. This folder captures future source, licensing, provenance, and ingestion rules.
+Nutrition catalog ingestion is implemented as an MVP Phase 5 seed, with provenance rules captured here for future expansion.
 
 ## Current Status
 
 - Shared domain notes exist under `packages/shared-domain/nutrition`.
-- Phase 3 custom foods exist as user-owned data in `custom_foods`; they are not a global catalog.
-- `meal_items` can preserve manual/custom source metadata now and catalog IDs later.
-- No production catalog ingestion job is active.
+- Phase 5 adds canonical food, alias, nutrient, portion, branded product, barcode, and catalog mapping tables.
+- The current catalog is a curated MVP seed plus a small hot barcode cache, not broad production ingestion.
+- `meal_items` preserve manual/custom/catalog/branded source metadata for confirmed meals.
+- No broad scheduled catalog ingestion job is active yet.
 
 Related:
 
