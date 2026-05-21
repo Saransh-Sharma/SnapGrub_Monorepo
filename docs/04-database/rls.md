@@ -40,5 +40,6 @@ It creates two auth users and checks:
 - Global feature flags are readable.
 - Phase 3 meal, item, template, custom-food, rollup, and correction-event isolation is checked.
 - Phase 4 meal asset, analysis job, revision, candidate, and model invocation isolation is checked.
+- Phase 5/6/7 function-facing paths are covered by dedicated smoke checks where direct RLS isolation is not the authoritative write path.
 
 Run it after `supabase db reset` with local Supabase env variables loaded.

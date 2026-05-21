@@ -2,25 +2,30 @@
 
 ## Implemented Phase Status
 
-| Phase | Status | Implemented capability |
+| Phase | Status label | Implemented capability |
 | --- | --- | --- |
-| Phase 0 | Implemented foundation | Monorepo docs, contract package, Supabase CLI structure, base migrations, storage buckets, generated clients |
-| Phase 1 | Implemented foundation | Auth, onboarding, profile, goals, settings patch RPC, feature flags, analytics ingest, local-first settings outbox |
-| Phase 2 | Implemented shell | Home, SnapStrip UI states, camera shell, action analytics, per-action feature flag gates |
-| Phase 3 | Implemented source-of-truth meal ledger | Manual/duplicate meals, Meal Editor, Journal, Progress, templates, custom foods, daily rollups, correction events, meal outbox |
-| Phase 4 | Implemented source-level AI loop | Photo capture assets, backend-only provider orchestration, analysis jobs/revisions, confidence/provenance draft handoff |
-| Phase 5 | Implemented multimodal source level | Barcode, OCR assist, text parser, voice transcript parser, catalog seeds, unified Meal Editor draft mapping |
-| Phase 6 | Implemented source-level sync hardening | Idempotent mutation outbox, deterministic drain order, pull-after-push, conflict recovery surface, upload de-duplication |
-| Phase 7 | Implemented source-level retention loop | Weekly insight snapshots, learned food defaults, feature flag gating, Progress insight/frequent-food widgets |
+| Phase 0 | implemented, partly verified locally | Monorepo docs, contract package, Supabase CLI structure, base migrations, storage buckets, generated clients, restored native Android/iOS projects, committed Drift generated code |
+| Phase 1 | verified locally | Auth, onboarding, profile, goals, settings patch RPC, feature flags, analytics ingest, local-first settings outbox, backend Phase 1 smoke |
+| Phase 2 | source-level only | Home, SnapStrip UI states, camera shell, action analytics, per-action feature flag gates, permission refresh, app lifecycle pause/resume |
+| Phase 3 | verified locally | Manual/duplicate meals, Meal Editor, Journal, Progress, templates, custom foods, daily rollups, correction events, meal outbox, backend meal-core smoke, mobile outbox tests |
+| Phase 4 | backend verified locally, mobile source-level only | Photo capture assets, backend-only provider orchestration, analysis jobs/revisions, confidence/provenance draft handoff, mock-provider backend smoke |
+| Phase 5 | backend verified locally, mobile source-level only | Barcode, OCR assist, text parser, voice transcript parser, catalog seeds, unified Meal Editor draft mapping |
+| Phase 6 | backend verified locally, mobile source-level only | Idempotent mutation outbox, deterministic drain order, pull-after-push, conflict recovery surface, upload de-duplication, export request enqueue |
+| Phase 7 | backend verified locally, mobile source-level only | Weekly insight snapshots, learned food defaults, feature flag gating, Progress insight/frequent-food widgets |
 
-## Explicitly Deferred To Phase 4+
+## Blocked Or Deferred
 
-Deferred until later phases:
+Blocked until the local/CI environment supplies a JDK and device matrix:
 
-- Photo AI analysis and model provider integration.
-- Barcode resolution, nutrition-label OCR assist, and voice parsing.
-- Catalog ingestion beyond user-owned custom foods.
-- Export creation and account deletion flows.
-- Real Android/iOS platform flavor projects if they are still not committed.
+- Android dev APK build.
+- iOS simulator/device and Android emulator/device manual acceptance.
+- Camera permission/lifecycle, barcode, OCR, voice, offline/reconnect sync, conflict recovery, and weekly insight flag manual validation.
 
-Current acceptance status lives in [../14-project-management/phase-status.md](../14-project-management/phase-status.md).
+Deferred until Phase 8+ unless explicitly pulled forward:
+
+- Export artifact generation after `exports-create` enqueues a request.
+- Full account deletion completion.
+- Scheduled/cron weekly insight generation in staging/production.
+- Real-provider Gemini/OpenAI staging readiness beyond the local mock provider.
+
+Current acceptance status lives in [../14-project-management/phase-0-7-implementation-review-2026-05-21.md](../14-project-management/phase-0-7-implementation-review-2026-05-21.md).

@@ -17,6 +17,7 @@ The mobile outbox supports `settings.patch`, meal/template/custom-food commands,
 - Photo asset upload is represented as `asset.upload`; photo analysis creation still runs immediately after an upload-capable path is available.
 - Once the analysis result opens in Meal Editor, the confirmed photo meal uses the existing local-first meal outbox with `source=photo`, `analysis_job_id`, and `photo_asset_id`.
 - Validation/auth failures are marked failed, idempotency/revision conflicts are marked conflict, and retryable failures use exponential backoff with jitter.
+- Failed/conflict states are surfaced from Home and can be opened in the Sync status screen.
 
 ## Safe Change Rules
 
@@ -27,3 +28,4 @@ The mobile outbox supports `settings.patch`, meal/template/custom-food commands,
 - Template snapshots must remain self-contained enough to create a duplicate meal draft.
 - Custom-food insertion should preserve `food_ref_kind`, `custom_food_id`, and source metadata on meal items.
 - Cache typed correction events from meal responses into `correction_events_local`.
+- Keep weekly insight/default caches read-oriented; scheduled generation is backend/ops-owned.

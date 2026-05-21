@@ -24,3 +24,22 @@ The current manual QA checklist is maintained here for numbered docs. Legacy che
 - Save a meal as a template, then use that template to create a duplicate meal.
 - Create a custom food and insert it into a meal draft.
 - Sign in as a second user and verify no first-user local data appears.
+
+## Phase 4/5 Manual Smoke
+
+- Camera permission denied/granted states are clear and recoverable.
+- Backgrounding Home pauses preview; foregrounding resumes preview when permission exists.
+- Photo capture uploads/retries cleanly and opens an editable photo draft in Meal Editor.
+- Barcode scan resolves a packaged product or offers manual fallback.
+- OCR label assist parses label text into an editable draft.
+- Text meal entry maps parser output into Meal Editor.
+- Voice permission denial is handled without losing the typed/manual fallback.
+
+## Phase 6/7 Manual Smoke
+
+- Offline meal save appears immediately and syncs after reconnect.
+- Failed or conflict sync state is visible from Home and opens the Sync status screen.
+- Pending commands are linked to recoverable user action where possible.
+- `exports-create` creates an export request only; no artifact should be expected in Phase 6.
+- Weekly insight widgets stay hidden while `weekly_insights.enabled` is disabled.
+- Enabling `weekly_insights.enabled` shows cached/generated insight/default surfaces without breaking Progress.

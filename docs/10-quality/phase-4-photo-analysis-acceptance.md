@@ -8,6 +8,7 @@ Use this checklist before Phase 5 barcode/OCR/text/voice work.
 - `npm run backend:lint:migrations`
 - `npm run backend:typecheck`
 - `supabase db reset`
+- `npm run backend:test:phase4`
 - `npm run backend:test:rls`
 - `npm run backend:test:meal-core`
 - `flutter pub get`

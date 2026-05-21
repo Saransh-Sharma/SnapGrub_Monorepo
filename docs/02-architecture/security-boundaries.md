@@ -14,11 +14,12 @@ SnapGrub separates public mobile configuration from protected backend authority.
 - RLS remains the primary protection for user-owned tables.
 - Function responses must not return service-only fields.
 - Feature flag overrides are resolved server-side and not directly readable by clients.
-- Phase 3 meal writes go through service-role RPCs called by the `meals` Edge Function.
-- Phase 3 templates and custom foods use direct mobile table writes guarded by RLS and authenticated `user_id`.
+- Meal writes go through service-role RPCs called by the `meals` Edge Function.
+- Photo analysis, barcode fallback, text parsing, label parsing, voice transcript parsing, export request enqueueing, and weekly insight generation run through backend functions/RPCs.
+- Templates, custom foods, rollups, insights, and defaults expose only documented user-owned rows through RLS.
 
 ## AI/ML
 
-Future AI provider calls must run through backend orchestration. The mobile app may upload or reference user media only through approved backend/storage flows and must treat AI output as an editable draft.
+AI provider calls must run through backend orchestration. The mobile app may upload or reference user media only through approved backend/storage flows and must treat AI output as an editable draft.
 
 Related ADR: [../12-decisions/ADR-0004-service-role-and-ai-keys-backend-only.md](../12-decisions/ADR-0004-service-role-and-ai-keys-backend-only.md)

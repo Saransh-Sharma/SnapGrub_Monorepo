@@ -1,6 +1,6 @@
 # Backend Architecture
 
-Supabase is the Phase 0-3 backend. It provides auth, Postgres, RLS, private storage, local migrations, seed data, Edge Functions, and service-role RPCs for transactional meal writes.
+Supabase is the Phase 0-7 backend. It provides auth, Postgres, RLS, private storage, local migrations, seed data, Edge Functions, backend-only AI orchestration, idempotent sync replay, and service-role RPCs for transactional settings, meal, rollup, and insight paths.
 
 ## How It Works
 
@@ -12,7 +12,11 @@ Supabase is the Phase 0-3 backend. It provides auth, Postgres, RLS, private stor
 - `events-ingest` accepts append-only analytics events.
 - `meals` lists, reads, creates, updates, and soft-deletes authenticated user meals.
 - `upsert_user_meal`, `delete_user_meal`, and `refresh_daily_rollup` keep meal writes transactional and refresh rollups.
-- Templates and custom foods sync through RLS-backed table writes rather than separate Edge Functions in Phase 3.
+- `analysis-photo-create` validates private storage ownership, runs the configured backend provider, records model invocations, and returns editable photo drafts.
+- `analysis-get` recovers one user's analysis job/result.
+- `foods-search`, `barcode-resolve`, `analysis-text-create`, `analysis-label-create`, and `analysis-voice-create` provide Phase 5 multimodal entry support.
+- `custom-foods`, `meal-templates`, `body-measurements`, and `exports-create` provide idempotent Phase 6 outbox replay surfaces.
+- Weekly insight and learned-default RPC paths are available behind Phase 7 feature flags; scheduled generation remains an ops/staging gate.
 
 ## Safe Change Rules
 
@@ -22,3 +26,4 @@ Supabase is the Phase 0-3 backend. It provides auth, Postgres, RLS, private stor
 - Keep Edge Function request/response shapes aligned with OpenAPI.
 - Do not expose feature flag overrides directly to clients.
 - Keep meal correction events append-only and return authoritative correction events from meal write responses.
+- Keep `exports-create` scoped to request enqueueing until Phase 8 export artifact generation is explicitly implemented.

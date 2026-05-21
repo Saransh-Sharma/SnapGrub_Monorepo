@@ -36,6 +36,12 @@ AI_OUTPUT_PRICE_PER_1M=1.50
 
 Use `AI_PROVIDER=mock` for local development without external provider keys. Real Gemini/OpenAI runs require provider keys configured outside the repository.
 
+## Phase Boundaries
+
+- `exports-create` only enqueues an export request in Phase 6. Export artifact generation and delivery remain Phase 8+.
+- `weekly-insights-generate` verifies the Phase 7 generation path. Scheduled/cron invocation remains an operations gap until staging validation is complete.
+- Local automated photo analysis uses `AI_PROVIDER=mock`; real provider readiness must be validated separately in staging.
+
 ## Rules
 
 - Keep deploy names aligned with OpenAPI paths.

@@ -8,11 +8,12 @@ flowchart LR
   Drift["Drift local DB"]
   Outbox["Outbox commands"]
   Contracts["OpenAPI contracts\npackages/api-contracts"]
-  Functions["Supabase Edge Functions\nprofile/settings/events/meals"]
-  RPC["Meal RPCs\nupsert/delete/rollup"]
-  Direct["RLS table sync\ntemplates/custom foods"]
+  Functions["Supabase Edge Functions\nprofile/settings/events/meals/analysis/multimodal/sync"]
+  RPC["Service-role RPCs\nsettings/meals/rollups/insights"]
+  Direct["RLS table reads\ntemplates/custom foods/rollups/insights"]
   Postgres["Supabase Postgres + RLS"]
   Storage["Private Supabase Storage"]
+  AI["Backend-only AI provider\nmock/Gemini/OpenAI"]
 
   Mobile <--> Drift
   Drift <--> Outbox
@@ -25,16 +26,18 @@ flowchart LR
   Direct --> Postgres
   Functions --> Postgres
   Functions --> Storage
+  Functions --> AI
 ```
 
 ## Current Architecture Rules
 
 - Mobile initializes Supabase with anon config only.
-- Mobile calls Edge Functions for protected settings and meal writes.
-- Mobile uses RLS-backed direct table sync only for Phase 3 templates and custom foods.
+- Mobile calls Edge Functions for protected settings, meal writes, photo analysis, multimodal parser requests, sync replay, and export request enqueueing.
+- Mobile uses RLS-backed reads/direct access only where documented for user-owned local sync surfaces.
 - Backend protects user data with RLS and service-side validation.
 - API contract changes start in OpenAPI and regenerate committed clients.
 - Local data must be scoped by authenticated user ID.
+- AI provider calls and service-role credentials remain backend-only.
 
 More detail:
 

@@ -10,10 +10,10 @@ Developer-facing foundation work:
 - Added Flutter auth/onboarding/profile/local-first scaffolding and minimal settings outbox.
 - Added Phase 0/1 QA gate and numbered documentation system.
 
-Known blockers before Phase 2:
+Historical blockers before Phase 2, now superseded by the 2026-05-21 review:
 
-- Missing local toolchain in the current execution environment.
-- Native Flutter platform projects are not yet committed.
+- Local toolchain availability.
+- Native Flutter platform project generation.
 
 ## Phase 2/3 Meal Foundation
 
@@ -25,11 +25,11 @@ Developer-facing Phase 2/3 work:
 - Added typed correction-event API generation and meal-core smoke test command.
 - Updated numbered docs, ADRs, risk register, and Phase 3 acceptance checklist.
 
-Known blockers before Phase 4:
+Historical blockers before Phase 4, now superseded by the 2026-05-21 review:
 
-- Flutter/Dart/Deno/Supabase CLI are not available in the current shell.
-- Local Supabase env keys are required for RLS and meal-core smoke tests.
-- Native Android/iOS platform projects still need to be generated and committed.
+- Local toolchain availability.
+- Local Supabase env setup for RLS and meal-core smoke tests.
+- Native Android/iOS platform project generation.
 
 ## Phase 4 Photo Analysis
 
@@ -43,8 +43,32 @@ Developer-facing Phase 4 work:
 - Added Flutter camera permission/preview/capture flow, local compressed image assets, thumbnail creation, hashing, upload, analysis loading UX, and Meal Editor photo draft handoff.
 - Added Phase 4 acceptance checklist and expanded RLS/meal-core smoke coverage for analysis ownership.
 
-Known blockers before Phase 5:
+Historical blockers before Phase 5, now superseded by the 2026-05-21 review:
 
-- Flutter/Dart/Deno/Supabase CLI are not available in the current shell, so Edge Function typecheck, mobile analysis/tests, Supabase reset, RLS tests, and meal-core smoke tests remain unverified locally.
-- Local Supabase env keys and backend AI provider secrets must be configured outside the repository for authoritative integration testing.
-- Native Android/iOS platform projects still need to be generated and committed.
+- Local toolchain availability.
+- Local Supabase env keys and backend AI provider secrets.
+- Native Android/iOS platform project generation.
+
+## Phase 5-7 Source Completion And Gap Closure
+
+Developer-facing Phase 5-7 work:
+
+- Added Phase 5 barcode, OCR label assist, text entry, voice transcript parser, catalog/search resolver, and unified Meal Editor draft mapping.
+- Added Phase 6 idempotent outbox replay surfaces, deterministic drain behavior, conflict/failure surfacing from Home, export request enqueueing, and durable asset/analytics/body-measurement command support.
+- Added Phase 7 weekly insight snapshots, learned food defaults, feature flag gating, and local Progress/frequent-food UI surfaces.
+- Restored native Flutter Android/iOS platform projects and generated committed Drift code.
+- Added backend smoke coverage for Phase 1 and Phase 4 and wired Phase 1, Phase 4, and Phase 7 into CI.
+- Added mobile tests for Drift schema open/migration, onboarding/profile outbox, meal save/delete outbox, draft mapping, and sync conflict state.
+- Added Phase 5/6/7 QA acceptance checklists.
+
+Verified locally on 2026-05-21:
+
+- Contracts, backend typecheck, migration lint, local Supabase reset, Phase 1, Phase 4, RLS, meal-core, Phase 5, Phase 6, and Phase 7 backend smokes.
+- Flutter analyze and Flutter tests after build runner generation.
+
+Known blockers before Phase 8:
+
+- Android dev APK build is blocked in the current environment by a missing Java Runtime/JDK.
+- iOS and Android manual acceptance is still required for camera lifecycle, photo retry/upload, barcode, OCR, voice permissions, offline/reconnect sync, conflict recovery, and weekly insight flag behavior.
+- `exports-create` remains request enqueue only; export artifact generation and account deletion completion are deferred.
+- Weekly insight cron/scheduled generation remains a staging operations gap.

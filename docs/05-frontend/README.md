@@ -14,7 +14,7 @@ flutter test
 
 Generated API models are consumed from `packages/api-contracts/generated/dart`. Run `npm run check:contracts` from the repo root after API contract changes.
 
-Native Android/iOS platform projects are still a blocker until generated and committed. Track readiness in [../14-project-management/phase-status.md](../14-project-management/phase-status.md).
+Native Android/iOS platform projects are present with dev/staging/prod Android flavors and iOS bundle/display-name settings. Android APK builds require a local JDK. Track readiness in [../14-project-management/phase-0-7-implementation-review-2026-05-21.md](../14-project-management/phase-0-7-implementation-review-2026-05-21.md).
 
 ## Local Env
 
@@ -40,3 +40,4 @@ More detail:
 - `/progress`: local daily rollup view.
 - `/templates`: reusable meal snapshots.
 - `/custom-foods`: user-owned custom foods.
+- `/sync`: outbox status and conflict/failure recovery.

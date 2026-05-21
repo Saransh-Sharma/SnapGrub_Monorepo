@@ -2,7 +2,9 @@
 
 ## Current Phase
 
-Phase 0-7 implementation is in place at source level. Current work is verification, native platform restoration, and Supabase-backed acceptance testing.
+Phase 0-7 implementation is in place. Backend smoke checks through Phase 7 and Flutter analyze/tests pass locally. Current work is Android build unblock, iOS/Android device acceptance, and staging operations validation.
+
+Detailed current review: [phase-0-7-implementation-review-2026-05-21.md](phase-0-7-implementation-review-2026-05-21.md).
 
 ## Capability Map
 
@@ -36,15 +38,16 @@ flowchart LR
 - Phase 6 readiness now includes idempotent template/custom-food/body-measurement/export functions, analytics idempotency, server-owned daily rollups, idempotency cleanup, and expanded mobile outbox command support.
 - Phase 6 source now includes deterministic sync drain order, queued/direct photo upload de-duplication, authoritative pull-after-push for server-owned tables, and a visible sync conflict recovery surface.
 - Phase 7 source now includes `weekly_insights`, `user_food_defaults`, weekly insight generation, learned-default refresh from saved meals, local insight/default caches, and Progress/Frequent Food UI surfaces behind `weekly_insights.enabled`.
+- Native Android/iOS platform projects and Drift generated code are present.
+- CI now includes Phase 1, Phase 4, and Phase 7 backend smoke gates and applies `NODE_OPTIONS=--experimental-websocket` to Node 20 Supabase integration tests.
 
 ## Verification Blockers
 
-- Flutter/Dart/Supabase CLI toolchain must be installed in the execution environment.
-- Real Flutter Android/iOS platform projects must be generated and committed.
-- Android/iOS platform folders currently contain only `.gitkeep`; real flavor projects remain a Phase 0 compliance gap.
-- Supabase local env keys must be exported before RLS and meal-core smoke tests are authoritative.
-- Drift generated code must be regenerated after schema version 5 table additions.
+- Android debug APK build is blocked locally because no Java Runtime/JDK is installed.
+- Full manual acceptance still requires at least one iOS simulator/device and one Android emulator/device.
+- Camera lifecycle, barcode, OCR, voice, offline reconnect, sync conflict recovery, and weekly insight flag behavior need manual validation.
+- Weekly insight scheduled/cron generation remains a staging operations gap.
 
 ## Next Phase Entry
 
-Proceed to acceptance only after Phase 5-7 smoke tests pass, real platform folders are generated, Drift codegen is committed, and the full backend/mobile toolchain is available locally or in CI.
+Proceed to Phase 8 only after Android build succeeds, iOS/Android manual acceptance passes, and staging operations validates real AI-provider secrets plus weekly insight scheduling.

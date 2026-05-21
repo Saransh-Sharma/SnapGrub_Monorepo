@@ -1,6 +1,6 @@
 # Offline Sync
 
-SnapGrub uses local-first writes for settings, meal logging, templates, custom foods, and Phase 6 sync-readiness commands. The outbox records commands by authenticated `userId`, preserves payload hashes for replay diagnostics, and drains them when network and remote services are available.
+SnapGrub uses local-first writes for settings, meal logging, templates, custom foods, and Phase 6 sync-readiness commands. The outbox records commands by authenticated `userId`, preserves payload hashes for replay diagnostics, drains them when network and remote services are available, and exposes failed/conflict states from Home and the Sync status screen.
 
 ## How It Works
 
@@ -44,3 +44,4 @@ Photo, barcode, OCR, text, and voice parser calls are not durable outbox command
 - Classify validation/auth errors as failed, revision/idempotency conflicts as conflict, and transient errors as retryable with backoff.
 - Cache authoritative server responses after sync, including meal rollups and correction events.
 - Avoid adding new command types without documenting replay, conflict, failure behavior, and QA cases.
+- Treat `export.create` as request enqueue only. Export artifact generation is Phase 8+.

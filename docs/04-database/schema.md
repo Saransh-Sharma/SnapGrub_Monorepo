@@ -1,6 +1,6 @@
 # Database Schema
 
-Migration SQL is the final source of truth. This page summarizes the current Phase 0-4 schema so developers can understand ownership, access patterns, and safe changes.
+Migration SQL is the final source of truth. This page summarizes the current Phase 0-7 schema so developers can understand ownership, access patterns, and safe changes.
 
 ## Identity And Settings
 
@@ -33,9 +33,23 @@ Migration SQL is the final source of truth. This page summarizes the current Pha
 - `analysis_candidates`: optional alternate interpretations linked to an analysis revision.
 - `model_invocations`: backend-only provider invocation records with provider/model, status, latency, token counts, estimated cost, error code, and request/response payload snapshots.
 
+## Catalog And Multimodal
+
+- `canonical_foods`, `food_aliases`, `food_nutrients`, and `food_portions`: searchable canonical catalog rows and serving metadata.
+- `branded_products` and `product_barcodes`: packaged food lookup data for barcode resolution.
+- `catalog_food_mappings` and `catalog_ingest_runs`: source mapping and ingest bookkeeping.
+- `foods-search`, `barcode-resolve`, `analysis-text-create`, `analysis-label-create`, and `analysis-voice-create` read/write through these tables and analysis job/revision records where applicable.
+
+## Sync, Exports, And Insights
+
+- `pending_uploads`: server-visible upload replay state for durable asset workflows.
+- `export_requests`: user-owned export request enqueue rows. Phase 6 does not generate export artifacts.
+- `weekly_insights`: feature-flagged user insight snapshots.
+- `user_food_defaults`: learned quantity/unit defaults refreshed from saved meals.
+
 ## Storage
 
-Private buckets exist for meal originals, thumbnails, and exports. Phase 4 mobile uploads originals and thumbnails under the authenticated user's storage prefix, then backend Edge Functions validate path ownership before creating analysis rows.
+Private buckets exist for meal originals, thumbnails, and exports. Mobile uploads originals and thumbnails under the authenticated user's storage prefix, then backend Edge Functions validate path ownership before creating analysis rows. Export storage paths remain unused until artifact generation is implemented in Phase 8+.
 
 ## Indexes And Constraints
 
@@ -45,6 +59,9 @@ Private buckets exist for meal originals, thumbnails, and exports. Phase 4 mobil
 - `daily_rollups` primary key is `(user_id, day)`.
 - `meals` and Phase 3 reusable entities use `(user_id, client_id)` uniqueness for local-first replay.
 - `analysis_jobs` uses `(user_id, client_request_id)` uniqueness for analysis replay.
+- `export_requests` and replay-capable mutation functions use idempotency keys to avoid duplicate server work.
+- `weekly_insights` is unique by `(user_id, week_start, insight_type)`.
+- `user_food_defaults` is unique by `(user_id, food_ref_kind, food_ref_id)`.
 - `meals.source = photo` requires a completed owned `analysis_job_id` and owned `photo_asset_id` through the service-role meal RPC.
 
 ## Safe Change Rules

@@ -9,6 +9,16 @@
 
 ---
 
+## Current Implementation Addendum - 2026-05-21
+
+Phase 0-7 source has now been reviewed and gap-closed against this handoff. Backend Phase 1, Phase 4, RLS, meal-core, Phase 5, Phase 6, and Phase 7 smoke checks pass locally with `NODE_OPTIONS=--experimental-websocket`; Flutter analyze/tests pass after Drift generation; native Android/iOS project files and generated Drift code are present.
+
+Remaining gaps are Android APK build/device acceptance due to a missing local JDK, iOS/Android manual acceptance, real-provider staging validation, and scheduled weekly insight generation. `exports-create` remains Phase 6 request enqueue only; full export artifact generation and account deletion completion remain Phase 8+.
+
+Canonical current-state review: [14-project-management/phase-0-7-implementation-review-2026-05-21.md](14-project-management/phase-0-7-implementation-review-2026-05-21.md).
+
+---
+
 ## 1. North Star
 
 SnapGrub should not be a traditional calorie diary with an AI feature attached. It should feel like a premium camera utility that turns meals into trusted, editable nutrition logs in seconds.

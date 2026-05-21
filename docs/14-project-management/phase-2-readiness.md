@@ -1,6 +1,6 @@
 # Phase 2 Readiness
 
-This checklist is historical foundation readiness. Phase 2 SnapStrip shell work exists, but the same toolchain/platform blockers still affect authoritative CI and Phase 3 acceptance.
+This checklist is historical foundation readiness. Phase 2 SnapStrip shell work exists and the broader Phase 0-7 state is tracked in [phase-0-7-implementation-review-2026-05-21.md](phase-0-7-implementation-review-2026-05-21.md).
 
 ## Required
 
