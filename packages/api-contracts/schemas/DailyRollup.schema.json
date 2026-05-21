@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://snapgrub.app/schemas/DailyRollup.schema.json",
+  "title": "DailyRollup",
+  "type": "object",
+  "required": ["user_id", "day", "calories_kcal", "protein_g", "carbs_g", "fat_g", "meal_count", "has_photo_meal", "updated_at"],
+  "properties": {
+    "user_id": { "type": "string", "format": "uuid" },
+    "day": { "type": "string", "format": "date" },
+    "calories_kcal": { "type": "number" },
+    "protein_g": { "type": "number" },
+    "carbs_g": { "type": "number" },
+    "fat_g": { "type": "number" },
+    "meal_count": { "type": "integer" },
+    "has_photo_meal": { "type": "boolean" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://snapgrub.app/schemas/Profile.schema.json",
+  "title": "Profile",
+  "type": "object",
+  "required": ["id", "locale", "timezone", "unit_system", "cuisine_preferences"],
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "display_name": { "type": ["string", "null"] },
+    "locale": { "type": "string" },
+    "timezone": { "type": "string" },
+    "unit_system": { "type": "string", "enum": ["metric", "imperial"] },
+    "country_code": { "type": ["string", "null"] },
+    "cuisine_preferences": { "type": "array", "items": { "type": "string" } },
+    "cloud_media_storage": { "type": "boolean" },
+    "save_original_photos": { "type": "boolean" },
+    "ai_improvement_consent": { "type": "boolean" },
+    "onboarding_completed_at": { "type": ["string", "null"], "format": "date-time" }
+  }
+}

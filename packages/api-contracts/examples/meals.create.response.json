@@ -1,0 +1,55 @@
+{
+  "meal": {
+    "id": "018f4fd4-c4e0-7d74-9c92-e64b5d2f0212",
+    "user_id": "018f4fd4-c4e0-7d74-9c92-e64b5d2f0213",
+    "client_id": "local-meal-001",
+    "analysis_job_id": null,
+    "title": "Dal chawal",
+    "meal_type": "lunch",
+    "source": "manual",
+    "logged_at": "2026-05-20T07:30:00.000Z",
+    "timezone": "Asia/Kolkata",
+    "calories_kcal": 220,
+    "protein_g": 12,
+    "carbs_g": 30,
+    "fat_g": 6,
+    "confidence_overall": null,
+    "provenance_type": null,
+    "photo_asset_id": null,
+    "revision": 1,
+    "deleted_at": null,
+    "created_at": "2026-05-20T07:30:01.000Z",
+    "updated_at": "2026-05-20T07:30:01.000Z",
+    "items": []
+  },
+  "daily_rollup": {
+    "user_id": "018f4fd4-c4e0-7d74-9c92-e64b5d2f0213",
+    "day": "2026-05-20",
+    "calories_kcal": 220,
+    "protein_g": 12,
+    "carbs_g": 30,
+    "fat_g": 6,
+    "meal_count": 1,
+    "has_photo_meal": false,
+    "updated_at": "2026-05-20T07:30:01.000Z"
+  },
+  "correction_events": [
+    {
+      "id": "018f4fd4-c4e0-7d74-9c92-e64b5d2f0215",
+      "user_id": "018f4fd4-c4e0-7d74-9c92-e64b5d2f0213",
+      "meal_id": "018f4fd4-c4e0-7d74-9c92-e64b5d2f0212",
+      "analysis_job_id": null,
+      "event_type": "meal_created",
+      "field_name": null,
+      "before_value": null,
+      "after_value": {
+        "title": "Dal chawal",
+        "calories_kcal": 220
+      },
+      "reason": null,
+      "created_at": "2026-05-20T07:30:01.000Z"
+    }
+  ],
+  "server_time": "2026-05-20T07:30:01.000Z",
+  "request_id": "018f4fd4-c4e0-7d74-9c92-e64b5d2f0214"
+}

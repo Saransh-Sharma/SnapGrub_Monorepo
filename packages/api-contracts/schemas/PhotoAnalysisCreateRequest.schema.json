@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://snapgrub.app/schemas/PhotoAnalysisCreateRequest.schema.json",
+  "title": "PhotoAnalysisCreateRequest",
+  "type": "object",
+  "required": ["client_request_id", "storage_path", "locale", "timezone"],
+  "properties": {
+    "client_request_id": { "type": "string", "format": "uuid" },
+    "storage_bucket": { "type": "string", "default": "meal-originals-private" },
+    "storage_path": { "type": "string", "minLength": 3 },
+    "thumb_storage_path": { "type": ["string", "null"] },
+    "asset_sha256": { "type": ["string", "null"] },
+    "mime_type": { "type": "string", "default": "image/jpeg" },
+    "width": { "type": ["integer", "null"] },
+    "height": { "type": ["integer", "null"] },
+    "size_bytes": { "type": ["integer", "null"] },
+    "meal_type_hint": { "type": ["string", "null"], "enum": ["breakfast", "lunch", "dinner", "snack", "unknown", null] },
+    "locale": { "type": "string" },
+    "timezone": { "type": "string" },
+    "cuisine_hints": { "type": "array", "items": { "type": "string" } },
+    "user_hint_text": { "type": ["string", "null"] }
+  }
+}

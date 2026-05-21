@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://snapgrub.app/schemas/NutritionGoal.schema.json",
+  "title": "NutritionGoal",
+  "type": "object",
+  "required": ["id", "user_id", "goal_type", "calories_kcal", "protein_g", "carbs_g", "fat_g", "starts_on", "is_active"],
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "user_id": { "type": "string", "format": "uuid" },
+    "goal_type": { "type": "string", "enum": ["lose", "maintain", "gain", "custom"] },
+    "calories_kcal": { "type": "number" },
+    "protein_g": { "type": "number" },
+    "carbs_g": { "type": "number" },
+    "fat_g": { "type": "number" },
+    "fiber_g": { "type": ["number", "null"] },
+    "starts_on": { "type": "string", "format": "date" },
+    "ends_on": { "type": ["string", "null"], "format": "date" },
+    "is_active": { "type": "boolean" }
+  }
+}

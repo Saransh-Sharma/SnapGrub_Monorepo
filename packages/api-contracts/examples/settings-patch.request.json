@@ -1,0 +1,24 @@
+{
+  "client_request_id": "84296a23-865b-4eea-9721-9f0103e463ad",
+  "profile_patch": {
+    "display_name": "Sam",
+    "locale": "en-IN",
+    "timezone": "Asia/Kolkata",
+    "unit_system": "metric",
+    "country_code": "IN",
+    "cuisine_preferences": ["Indian"],
+    "onboarding_completed_at": "2026-05-20T00:00:00Z"
+  },
+  "active_goal_patch": {
+    "goal_type": "lose",
+    "calories_kcal": 1900,
+    "protein_g": 130,
+    "carbs_g": 190,
+    "fat_g": 60,
+    "starts_on": "2026-05-20"
+  },
+  "body_measurement": {
+    "weight_kg": 82,
+    "source": "onboarding"
+  }
+}

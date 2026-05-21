@@ -1,0 +1,24 @@
+{
+  "client_request_id": "018f4fd4-c4e0-7d74-9c92-e64b5d2f0211",
+  "client_id": "local-meal-001",
+  "title": "Dal chawal",
+  "meal_type": "lunch",
+  "source": "manual",
+  "logged_at": "2026-05-20T07:30:00.000Z",
+  "timezone": "Asia/Kolkata",
+  "items": [
+    {
+      "client_id": "local-item-001",
+      "position": 0,
+      "name": "Dal",
+      "food_ref_kind": "manual",
+      "quantity": 1,
+      "unit": "bowl",
+      "grams_estimated": 180,
+      "calories_kcal": 220,
+      "protein_g": 12,
+      "carbs_g": 30,
+      "fat_g": 6
+    }
+  ]
+}

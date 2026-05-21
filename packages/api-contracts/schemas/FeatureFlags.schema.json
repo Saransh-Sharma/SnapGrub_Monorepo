@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://snapgrub.app/schemas/FeatureFlags.schema.json",
+  "title": "FeatureFlags",
+  "type": "object",
+  "additionalProperties": {
+    "oneOf": [
+      { "type": "boolean" },
+      { "type": "string" },
+      { "type": "number" },
+      { "type": "object" },
+      { "type": "array" }
+    ]
+  }
+}

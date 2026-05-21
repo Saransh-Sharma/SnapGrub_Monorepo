@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  contracts-and-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run check:contracts
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - run: npm run backend:typecheck
+      - run: npm run backend:lint:migrations
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - working-directory: services/backend/supabase
+        run: supabase start && supabase db reset
+      - working-directory: services/backend/supabase
+        run: supabase status -o env >> "$GITHUB_ENV"
+      - run: npm run backend:test:rls
+      - run: npm run backend:test:meal-core
+      - run: npm run backend:test:phase5
+      - run: npm run backend:test:phase6
+
+  mobile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: bash scripts/bootstrap-mobile-platforms.sh
+      - working-directory: apps/mobile
+        run: flutter pub get
+      - working-directory: apps/mobile
+        run: dart run build_runner build --delete-conflicting-outputs
+      - working-directory: apps/mobile
+        run: dart format --set-exit-if-changed lib test integration_test
+      - working-directory: apps/mobile
+        run: flutter analyze
+      - working-directory: apps/mobile
+        run: flutter test
+      - working-directory: apps/mobile
+        run: flutter build apk --debug --flavor dev --dart-define=SNAPGRUB_ENV=dev

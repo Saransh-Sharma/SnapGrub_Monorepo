@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://snapgrub.app/schemas/CorrectionEvent.schema.json",
+  "title": "CorrectionEvent",
+  "type": "object",
+  "required": ["id", "user_id", "event_type", "created_at"],
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "user_id": { "type": "string", "format": "uuid" },
+    "meal_id": { "type": ["string", "null"], "format": "uuid" },
+    "analysis_job_id": { "type": ["string", "null"], "format": "uuid" },
+    "event_type": { "type": "string" },
+    "field_name": { "type": ["string", "null"] },
+    "before_value": { "type": ["object", "null"] },
+    "after_value": { "type": ["object", "null"] },
+    "reason": { "type": ["string", "null"] },
+    "created_at": { "type": "string", "format": "date-time" }
+  }
+}

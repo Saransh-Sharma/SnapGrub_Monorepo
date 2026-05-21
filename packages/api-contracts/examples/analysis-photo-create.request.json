@@ -1,0 +1,16 @@
+{
+  "client_request_id": "11111111-1111-4111-8111-111111111111",
+  "storage_bucket": "meal-originals-private",
+  "storage_path": "22222222-2222-4222-8222-222222222222/capture-1.jpg",
+  "thumb_storage_path": "22222222-2222-4222-8222-222222222222/capture-1-thumb.jpg",
+  "asset_sha256": "replace-with-image-sha256",
+  "mime_type": "image/jpeg",
+  "width": 1280,
+  "height": 960,
+  "size_bytes": 640000,
+  "meal_type_hint": "lunch",
+  "locale": "en-IN",
+  "timezone": "Asia/Kolkata",
+  "cuisine_hints": ["Indian", "North Indian"],
+  "user_hint_text": "paneer and roti"
+}

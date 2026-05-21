@@ -1,0 +1,75 @@
+{
+  "analysis_id": "33333333-3333-4333-8333-333333333333",
+  "asset_id": "44444444-4444-4444-8444-444444444444",
+  "status": "completed",
+  "result": {
+    "title": "Paneer curry with roti",
+    "meal_type": "lunch",
+    "logged_at": "2026-05-21T08:30:00.000Z",
+    "timezone": "Asia/Kolkata",
+    "total": {
+      "calories_kcal": 680,
+      "protein_g": 28,
+      "carbs_g": 72,
+      "fat_g": 31
+    },
+    "confidence": {
+      "overall": 0.72,
+      "item_identification": 0.83,
+      "portion_estimation": 0.55,
+      "nutrition_source_quality": 0.8,
+      "warnings": [
+        {
+          "code": "hidden_fat",
+          "message": "Oil or ghee amount is visually uncertain.",
+          "severity": "review"
+        }
+      ]
+    },
+    "components": [
+      {
+        "client_id": "paneer-row",
+        "position": 0,
+        "name": "Paneer curry",
+        "food_ref_kind": "manual",
+        "quantity": 1,
+        "unit": "katori",
+        "grams_estimated": 220,
+        "calories_kcal": 430,
+        "protein_g": 22,
+        "carbs_g": 18,
+        "fat_g": 29,
+        "confidence": 0.7,
+        "source_type": "ai_photo",
+        "source_id": null,
+        "notes": "Oil amount should be reviewed."
+      },
+      {
+        "client_id": "roti-row",
+        "position": 1,
+        "name": "Roti",
+        "food_ref_kind": "manual",
+        "quantity": 2,
+        "unit": "piece",
+        "grams_estimated": 80,
+        "calories_kcal": 250,
+        "protein_g": 6,
+        "carbs_g": 54,
+        "fat_g": 2,
+        "confidence": 0.78,
+        "source_type": "ai_photo",
+        "source_id": null,
+        "notes": null
+      }
+    ],
+    "alternatives": [],
+    "provenance": {
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite"
+    }
+  },
+  "error_code": null,
+  "retryable": false,
+  "server_time": "2026-05-21T08:30:03.000Z",
+  "request_id": "55555555-5555-4555-8555-555555555555"
+}
