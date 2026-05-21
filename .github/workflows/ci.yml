@@ -29,10 +29,29 @@ jobs:
         run: supabase start && supabase db reset
       - working-directory: services/backend/supabase
         run: supabase status -o env >> "$GITHUB_ENV"
+      - run: npm run backend:test:phase1
+        env:
+          NODE_OPTIONS: --experimental-websocket
+          AI_PROVIDER: mock
+      - run: npm run backend:test:phase4
+        env:
+          NODE_OPTIONS: --experimental-websocket
+          AI_PROVIDER: mock
       - run: npm run backend:test:rls
+        env:
+          NODE_OPTIONS: --experimental-websocket
       - run: npm run backend:test:meal-core
+        env:
+          NODE_OPTIONS: --experimental-websocket
       - run: npm run backend:test:phase5
+        env:
+          NODE_OPTIONS: --experimental-websocket
       - run: npm run backend:test:phase6
+        env:
+          NODE_OPTIONS: --experimental-websocket
+      - run: npm run backend:test:phase7
+        env:
+          NODE_OPTIONS: --experimental-websocket
 
   mobile:
     runs-on: ubuntu-latest
