@@ -33,3 +33,4 @@ Current ADRs:
 - [ADR-0005-local-first-meal-logging-and-outbox.md](ADR-0005-local-first-meal-logging-and-outbox.md): Phase 3 meal writes save locally and sync through outbox.
 - [ADR-0006-meals-edge-function-as-phase-3-api-surface.md](ADR-0006-meals-edge-function-as-phase-3-api-surface.md): deployed meal API is `meals`; `meal-upsert` is a responsibility name.
 - [ADR-0007-rls-backed-template-and-custom-food-sync.md](ADR-0007-rls-backed-template-and-custom-food-sync.md): templates/custom foods sync through RLS-backed table writes.
+- [ADR-0008-phase8-privacy-export-delete.md](ADR-0008-phase8-privacy-export-delete.md): Phase 8 exports, signed URLs, account deletion, cleanup, and privacy controls stay in Supabase Edge Functions.

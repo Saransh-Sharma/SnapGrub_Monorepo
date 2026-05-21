@@ -20,6 +20,7 @@ npm run backend:test:meal-core
 npm run backend:test:phase5
 npm run backend:test:phase6
 npm run backend:test:phase7
+npm run backend:test:phase8
 ```
 
 `NODE_OPTIONS=--experimental-websocket` is required for Node 20 local integration tests because Supabase JS expects WebSocket support. Revalidate this flag when using Node 22 or newer.
@@ -37,6 +38,7 @@ npm run backend:test:phase7
 - Phase 5 multimodal server write paths.
 - Phase 6 sync readiness and idempotency smoke coverage.
 - Phase 7 insights/defaults smoke coverage.
+- Phase 8 privacy/export/delete smoke coverage, including export artifact generation, signed URL polling, storage download, account deletion cascade, and cleanup endpoint counts.
 
 Add tests when adding tables, policies, or server-side write paths.
 

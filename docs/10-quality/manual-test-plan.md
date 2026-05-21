@@ -40,6 +40,39 @@ The current manual QA checklist is maintained here for numbered docs. Legacy che
 - Offline meal save appears immediately and syncs after reconnect.
 - Failed or conflict sync state is visible from Home and opens the Sync status screen.
 - Pending commands are linked to recoverable user action where possible.
-- `exports-create` creates an export request only; no artifact should be expected in Phase 6.
+- `export.create` can queue locally, but Phase 8 artifact generation occurs only after it drains through `exports-create` online.
 - Weekly insight widgets stay hidden while `weekly_insights.enabled` is disabled.
 - Enabling `weekly_insights.enabled` shows cached/generated insight/default surfaces without breaking Progress.
+
+## Phase 8 Manual Smoke
+
+- Open Settings and verify Privacy is visible.
+- Toggle AI improvement consent online and offline; confirm profile state persists and syncs.
+- Toggle cloud media storage and save original photos online and offline.
+- Create a JSON export with no meals and confirm completed state plus signed URL.
+- Create a CSV export with at least one meal/item and confirm rows are present in the artifact during backend/staging checks.
+- Poll an existing export and confirm the signed URL refreshes when needed.
+- Attempt account deletion without typing `DELETE`; confirm it is blocked.
+- Delete a test account with `DELETE`; confirm user is signed out and relaunch lands on Auth.
+- Clear local data on a separate test account; confirm signing in again restores cloud data rather than deleting the account.
+
+## Phase 9 Beta Hardening Smoke
+
+- Confirm crash reporting initializes in staging/beta build once provider is configured.
+- Confirm analytics events appear for onboarding, capture, analysis, meal save, sync, export, delete, and insight interactions.
+- Enable large text and complete onboarding, meal editor, export, and delete-account screens without clipped controls.
+- Run VoiceOver/TalkBack through Auth, Home, Meal Editor, Export, Delete Account, and Sync status.
+- Force a photo-analysis failure and confirm retry/manual fallback.
+- Force export failure and confirm user-visible error plus retry.
+- Force sync conflict and confirm recovery entry point remains visible.
+
+## Phase 10 Release Candidate Smoke
+
+- Fresh install, sign in, complete onboarding in under 2 minutes.
+- Capture photo, receive draft, edit portion, save meal, verify Journal/Progress.
+- Scan barcode known and unknown products.
+- Parse text and voice meal entries into the same Meal Editor.
+- Save offline manual meal, relaunch, reconnect, and confirm no duplicate.
+- Request export, copy signed URL, and confirm it expires.
+- Delete account and confirm no subsequent login session remains.
+- Verify staging dashboards show no P0/P1 crash or API regression during smoke.

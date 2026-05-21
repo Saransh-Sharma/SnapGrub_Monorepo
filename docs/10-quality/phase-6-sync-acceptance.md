@@ -14,4 +14,4 @@
 - Open the Sync status screen from Home and verify the conflicting/pending command is visible.
 - Uploading the same queued photo asset does not create duplicate upload state.
 - `analytics.batch`, `body_measurement.create`, `template.*`, `custom_food.*`, and `export.create` remain idempotent when replayed.
-- `exports-create` only enqueues a request; artifact generation remains deferred.
+- `export.create` drains as a create request only; Phase 8 backend acceptance covers artifact generation, signed URL polling, expiry, and cleanup.

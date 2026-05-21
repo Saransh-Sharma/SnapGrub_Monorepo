@@ -12,6 +12,7 @@ GitHub Actions configuration lives in `.github/workflows/ci.yml`.
   - Supabase start/reset
   - RLS isolation harness
   - meal-core smoke harness
+  - Phase 1, Phase 4, Phase 5, Phase 6, Phase 7, and Phase 8 backend smoke harnesses
 
 - `mobile`
   - Flutter setup
@@ -21,6 +22,11 @@ GitHub Actions configuration lives in `.github/workflows/ci.yml`.
   - format, analyze, tests
   - dev flavor APK build
 
-CI is not fully authoritative until real Android/iOS platform projects are committed.
+CI is not fully authoritative for release until:
+
+- Mobile analyze/test/build pass with the same Flutter version used for release.
+- iOS simulator or device build runs on a macOS runner.
+- Staging deployment validates real provider secrets and scheduled jobs.
+- Phase 8 export/delete smoke runs against staging before production promotion.
 
 The `/packages/` directory contains source-controlled API contracts and generated clients. Keep it explicitly unignored even though Swift Package Manager ignores `Packages/`.

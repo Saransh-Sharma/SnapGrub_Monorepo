@@ -10,7 +10,7 @@ The mobile outbox supports `settings.patch`, meal/template/custom-food commands,
 - Meal commands use `meal.create`, `meal.update`, and `meal.delete` against the `meals` Edge Function.
 - Template commands use `template.upsert` and `template.delete` through the `meal-templates` Edge Function.
 - Custom-food commands use `custom_food.upsert` and `custom_food.delete` through the `custom-foods` Edge Function.
-- Phase 6 commands include `asset.upload`, `analytics.batch`, `body_measurement.create`, and `export.create`.
+- Phase 6/8 commands include `asset.upload`, `analytics.batch`, `body_measurement.create`, and `export.create`.
 - Foreground, login, network-restored, manual sync, and pull-to-refresh drains pending commands for the signed-in user.
 - Successful drain marks commands `synced` and caches the server response.
 - Meal sync caches authoritative meals, daily rollups, and correction events.
@@ -29,3 +29,7 @@ The mobile outbox supports `settings.patch`, meal/template/custom-food commands,
 - Custom-food insertion should preserve `food_ref_kind`, `custom_food_id`, and source metadata on meal items.
 - Cache typed correction events from meal responses into `correction_events_local`.
 - Keep weekly insight/default caches read-oriented; scheduled generation is backend/ops-owned.
+- Privacy toggles are normal `settings.patch` commands and may queue offline.
+- Export creation can be queued through `export.create`, but artifact generation requires the command to drain online through `exports-create`.
+- Account deletion is not queued offline because it is destructive, must confirm against the authenticated cloud account, and must clear local state only after backend success.
+- Clear local data is local-only and must not enqueue any cloud deletion command.

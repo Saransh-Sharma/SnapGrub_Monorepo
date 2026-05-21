@@ -2,9 +2,12 @@
 
 ## Current Phase
 
-Phase 0-7 implementation is in place. Backend smoke checks through Phase 7 and Flutter analyze/tests pass locally. Current work is Android build unblock, iOS/Android device acceptance, and staging operations validation.
+Phase 0-8 source implementation is in place. Backend smoke checks through Phase 8 pass locally against the Supabase stack. Current work is mobile toolchain/device acceptance, staging operations validation, real-provider AI validation, scheduled job validation, and Phase 9/10 beta-release hardening.
 
-Detailed current review: [phase-0-7-implementation-review-2026-05-21.md](phase-0-7-implementation-review-2026-05-21.md).
+Detailed reviews:
+
+- [Phase 0-7 implementation review](phase-0-7-implementation-review-2026-05-21.md)
+- [Phase 8-10 implementation review](phase-8-10-implementation-review-2026-05-21.md)
 
 ## Capability Map
 
@@ -18,36 +21,51 @@ flowchart LR
   P5["Phase 5\nbarcode/OCR/text/voice"]
   P6["Phase 6\noffline sync hardening"]
   P7["Phase 7\ninsights + retention"]
+  P8["Phase 8\nprivacy/export/delete"]
+  P9["Phase 9\nobservability + beta QA"]
+  P10["Phase 10\nrelease candidate"]
 
-  P0 --> P1 --> P2 --> P3 --> P4 --> P5 --> P6 --> P7
+  P0 --> P1 --> P2 --> P3 --> P4 --> P5 --> P6 --> P7 --> P8 --> P9 --> P10
 ```
 
 ## Implemented
 
-- Contract generation/check flow exists.
-- Supabase migrations cover identity, goals, devices, flags, analytics, body measurements, storage, settings RPC, meal core, photo analysis tables, RLS, and idempotency.
-- Edge Functions exist for bootstrap, settings patch, events ingest, and meals.
-- Flutter app has auth/onboarding/profile/local-first scaffolding.
-- Outbox supports settings, meal, template, and custom-food commands.
-- RLS isolation harness exists.
-- Numbered documentation system is being established.
-- Phase 3 meal schema, local meal tables, and `meals` Edge Function exist.
-- Meal Editor, Journal, Progress, Templates, Custom Foods, rollups, and correction-event caching exist.
-- Phase 4 photo-analysis contracts, migrations, Edge Functions, local capture asset pipeline, and Meal Editor draft handoff exist.
-- Phase 5 barcode, OCR assist, text entry, voice entry, catalog migration, and parser Edge Functions exist.
-- Phase 6 readiness now includes idempotent template/custom-food/body-measurement/export functions, analytics idempotency, server-owned daily rollups, idempotency cleanup, and expanded mobile outbox command support.
-- Phase 6 source now includes deterministic sync drain order, queued/direct photo upload de-duplication, authoritative pull-after-push for server-owned tables, and a visible sync conflict recovery surface.
-- Phase 7 source now includes `weekly_insights`, `user_food_defaults`, weekly insight generation, learned-default refresh from saved meals, local insight/default caches, and Progress/Frequent Food UI surfaces behind `weekly_insights.enabled`.
+- Contract generation/check flow exists and OpenAPI is now at Phase 0-8 scope.
+- Supabase migrations cover identity, goals, devices, flags, analytics, body measurements, storage, settings RPC, meal core, photo analysis tables, RLS, idempotency, export artifacts, deletion audit rows, rate limits, and cleanup helper RPCs.
+- Edge Functions exist for bootstrap, settings patch, events ingest, meals, photo analysis, multimodal parsing/search, Phase 6 sync replay surfaces, Phase 8 export/delete/cleanup, and weekly insights.
+- Flutter app has auth/onboarding/profile/local-first scaffolding, Home/SnapStrip, meal ledger, photo/barcode/text/voice entry, sync status, weekly insights, and Phase 8 privacy/export/delete settings surfaces.
+- Outbox supports settings, meal, template, custom-food, asset upload, analytics, body measurement, and export create commands.
+- RLS isolation harness exists, and backend smoke coverage now includes Phase 1, RLS, meal core, Phase 4, Phase 5, Phase 6, Phase 7, and Phase 8.
 - Native Android/iOS platform projects and Drift generated code are present.
-- CI now includes Phase 1, Phase 4, and Phase 7 backend smoke gates and applies `NODE_OPTIONS=--experimental-websocket` to Node 20 Supabase integration tests.
+- CI now includes Phase 8 backend smoke coverage.
+- Operations docs now include beta observability gates, synthetic staging tests, and release blockers.
 
-## Verification Blockers
+## Verification Status
 
-- Android debug APK build is blocked locally because no Java Runtime/JDK is installed.
+Verified locally on 2026-05-21:
+
+- `npm run check:contracts`
+- `npm run backend:typecheck`
+- `npm run backend:lint:migrations`
+- `supabase db reset`
+- `npm run backend:test:phase1`
+- `npm run backend:test:rls`
+- `npm run backend:test:meal-core`
+- `npm run backend:test:phase4`
+- `npm run backend:test:phase5`
+- `npm run backend:test:phase6`
+- `npm run backend:test:phase7`
+- `npm run backend:test:phase8`
+
+## Remaining Gates
+
+- `flutter` and `dart` are not currently on `PATH` in the local shell used for the latest verification, so mobile analyze/test/build could not be rerun there.
 - Full manual acceptance still requires at least one iOS simulator/device and one Android emulator/device.
-- Camera lifecycle, barcode, OCR, voice, offline reconnect, sync conflict recovery, and weekly insight flag behavior need manual validation.
-- Weekly insight scheduled/cron generation remains a staging operations gap.
+- Camera lifecycle, barcode, OCR, voice, offline reconnect, sync conflict recovery, privacy/export/delete UI, and weekly insight flag behavior need device validation.
+- Real Gemini/OpenAI provider validation still requires server-side staging secrets.
+- Scheduled weekly insights and media-retention cleanup must be configured and observed in staging before production rollout.
+- Phase 9 dashboards/alerts and Phase 10 release artifacts remain operational gates, not merely source-code gates.
 
 ## Next Phase Entry
 
-Proceed to Phase 8 only after Android build succeeds, iOS/Android manual acceptance passes, and staging operations validates real AI-provider secrets plus weekly insight scheduling.
+Proceed to Phase 9 beta hardening after mobile toolchain checks pass, iOS/Android manual acceptance has no P0/P1 issues, Phase 8 privacy flows pass on device, and staging validates real-provider AI plus scheduled weekly insight and cleanup jobs.

@@ -7,3 +7,4 @@ Start with:
 - [local-development.md](local-development.md)
 - [ci-cd.md](ci-cd.md)
 - [runbooks.md](runbooks.md)
+- [beta-observability.md](beta-observability.md)

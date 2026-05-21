@@ -14,7 +14,7 @@ flutter test
 
 Generated API models are consumed from `packages/api-contracts/generated/dart`. Run `npm run check:contracts` from the repo root after API contract changes.
 
-Native Android/iOS platform projects are present with dev/staging/prod Android flavors and iOS bundle/display-name settings. Android APK builds require a local JDK. Track readiness in [../14-project-management/phase-0-7-implementation-review-2026-05-21.md](../14-project-management/phase-0-7-implementation-review-2026-05-21.md).
+Native Android/iOS platform projects are present with dev/staging/prod Android flavors and iOS bundle/display-name settings. Android APK builds require a local JDK, and the latest local verification shell still needs `flutter`/`dart` on `PATH`. Track current readiness in [../14-project-management/phase-status.md](../14-project-management/phase-status.md) and [../14-project-management/phase-8-10-implementation-review-2026-05-21.md](../14-project-management/phase-8-10-implementation-review-2026-05-21.md).
 
 ## Local Env
 
@@ -31,6 +31,7 @@ More detail:
 - [architecture.md](architecture.md)
 - [auth-onboarding-profile.md](auth-onboarding-profile.md)
 - [offline-outbox.md](offline-outbox.md)
+- [privacy-export-delete.md](privacy-export-delete.md)
 
 ## Key Routes
 
@@ -41,3 +42,4 @@ More detail:
 - `/templates`: reusable meal snapshots.
 - `/custom-foods`: user-owned custom foods.
 - `/sync`: outbox status and conflict/failure recovery.
+- `/settings/privacy`: privacy controls, export, delete account, and clear local data.

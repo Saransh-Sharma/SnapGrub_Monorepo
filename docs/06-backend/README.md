@@ -44,6 +44,7 @@ npm run backend:test:meal-core
 npm run backend:test:phase5
 npm run backend:test:phase6
 npm run backend:test:phase7
+npm run backend:test:phase8
 ```
 
 `NODE_OPTIONS=--experimental-websocket` is required for the current Node 20 local test runtime because Supabase JS needs a WebSocket constructor. Recheck this when the repo moves to Node 22 or newer.

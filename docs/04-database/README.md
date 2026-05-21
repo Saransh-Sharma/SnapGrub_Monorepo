@@ -16,6 +16,7 @@ Supabase Postgres stores authenticated user data, feature flags, analytics event
 - `000010_phase5_catalog_multimodal.sql`
 - `000011_phase6_sync_readiness.sql`
 - `000012_phase7_insights_defaults.sql`
+- `000013_phase8_privacy_export_delete.sql`
 
 ## Rules
 
@@ -26,6 +27,9 @@ Supabase Postgres stores authenticated user data, feature flags, analytics event
 - Keep derived rollup writes behind service-role RPCs.
 - Keep correction events append-only.
 - Keep model invocation details and feature flag overrides server-controlled.
+- Keep export artifacts private, short-lived, and owned by `export_requests`.
+- Keep account deletion audit rows service-controlled and visible only to the owning user.
+- Keep rate-limit counters service-only through `consume_api_rate_limit`.
 
 More detail:
 

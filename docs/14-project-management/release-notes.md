@@ -61,14 +61,46 @@ Developer-facing Phase 5-7 work:
 - Added mobile tests for Drift schema open/migration, onboarding/profile outbox, meal save/delete outbox, draft mapping, and sync conflict state.
 - Added Phase 5/6/7 QA acceptance checklists.
 
-Verified locally on 2026-05-21:
+Verified locally during the Phase 0-7 closure audit on 2026-05-21:
 
 - Contracts, backend typecheck, migration lint, local Supabase reset, Phase 1, Phase 4, RLS, meal-core, Phase 5, Phase 6, and Phase 7 backend smokes.
-- Flutter analyze and Flutter tests after build runner generation.
 
-Known blockers before Phase 8:
+Historical blockers before Phase 8, now superseded by the Phase 8 implementation review:
 
-- Android dev APK build is blocked in the current environment by a missing Java Runtime/JDK.
-- iOS and Android manual acceptance is still required for camera lifecycle, photo retry/upload, barcode, OCR, voice permissions, offline/reconnect sync, conflict recovery, and weekly insight flag behavior.
-- `exports-create` remains request enqueue only; export artifact generation and account deletion completion are deferred.
-- Weekly insight cron/scheduled generation remains a staging operations gap.
+- Mobile toolchain availability and device acceptance.
+- Real-provider staging validation.
+- Weekly insight scheduled invocation in staging.
+- Export artifact generation, signed export polling, account deletion, and retention cleanup.
+
+## Phase 8 Privacy, Export, Delete
+
+Developer-facing Phase 8 work:
+
+- Added Phase 8 OpenAPI coverage for export create/poll, account deletion, and service-role media retention cleanup.
+- Added migration `000013_phase8_privacy_export_delete.sql` with export artifact metadata, account deletion audit state, API rate-limit rows, cleanup helper RPCs, and batch weekly-insight user selection.
+- Changed `exports-create` from Phase 6 request-row creation to synchronous MVP artifact generation for `nutrition_json` and `journal_csv`.
+- Export artifacts now write to the private `exports-private` bucket, include row counts and content metadata, and return short-lived signed URLs.
+- Added `GET /exports-create/{export_request_id}` to poll owned export state and refresh signed download URLs.
+- Added `account-delete` with explicit `DELETE` confirmation, service-role storage cleanup, auth-user deletion, and deletion audit rows.
+- Added `media-retention-cleanup` for expired export artifacts and expired retained meal media.
+- Extended `weekly-insights-generate` so service-role scheduled jobs can generate insights for due users without passing one `user_id`.
+- Added mobile privacy surfaces for AI consent, media retention, export, delete account, and clear local data under Settings.
+- Added `npm run backend:test:phase8` and wired it into CI.
+
+Verified locally on 2026-05-21:
+
+- Contracts, backend typecheck, migration lint, local Supabase reset, Phase 1, RLS, meal-core, Phase 4, Phase 5, Phase 6, Phase 7, and Phase 8 backend smokes.
+
+Known blockers before Phase 9 beta hardening:
+
+- `flutter` and `dart` were not on `PATH` in the latest local verification shell, so mobile analyze/test/build were not rerun.
+- iOS and Android manual acceptance is still required for existing capture/multimodal/sync flows and new privacy/export/delete flows.
+- Real Gemini/OpenAI staging validation still requires server-side staging secrets.
+- Scheduled weekly insight and media-retention cleanup jobs must be deployed and observed in staging.
+- Dashboards, alerts, crash reporting, and release-candidate mobile distribution remain Phase 9/10 operational gates.
+
+## Phase 9/10 Readiness Groundwork
+
+- Added beta observability gates covering analysis latency/failure, storage/export failures, sync conflicts, scheduled job success, AI spend, and release blockers.
+- Documented staging synthetic tests for provider failures, export/delete flows, cleanup jobs, and batch weekly insights.
+- Phase 10 remains blocked until Phase 8 device QA, Phase 9 observability, staging schedules, and signed mobile release builds are complete.

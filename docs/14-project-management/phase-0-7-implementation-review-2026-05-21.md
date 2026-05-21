@@ -1,6 +1,6 @@
 # Phase 0-7 Implementation Review - 2026-05-21
 
-This is the current implementation addendum for the unified handoff docs. It reconciles the Phase 0-7 source review with the repository state after native Flutter project restoration, Drift generation, CI hardening, and backend/mobile smoke coverage additions.
+This is a historical Phase 0-7 implementation addendum for the unified handoff docs. The current implementation review is [phase-8-10-implementation-review-2026-05-21.md](phase-8-10-implementation-review-2026-05-21.md), which supersedes the Phase 8 deferred-scope notes below.
 
 ## Status Labels
 
@@ -28,9 +28,9 @@ Passed on 2026-05-21:
 - `flutter analyze`
 - `flutter test`
 
-Blocked on 2026-05-21:
+Blocked during this historical Phase 0-7 review:
 
-- `flutter build apk --debug --flavor dev --dart-define=SNAPGRUB_ENV=dev` because no Java Runtime/JDK is installed in the current macOS environment.
+- `flutter build apk --debug --flavor dev --dart-define=SNAPGRUB_ENV=dev` could not be treated as accepted until the Android Java toolchain was available in the verification environment.
 - Full iOS and Android manual acceptance because it still needs at least one iOS simulator/device and one Android emulator/device.
 
 ## Phase Review
@@ -58,10 +58,10 @@ Blocked on 2026-05-21:
 - Added Home sync attention entry point for failed/conflict states.
 - Added CI backend integration gates for Phase 1, Phase 4, and Phase 7, with `NODE_OPTIONS=--experimental-websocket`.
 
-## Deferred Scope
+## Historical Deferred Scope Superseded By Phase 8
 
-- `exports-create` is export request enqueue only in Phase 6.
-- Export artifact generation, account deletion completion, privacy automation beyond existing settings, and provider/staging AI readiness remain Phase 8+ unless explicitly pulled forward.
+- In the Phase 6 boundary, `exports-create` created an export request row for outbox replay.
+- Export artifacts, signed URL polling, account deletion, mobile privacy screens, and media cleanup are implemented in the later Phase 8 pass documented in [phase-8-10-implementation-review-2026-05-21.md](phase-8-10-implementation-review-2026-05-21.md).
 - Weekly insight cron/scheduled generation is an operations/staging gate; Phase 7 currently verifies the backend generation path and feature-flagged UI source.
 
 ## Execution Plan For Remaining Gaps
