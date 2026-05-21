@@ -141,6 +141,10 @@ class MealDraftItem {
     String? id,
     String? clientId,
     this.name = '',
+    this.foodRefKind = 'manual',
+    this.canonicalFoodId,
+    this.brandedProductId,
+    this.customFoodId,
     this.quantity = 1,
     this.unit = 'serving',
     this.gramsEstimated,
@@ -149,12 +153,19 @@ class MealDraftItem {
     this.carbsG = 0,
     this.fatG = 0,
     this.confidence,
+    this.sourceType,
+    this.sourceId,
+    this.notes,
   })  : id = id ?? const Uuid().v4(),
         clientId = clientId ?? const Uuid().v4();
 
   final String id;
   final String clientId;
   String name;
+  String foodRefKind;
+  String? canonicalFoodId;
+  String? brandedProductId;
+  String? customFoodId;
   double quantity;
   String unit;
   double? gramsEstimated;
@@ -163,11 +174,18 @@ class MealDraftItem {
   double carbsG;
   double fatG;
   double? confidence;
+  String? sourceType;
+  String? sourceId;
+  String? notes;
 
   MealDraftItem copy() => MealDraftItem(
         id: id,
         clientId: clientId,
         name: name,
+        foodRefKind: foodRefKind,
+        canonicalFoodId: canonicalFoodId,
+        brandedProductId: brandedProductId,
+        customFoodId: customFoodId,
         quantity: quantity,
         unit: unit,
         gramsEstimated: gramsEstimated,
@@ -176,6 +194,9 @@ class MealDraftItem {
         carbsG: carbsG,
         fatG: fatG,
         confidence: confidence,
+        sourceType: sourceType,
+        sourceId: sourceId,
+        notes: notes,
       );
 }
 
@@ -195,10 +216,12 @@ class MealDraft {
     this.provenanceType,
     this.analysisJobId,
     this.photoAssetId,
+    List<String>? analysisWarnings,
   })  : id = id ?? const Uuid().v4(),
         clientId = clientId ?? const Uuid().v4(),
         loggedAt = loggedAt ?? DateTime.now(),
-        items = items ?? [MealDraftItem()];
+        items = items ?? [MealDraftItem()],
+        analysisWarnings = analysisWarnings ?? const [];
 
   final String id;
   final String userId;
@@ -214,6 +237,7 @@ class MealDraft {
   String? provenanceType;
   String? analysisJobId;
   String? photoAssetId;
+  final List<String> analysisWarnings;
 
   double get caloriesKcal => items.fold(0, (sum, item) => sum + item.caloriesKcal);
   double get proteinG => items.fold(0, (sum, item) => sum + item.proteinG);

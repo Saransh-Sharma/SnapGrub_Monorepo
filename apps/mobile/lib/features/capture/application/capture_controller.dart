@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:snapgrub/data/repositories/analytics_repository.dart';
 import 'package:snapgrub/features/capture/application/camera_controller_adapter.dart';
+import 'package:snapgrub/features/capture/data/capture_asset_repository.dart';
+import 'package:snapgrub/features/capture/domain/capture_asset.dart';
 import 'package:snapgrub/features/capture/domain/capture_state.dart';
 import 'package:snapgrub/features/profile/application/profile_controller.dart';
 
@@ -19,6 +21,7 @@ final captureControllerProvider = NotifierProvider<CaptureController, CaptureSta
 class CaptureController extends Notifier<CaptureState> {
   CameraControllerAdapter get _camera => ref.read(cameraControllerAdapterProvider);
   AnalyticsRepository get _analytics => ref.read(analyticsRepositoryProvider);
+  CaptureAssetRepository get _assets => ref.read(captureAssetRepositoryProvider);
 
   @override
   CaptureState build() {
@@ -71,13 +74,36 @@ class CaptureController extends Notifier<CaptureState> {
     state = const CaptureState(status: CaptureStatus.cameraReady);
   }
 
-  Future<void> capture() async {
+  Future<CaptureAsset?> capture({required String userId}) async {
     await _analytics.track('snapstrip_capture_tapped');
-    if (!state.canCapture) return;
+    if (!_flagEnabled('photo_analysis.enabled')) return null;
+    if (!state.canCapture) return null;
     state = const CaptureState(status: CaptureStatus.captureInProgress);
-    await Future<void>.delayed(const Duration(milliseconds: 250));
-    state = const CaptureState(status: CaptureStatus.cameraReady);
+    try {
+      final file = await _camera.takePicture();
+      final asset = await _assets.createFromCapture(userId: userId, file: file);
+      state = const CaptureState(status: CaptureStatus.cameraReady);
+      return asset;
+    } catch (error) {
+      state = CaptureState(status: CaptureStatus.error, message: error.toString());
+      return null;
+    }
   }
 
-  Future<void> trackAction(String eventName) => _analytics.track(eventName);
+  Future<void> trackAction(String eventName) {
+    final requiredFlag = switch (eventName) {
+      'snapstrip_barcode_tapped' => 'barcode.enabled',
+      'snapstrip_voice_tapped' => 'voice_capture.enabled',
+      'snapstrip_text_tapped' => 'ocr_assist.enabled',
+      _ => null,
+    };
+    if (requiredFlag != null && !_flagEnabled(requiredFlag)) return Future<void>.value();
+    return _analytics.track(eventName);
+  }
+
+  bool _flagEnabled(String key) {
+    final profile = ref.read(profileControllerProvider).valueOrNull;
+    final value = profile?.featureFlags[key];
+    return value is bool ? value : true;
+  }
 }

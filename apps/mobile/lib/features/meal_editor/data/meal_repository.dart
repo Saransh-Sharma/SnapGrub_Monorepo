@@ -121,6 +121,10 @@ class MealRepository {
           .map(
             (item) => domain.MealDraftItem(
               name: item.name,
+              foodRefKind: item.foodRefKind,
+              canonicalFoodId: item.canonicalFoodId,
+              brandedProductId: item.brandedProductId,
+              customFoodId: item.customFoodId,
               quantity: item.quantity,
               unit: item.unit,
               gramsEstimated: item.gramsEstimated,
@@ -129,6 +133,9 @@ class MealRepository {
               carbsG: item.carbsG,
               fatG: item.fatG,
               confidence: item.confidence,
+              sourceType: item.sourceType,
+              sourceId: item.sourceId,
+              notes: item.notes,
             ),
           )
           .toList(),
@@ -202,6 +209,9 @@ class MealRepository {
     await _db.transaction(() async {
       await _cacheMealDto(response.meal, syncStatus: domain.MealSyncStatus.synced);
       await _cacheRollupDto(response.dailyRollup);
+      for (final event in response.correctionEvents) {
+        await _cacheCorrectionEventDto(event);
+      }
     });
   }
 
@@ -317,6 +327,10 @@ class MealRepository {
               clientId: item.clientId,
               position: i,
               name: item.name.trim(),
+              foodRefKind: Value(item.foodRefKind),
+              canonicalFoodId: Value(item.canonicalFoodId),
+              brandedProductId: Value(item.brandedProductId),
+              customFoodId: Value(item.customFoodId),
               quantity: item.quantity,
               unit: item.unit.trim(),
               gramsEstimated: Value(item.gramsEstimated),
@@ -325,6 +339,9 @@ class MealRepository {
               carbsG: Value(item.carbsG),
               fatG: Value(item.fatG),
               confidence: Value(item.confidence),
+              sourceType: Value(item.sourceType),
+              sourceId: Value(item.sourceId),
+              notes: Value(item.notes),
               updatedAt: Value(updatedAt),
             ),
           );
@@ -448,6 +465,10 @@ class MealRepository {
             clientId: draft.items[i].clientId,
             position: i,
             name: draft.items[i].name.trim(),
+            foodRefKind: draft.items[i].foodRefKind,
+            canonicalFoodId: draft.items[i].canonicalFoodId,
+            brandedProductId: draft.items[i].brandedProductId,
+            customFoodId: draft.items[i].customFoodId,
             quantity: draft.items[i].quantity,
             unit: draft.items[i].unit.trim(),
             gramsEstimated: draft.items[i].gramsEstimated,
@@ -456,6 +477,9 @@ class MealRepository {
             carbsG: draft.items[i].carbsG,
             fatG: draft.items[i].fatG,
             confidence: draft.items[i].confidence,
+            sourceType: draft.items[i].sourceType,
+            sourceId: draft.items[i].sourceId,
+            notes: draft.items[i].notes,
           ),
       ],
     );
@@ -484,6 +508,9 @@ class MealRepository {
               position: item['position'] as int,
               name: item['name'] as String,
               foodRefKind: item['food_ref_kind'] as String? ?? 'manual',
+              canonicalFoodId: item['canonical_food_id'] as String?,
+              brandedProductId: item['branded_product_id'] as String?,
+              customFoodId: item['custom_food_id'] as String?,
               quantity: (item['quantity'] as num).toDouble(),
               unit: item['unit'] as String,
               gramsEstimated: (item['grams_estimated'] as num?)?.toDouble(),
@@ -492,6 +519,9 @@ class MealRepository {
               carbsG: (item['carbs_g'] as num).toDouble(),
               fatG: (item['fat_g'] as num).toDouble(),
               confidence: (item['confidence'] as num?)?.toDouble(),
+              sourceType: item['source_type'] as String?,
+              sourceId: item['source_id'] as String?,
+              notes: item['notes'] as String?,
             );
           })
           .toList(),
@@ -518,6 +548,23 @@ class MealRepository {
             eventType: eventType,
             beforeValueJson: Value(beforeValue == null ? null : jsonEncode(beforeValue)),
             afterValueJson: Value(afterValue == null ? null : jsonEncode(afterValue)),
+          ),
+        );
+  }
+
+  Future<void> _cacheCorrectionEventDto(CorrectionEventDto event) async {
+    await _db.into(_db.correctionEventsLocal).insertOnConflictUpdate(
+          CorrectionEventsLocalCompanion.insert(
+            id: event.id,
+            userId: event.userId,
+            mealId: Value(event.mealId),
+            analysisJobId: Value(event.analysisJobId),
+            eventType: event.eventType,
+            fieldName: Value(event.fieldName),
+            beforeValueJson: Value(event.beforeValue == null ? null : jsonEncode(event.beforeValue)),
+            afterValueJson: Value(event.afterValue == null ? null : jsonEncode(event.afterValue)),
+            reason: Value(event.reason),
+            createdAt: Value(event.createdAt),
           ),
         );
   }

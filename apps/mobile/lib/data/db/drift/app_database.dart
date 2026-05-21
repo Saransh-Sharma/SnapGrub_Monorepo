@@ -6,6 +6,7 @@ import 'package:snapgrub/data/db/tables/custom_foods_local.dart';
 import 'package:snapgrub/data/db/tables/daily_rollups_local.dart';
 import 'package:snapgrub/data/db/tables/devices_local.dart';
 import 'package:snapgrub/data/db/tables/feature_flags_local.dart';
+import 'package:snapgrub/data/db/tables/meal_assets_local.dart';
 import 'package:snapgrub/data/db/tables/meal_items_local.dart';
 import 'package:snapgrub/data/db/tables/meal_templates_local.dart';
 import 'package:snapgrub/data/db/tables/meals_local.dart';
@@ -25,6 +26,7 @@ part 'app_database.g.dart';
     FeatureFlagsLocal,
     SyncState,
     OutboxCommands,
+    MealAssetsLocal,
     MealsLocal,
     MealItemsLocal,
     MealTemplatesLocal,
@@ -37,7 +39,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -50,6 +52,9 @@ class AppDatabase extends _$AppDatabase {
             await m.createTable(customFoodsLocal);
             await m.createTable(dailyRollupsLocal);
             await m.createTable(correctionEventsLocal);
+          }
+          if (from < 3) {
+            await m.createTable(mealAssetsLocal);
           }
         },
       );

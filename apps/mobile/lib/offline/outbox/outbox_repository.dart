@@ -46,10 +46,27 @@ class OutboxRepository {
 
   Future<List<OutboxCommand>> pendingMealCommands(String userId) {
     const mealCommands = ['meal.create', 'meal.update', 'meal.delete'];
+    return pendingCommands(userId: userId, commandTypes: mealCommands);
+  }
+
+  Future<List<OutboxCommand>> pendingCustomFoodCommands(String userId) {
+    const customFoodCommands = ['custom_food.upsert', 'custom_food.delete'];
+    return pendingCommands(userId: userId, commandTypes: customFoodCommands);
+  }
+
+  Future<List<OutboxCommand>> pendingTemplateCommands(String userId) {
+    const templateCommands = ['template.upsert', 'template.delete'];
+    return pendingCommands(userId: userId, commandTypes: templateCommands);
+  }
+
+  Future<List<OutboxCommand>> pendingCommands({
+    required String userId,
+    required List<String> commandTypes,
+  }) {
     return (_db.select(_db.outboxCommands)
           ..where((tbl) =>
               tbl.userId.equals(userId) &
-              tbl.commandType.isIn(mealCommands) &
+              tbl.commandType.isIn(commandTypes) &
               tbl.status.equals('pending') &
               (tbl.nextRetryAt.isNull() | tbl.nextRetryAt.isSmallerOrEqualValue(DateTime.now())))
           ..orderBy([(tbl) => OrderingTerm.asc(tbl.createdAt)]))
