@@ -13,6 +13,7 @@ import 'package:snapgrub/features/profile/domain/nutrition_goal.dart';
 import 'package:snapgrub/features/profile/domain/profile.dart';
 import 'package:snapgrub/features/profile/domain/profile_state.dart';
 import 'package:snapgrub/offline/outbox/outbox_repository.dart';
+import 'package:snapgrub/offline/sync/sync_error.dart';
 import 'package:snapgrub_api_contracts/snapgrub_api_contracts.dart';
 import 'package:uuid/uuid.dart';
 
@@ -119,7 +120,11 @@ class ProfileRepository {
         await cacheSettings(response);
         await _outbox.markSynced(command.id);
       } catch (error) {
-        await _outbox.markFailed(command.id, retryable: _isRetryable(error));
+        if (isConflictSyncError(error)) {
+          await _outbox.markConflict(command.id, error);
+        } else {
+          await _outbox.markFailed(command.id, retryable: _isRetryable(error), error: error);
+        }
       }
     }
   }

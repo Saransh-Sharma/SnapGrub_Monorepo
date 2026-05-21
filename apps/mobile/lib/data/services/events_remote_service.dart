@@ -12,11 +12,15 @@ class EventsRemoteService {
 
   bool get isConfigured => _client != null;
 
-  Future<void> ingest(List<Map<String, Object?>> events) async {
+  Future<void> ingest(List<Map<String, Object?>> events, {String? clientRequestId}) async {
     if (_client == null || events.isEmpty) return;
     await _client.functions.invoke(
       'events-ingest',
-      body: {'events': events},
+      headers: clientRequestId == null ? null : {'Idempotency-Key': clientRequestId},
+      body: {
+        if (clientRequestId != null) 'client_request_id': clientRequestId,
+        'events': events,
+      },
     );
   }
 }
