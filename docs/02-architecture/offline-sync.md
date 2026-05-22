@@ -1,6 +1,6 @@
 # Offline Sync
 
-SnapGrub uses local-first writes for settings, meal logging, templates, custom foods, and Phase 6 sync-readiness commands. The outbox records commands by authenticated `userId`, preserves payload hashes for replay diagnostics, and drains them when network and remote services are available.
+SnapGrub uses local-first writes for settings, meal logging, templates, custom foods, and Phase 6 sync-readiness commands. The outbox records commands by authenticated `userId`, preserves payload hashes for replay diagnostics, drains them when network and remote services are available, and exposes failed/conflict states from Home and the Sync status screen.
 
 ## How It Works
 
@@ -31,7 +31,7 @@ sequenceDiagram
 - `asset.upload`: Supabase Storage upload command with optional thumbnail dependency support.
 - `body_measurement.create`: idempotent create through `body-measurements`.
 - `analytics.batch`: non-blocking event replay through `events-ingest`.
-- `export.create`: idempotent export request through `exports-create`.
+- `export.create`: idempotent export request through `exports-create`; once the command drains online, the backend creates the export artifact and returns/persists pollable status.
 
 Photo, barcode, OCR, text, and voice parser calls are not durable outbox commands. Confirmed meal drafts enter the existing meal outbox after the user accepts them in Meal Editor.
 
@@ -44,3 +44,5 @@ Photo, barcode, OCR, text, and voice parser calls are not durable outbox command
 - Classify validation/auth errors as failed, revision/idempotency conflicts as conflict, and transient errors as retryable with backoff.
 - Cache authoritative server responses after sync, including meal rollups and correction events.
 - Avoid adding new command types without documenting replay, conflict, failure behavior, and QA cases.
+- Treat `export.create` as a retryable request to start server-side artifact generation. The mobile outbox should only queue the create request; artifact creation, signed URL refresh, expiry, and cleanup remain backend responsibilities.
+- Do not queue `account-delete`. Destructive cloud deletion requires an online authenticated request, explicit typed confirmation, and a clean local destructive-action state.

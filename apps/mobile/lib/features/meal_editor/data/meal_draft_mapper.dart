@@ -20,7 +20,8 @@ MealDraft mealDraftFromEditableDto({
     provenanceType: provenanceType ?? _provenanceTypeFor(source),
     analysisJobId: source == MealSource.photo ? analysisJobId : null,
     photoAssetId: source == MealSource.photo ? photoAssetId : null,
-    analysisWarnings: result.confidence.warnings.map((warning) => warning.message).toList(),
+    analysisWarnings:
+        result.confidence.warnings.map((warning) => warning.message).toList(),
     items: [
       for (final item in result.components)
         MealDraftItem(
@@ -46,8 +47,8 @@ MealDraft mealDraftFromEditableDto({
   );
 }
 
-MealType _parseMealType(String value) =>
-    MealType.values.firstWhere((type) => type.name == value, orElse: () => MealType.unknown);
+MealType _parseMealType(String value) => MealType.values
+    .firstWhere((type) => type.name == value, orElse: () => MealType.unknown);
 
 String _provenanceTypeFor(MealSource source) {
   return switch (source) {

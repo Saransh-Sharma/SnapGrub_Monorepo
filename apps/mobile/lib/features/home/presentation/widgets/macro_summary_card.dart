@@ -20,8 +20,14 @@ class MacroSummaryCard extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _Macro(label: 'Protein', value: rollup.proteinG, goal: contextData.proteinGoal),
-            _Macro(label: 'Carbs', value: rollup.carbsG, goal: contextData.carbsGoal),
+            _Macro(
+                label: 'Protein',
+                value: rollup.proteinG,
+                goal: contextData.proteinGoal),
+            _Macro(
+                label: 'Carbs',
+                value: rollup.carbsG,
+                goal: contextData.carbsGoal),
             _Macro(label: 'Fat', value: rollup.fatG, goal: contextData.fatGoal),
           ],
         ),
@@ -44,7 +50,8 @@ class _Macro extends StatelessWidget {
       children: [
         Text(label, style: Theme.of(context).textTheme.labelMedium),
         const SizedBox(height: 4),
-        Text('${value.round()}g', style: Theme.of(context).textTheme.titleMedium),
+        Text('${value.round()}g',
+            style: Theme.of(context).textTheme.titleMedium),
         if (goal != null) Text('/ ${goal!.round()}g'),
       ],
     );

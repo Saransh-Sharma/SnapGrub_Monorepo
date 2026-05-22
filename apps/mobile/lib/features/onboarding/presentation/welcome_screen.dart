@@ -6,16 +6,19 @@ class OnboardingWelcomeScreen extends ConsumerStatefulWidget {
   const OnboardingWelcomeScreen({super.key});
 
   @override
-  ConsumerState<OnboardingWelcomeScreen> createState() => _OnboardingWelcomeScreenState();
+  ConsumerState<OnboardingWelcomeScreen> createState() =>
+      _OnboardingWelcomeScreenState();
 }
 
-class _OnboardingWelcomeScreenState extends ConsumerState<OnboardingWelcomeScreen> {
+class _OnboardingWelcomeScreenState
+    extends ConsumerState<OnboardingWelcomeScreen> {
   late final TextEditingController _nameController;
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: ref.read(onboardingControllerProvider).displayName);
+    _nameController = TextEditingController(
+        text: ref.read(onboardingControllerProvider).displayName);
   }
 
   @override
@@ -28,9 +31,11 @@ class _OnboardingWelcomeScreenState extends ConsumerState<OnboardingWelcomeScree
   Widget build(BuildContext context) {
     return ListView(
       children: [
-        Text('Make SnapGrub yours', style: Theme.of(context).textTheme.headlineSmall),
+        Text('Make SnapGrub yours',
+            style: Theme.of(context).textTheme.headlineSmall),
         const SizedBox(height: 12),
-        const Text('A few details help set calorie and macro targets you can edit anytime.'),
+        const Text(
+            'A few details help set calorie and macro targets you can edit anytime.'),
         const SizedBox(height: 24),
         TextField(
           controller: _nameController,

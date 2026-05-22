@@ -79,7 +79,8 @@ class OnboardingDraft {
       targetWeightKg: targetWeightKg ?? this.targetWeightKg,
       heightCm: heightCm ?? this.heightCm,
       activityLevel: activityLevel ?? this.activityLevel,
-      notificationPreference: notificationPreference ?? this.notificationPreference,
+      notificationPreference:
+          notificationPreference ?? this.notificationPreference,
       caloriesKcal: caloriesKcal ?? this.caloriesKcal,
       proteinG: proteinG ?? this.proteinG,
       carbsG: carbsG ?? this.carbsG,
@@ -99,9 +100,15 @@ class OnboardingDraft {
     _range(proteinG, 0, 500, 'Protein');
     _range(carbsG, 0, 800, 'Carbs');
     _range(fatG, 0, 400, 'Fat');
-    if (weightKg != null) _range(weightKg!, 20, 400, 'Weight');
-    if (targetWeightKg != null) _range(targetWeightKg!, 20, 400, 'Target weight');
-    if (heightCm != null) _range(heightCm!, 80, 260, 'Height');
+    if (weightKg != null) {
+      _range(weightKg!, 20, 400, 'Weight');
+    }
+    if (targetWeightKg != null) {
+      _range(targetWeightKg!, 20, 400, 'Target weight');
+    }
+    if (heightCm != null) {
+      _range(heightCm!, 80, 260, 'Height');
+    }
   }
 
   static void _range(double value, double min, double max, String label) {

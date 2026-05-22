@@ -31,7 +31,8 @@ class _SnapGrubAppView extends ConsumerStatefulWidget {
   ConsumerState<_SnapGrubAppView> createState() => _SnapGrubAppViewState();
 }
 
-class _SnapGrubAppViewState extends ConsumerState<_SnapGrubAppView> with WidgetsBindingObserver {
+class _SnapGrubAppViewState extends ConsumerState<_SnapGrubAppView>
+    with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
@@ -47,7 +48,9 @@ class _SnapGrubAppViewState extends ConsumerState<_SnapGrubAppView> with Widgets
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      ref.read(syncControllerProvider.notifier).syncNow(trigger: SyncTrigger.foreground);
+      ref
+          .read(syncControllerProvider.notifier)
+          .syncNow(trigger: SyncTrigger.foreground);
     }
   }
 
@@ -56,7 +59,9 @@ class _SnapGrubAppViewState extends ConsumerState<_SnapGrubAppView> with Widgets
     ref.listen(authControllerProvider, (_, next) {
       final auth = next.valueOrNull;
       if (auth?.status == AuthStatus.signedIn) {
-        ref.read(syncControllerProvider.notifier).syncNow(trigger: SyncTrigger.login);
+        ref
+            .read(syncControllerProvider.notifier)
+            .syncNow(trigger: SyncTrigger.login);
       }
     });
     final router = ref.watch(appRouterProvider);

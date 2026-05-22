@@ -7,7 +7,8 @@ import 'package:snapgrub_api_contracts/snapgrub_api_contracts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
-final multimodalRemoteServiceProvider = Provider<MultimodalRemoteService>((ref) {
+final multimodalRemoteServiceProvider =
+    Provider<MultimodalRemoteService>((ref) {
   return MultimodalRemoteService(ref.watch(supabaseClientProvider));
 });
 
@@ -106,7 +107,8 @@ class MultimodalRemoteService {
         region: profile.countryCode,
       ).toJson(),
     );
-    return BarcodeResolveResponseDto.fromJson(Map<String, dynamic>.from(response.data as Map));
+    return BarcodeResolveResponseDto.fromJson(
+        Map<String, dynamic>.from(response.data as Map));
   }
 
   MealDraft barcodeDraft({
@@ -125,10 +127,12 @@ class MultimodalRemoteService {
     );
   }
 
-  Future<MultimodalAnalysisResponseDto> _invokeMultimodal(String functionName, JsonMap body) async {
+  Future<MultimodalAnalysisResponseDto> _invokeMultimodal(
+      String functionName, JsonMap body) async {
     final client = _requireClient();
     final response = await client.functions.invoke(functionName, body: body);
-    return MultimodalAnalysisResponseDto.fromJson(Map<String, dynamic>.from(response.data as Map));
+    return MultimodalAnalysisResponseDto.fromJson(
+        Map<String, dynamic>.from(response.data as Map));
   }
 
   SupabaseClient _requireClient() {

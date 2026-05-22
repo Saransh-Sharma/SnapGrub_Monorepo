@@ -9,7 +9,8 @@ class OnboardingPermissionPrimerScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return ListView(
       children: [
-        Text('Camera stays in your control', style: Theme.of(context).textTheme.headlineSmall),
+        Text('Camera stays in your control',
+            style: Theme.of(context).textTheme.headlineSmall),
         const SizedBox(height: 12),
         const Text(
           'SnapGrub asks for camera access only when you use capture. Text and manual logging stay available.',
@@ -17,14 +18,18 @@ class OnboardingPermissionPrimerScreen extends ConsumerWidget {
         const SizedBox(height: 24),
         CheckboxListTile(
           value: ref.watch(onboardingControllerProvider).cameraPrimerSeen,
-          onChanged: (_) => ref.read(onboardingControllerProvider.notifier).markCameraPrimerSeen(),
+          onChanged: (_) => ref
+              .read(onboardingControllerProvider.notifier)
+              .markCameraPrimerSeen(),
           title: const Text('Got it'),
           controlAffinity: ListTileControlAffinity.leading,
         ),
         CheckboxListTile(
           value: ref.watch(onboardingControllerProvider).notificationPreference,
           onChanged: (value) {
-            ref.read(onboardingControllerProvider.notifier).updateNotificationPreference(value ?? false);
+            ref
+                .read(onboardingControllerProvider.notifier)
+                .updateNotificationPreference(value ?? false);
           },
           title: const Text('Remind me to log meals'),
           controlAffinity: ListTileControlAffinity.leading,

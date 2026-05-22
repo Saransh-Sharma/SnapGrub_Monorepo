@@ -47,7 +47,8 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
     final mealId = widget.mealId;
     if (mealId == null) {
       setState(() {
-        _draft = repo.newManualDraft(userId: contextData.userId, timezone: contextData.timezone);
+        _draft = repo.newManualDraft(
+            userId: contextData.userId, timezone: contextData.timezone);
         _loading = false;
       });
       return;
@@ -130,7 +131,8 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
               ? Text(_error!)
               : ListView(
                   children: [
-                    if (draft!.confidenceOverall != null || draft.provenanceType != null) ...[
+                    if (draft!.confidenceOverall != null ||
+                        draft.provenanceType != null) ...[
                       Card(
                         child: Padding(
                           padding: const EdgeInsets.all(12),
@@ -138,7 +140,8 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                draft.confidenceOverall != null && draft.confidenceOverall! < 0.7
+                                draft.confidenceOverall != null &&
+                                        draft.confidenceOverall! < 0.7
                                     ? 'Please review this estimate.'
                                     : 'Estimate ready for review.',
                                 style: Theme.of(context).textTheme.titleSmall,
@@ -153,9 +156,11 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
                                   spacing: 8,
                                   runSpacing: 8,
                                   children: [
-                                    for (final warning in draft.analysisWarnings)
+                                    for (final warning
+                                        in draft.analysisWarnings)
                                       Chip(
-                                        avatar: const Icon(Icons.error_outline, size: 16),
+                                        avatar: const Icon(Icons.error_outline,
+                                            size: 16),
                                         label: Text(warning),
                                       ),
                                   ],
@@ -169,17 +174,20 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
                     ],
                     TextFormField(
                       initialValue: draft.title,
-                      decoration: const InputDecoration(labelText: 'Meal title'),
+                      decoration:
+                          const InputDecoration(labelText: 'Meal title'),
                       onChanged: (value) => draft.title = value,
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<MealType>(
-                      value: draft.mealType,
+                      initialValue: draft.mealType,
                       decoration: const InputDecoration(labelText: 'Meal type'),
                       items: MealType.values
-                          .map((type) => DropdownMenuItem(value: type, child: Text(type.name)))
+                          .map((type) => DropdownMenuItem(
+                              value: type, child: Text(type.name)))
                           .toList(),
-                      onChanged: (value) => setState(() => draft.mealType = value ?? MealType.unknown),
+                      onChanged: (value) => setState(
+                          () => draft.mealType = value ?? MealType.unknown),
                     ),
                     const SizedBox(height: 12),
                     ListTile(
@@ -193,17 +201,20 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Text('Items', style: Theme.of(context).textTheme.titleMedium),
+                    Text('Items',
+                        style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 8),
-                    for (var i = 0; i < draft.items.length; i++) _ItemEditor(
-                      key: ValueKey(draft.items[i].id),
-                      item: draft.items[i],
-                      onDelete: draft.items.length == 1
-                          ? null
-                          : () => setState(() => draft.items.removeAt(i)),
-                    ),
+                    for (var i = 0; i < draft.items.length; i++)
+                      _ItemEditor(
+                        key: ValueKey(draft.items[i].id),
+                        item: draft.items[i],
+                        onDelete: draft.items.length == 1
+                            ? null
+                            : () => setState(() => draft.items.removeAt(i)),
+                      ),
                     OutlinedButton.icon(
-                      onPressed: () => setState(() => draft.items.add(MealDraftItem())),
+                      onPressed: () =>
+                          setState(() => draft.items.add(MealDraftItem())),
                       icon: const Icon(Icons.add),
                       label: const Text('Add item'),
                     ),
@@ -216,7 +227,10 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
                     const SizedBox(height: 16),
                     _Totals(draft: draft),
                     const SizedBox(height: 16),
-                    if (_error != null) Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                    if (_error != null)
+                      Text(_error!,
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.error)),
                     FilledButton.icon(
                       onPressed: _saving ? null : () => _save(draft),
                       icon: _saving
@@ -253,7 +267,8 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
       draft.validate();
       await ref.read(templateRepositoryProvider).saveFromDraft(draft);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Template saved')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Template saved')));
       }
     } catch (error) {
       setState(() => _error = error.toString());
@@ -281,14 +296,16 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
     );
     if (time == null) return;
     setState(() {
-      draft.loggedAt = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+      draft.loggedAt =
+          DateTime(date.year, date.month, date.day, time.hour, time.minute);
     });
   }
 
   Future<void> _insertCustomFood(MealDraft draft) async {
     final contextData = await ref.read(homeUserContextProvider.future);
     if (contextData == null || !mounted) return;
-    final foods = await ref.read(customFoodsProvider(contextData.userId).future);
+    final foods =
+        await ref.read(customFoodsProvider(contextData.userId).future);
     if (!mounted) return;
     final selected = await showModalBottomSheet<CustomFood>(
       context: context,
@@ -316,7 +333,8 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
     );
     if (selected == null) return;
     setState(() {
-      draft.items.add(ref.read(customFoodRepositoryProvider).toMealItem(selected));
+      draft.items
+          .add(ref.read(customFoodRepositoryProvider).toMealItem(selected));
     });
   }
 
@@ -349,7 +367,9 @@ class _ItemEditorState extends State<_ItemEditor> {
     final item = widget.item;
     final needsReview = item.confidence != null && item.confidence! < 0.7;
     return Card(
-      color: needsReview ? Theme.of(context).colorScheme.errorContainer.withOpacity(0.18) : null,
+      color: needsReview
+          ? Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.18)
+          : null,
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
@@ -357,7 +377,8 @@ class _ItemEditorState extends State<_ItemEditor> {
             if (needsReview) ...[
               Row(
                 children: [
-                  Icon(Icons.error_outline, size: 18, color: Theme.of(context).colorScheme.error),
+                  Icon(Icons.error_outline,
+                      size: 18, color: Theme.of(context).colorScheme.error),
                   const SizedBox(width: 8),
                   const Expanded(child: Text('Review this item before saving')),
                 ],
@@ -383,7 +404,11 @@ class _ItemEditorState extends State<_ItemEditor> {
             const SizedBox(height: 8),
             Row(
               children: [
-                Expanded(child: _NumberField(label: 'Qty', initial: item.quantity, onChanged: (v) => item.quantity = v)),
+                Expanded(
+                    child: _NumberField(
+                        label: 'Qty',
+                        initial: item.quantity,
+                        onChanged: (v) => item.quantity = v)),
                 const SizedBox(width: 8),
                 Expanded(
                   child: TextFormField(
@@ -406,24 +431,42 @@ class _ItemEditorState extends State<_ItemEditor> {
             const SizedBox(height: 8),
             Row(
               children: [
-                Expanded(child: _NumberField(label: 'Kcal', initial: item.caloriesKcal, onChanged: (v) => item.caloriesKcal = v)),
+                Expanded(
+                    child: _NumberField(
+                        label: 'Kcal',
+                        initial: item.caloriesKcal,
+                        onChanged: (v) => item.caloriesKcal = v)),
                 const SizedBox(width: 8),
-                Expanded(child: _NumberField(label: 'Protein', initial: item.proteinG, onChanged: (v) => item.proteinG = v)),
+                Expanded(
+                    child: _NumberField(
+                        label: 'Protein',
+                        initial: item.proteinG,
+                        onChanged: (v) => item.proteinG = v)),
               ],
             ),
             const SizedBox(height: 8),
             Row(
               children: [
-                Expanded(child: _NumberField(label: 'Carbs', initial: item.carbsG, onChanged: (v) => item.carbsG = v)),
+                Expanded(
+                    child: _NumberField(
+                        label: 'Carbs',
+                        initial: item.carbsG,
+                        onChanged: (v) => item.carbsG = v)),
                 const SizedBox(width: 8),
-                Expanded(child: _NumberField(label: 'Fat', initial: item.fatG, onChanged: (v) => item.fatG = v)),
+                Expanded(
+                    child: _NumberField(
+                        label: 'Fat',
+                        initial: item.fatG,
+                        onChanged: (v) => item.fatG = v)),
               ],
             ),
             if (item.confidence != null) ...[
               const SizedBox(height: 8),
               Align(
                 alignment: Alignment.centerLeft,
-                child: Chip(label: Text('${(item.confidence! * 100).round()}% confidence')),
+                child: Chip(
+                    label: Text(
+                        '${(item.confidence! * 100).round()}% confidence')),
               ),
             ],
             if (item.foodRefKind != 'manual') ...[
@@ -462,7 +505,9 @@ class _NumberField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
-      initialValue: initial == null ? '' : initial!.toStringAsFixed(initial! % 1 == 0 ? 0 : 1),
+      initialValue: initial == null
+          ? ''
+          : initial!.toStringAsFixed(initial! % 1 == 0 ? 0 : 1),
       decoration: InputDecoration(labelText: label),
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))],

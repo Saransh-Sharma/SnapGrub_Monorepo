@@ -8,11 +8,15 @@ final insightsRepositoryProvider = Provider<InsightsRepository>((ref) {
   return InsightsRepository(ref.watch(appDatabaseProvider));
 });
 
-final latestWeeklyInsightsProvider = StreamProvider.family<List<WeeklyInsight>, String>((ref, userId) {
-  return ref.watch(insightsRepositoryProvider).watchLatestWeeklyInsights(userId);
+final latestWeeklyInsightsProvider =
+    StreamProvider.family<List<WeeklyInsight>, String>((ref, userId) {
+  return ref
+      .watch(insightsRepositoryProvider)
+      .watchLatestWeeklyInsights(userId);
 });
 
-final frequentFoodDefaultsProvider = StreamProvider.family<List<UserFoodDefault>, String>((ref, userId) {
+final frequentFoodDefaultsProvider =
+    StreamProvider.family<List<UserFoodDefault>, String>((ref, userId) {
   return ref.watch(insightsRepositoryProvider).watchFrequentDefaults(userId);
 });
 

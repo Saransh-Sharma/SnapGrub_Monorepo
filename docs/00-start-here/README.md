@@ -2,9 +2,9 @@
 
 This is the preferred entrypoint for SnapGrub engineering docs.
 
-SnapGrub has Phase 0-5 foundations implemented: contract-first API package, Supabase auth/profile/settings, Flutter onboarding, Phase 2 SnapStrip shell, Phase 3 local-first manual meal logging with journal/progress/templates/custom foods, Phase 4 photo analysis, and Phase 5 barcode/OCR/text/voice draft entry.
+SnapGrub has Phase 0-7 source implemented: contract-first API package, Supabase auth/profile/settings, Flutter onboarding, Home/SnapStrip, local-first meal logging, photo analysis, barcode/OCR/text/voice draft entry, offline sync hardening, export request enqueueing, and feature-flagged weekly insights.
 
-Phase 6 readiness work is in progress for offline sync hardening, idempotency coverage, conflict surfacing, export request enqueueing, and durable asset/analytics replay.
+The current canonical implementation addendum is [../14-project-management/phase-0-7-implementation-review-2026-05-21.md](../14-project-management/phase-0-7-implementation-review-2026-05-21.md). Backend smoke checks and Flutter analyze/tests pass locally; Android APK build and device acceptance are blocked until a JDK and device/simulator matrix are available.
 
 ## First Stops
 
@@ -24,7 +24,10 @@ Phase 6 readiness work is in progress for offline sync hardening, idempotency co
 - Frontend: [../05-frontend/architecture.md](../05-frontend/architecture.md)
 - Backend: [../06-backend/meal-core-rpcs.md](../06-backend/meal-core-rpcs.md)
 - QA: [../10-quality/manual-test-plan.md](../10-quality/manual-test-plan.md)
-- Phase 4 QA: [../10-quality/phase-4-photo-analysis-acceptance.md](../10-quality/phase-4-photo-analysis-acceptance.md)
+- Phase 4 QA: [../10-quality/photo-analysis-acceptance.md](../10-quality/photo-analysis-acceptance.md)
+- Phase 5 QA: [../10-quality/multimodal-entry-acceptance.md](../10-quality/multimodal-entry-acceptance.md)
+- Phase 6 QA: [../10-quality/offline-sync-acceptance.md](../10-quality/offline-sync-acceptance.md)
+- Phase 7 QA: [../10-quality/insights-acceptance.md](../10-quality/insights-acceptance.md)
 - Photo AI contract: [../07-ai-ml/future-photo-analysis-contract.md](../07-ai-ml/future-photo-analysis-contract.md)
 - ADRs: [../12-decisions/README.md](../12-decisions/README.md)
 - Risks: [../13-risk-register/README.md](../13-risk-register/README.md)
@@ -36,6 +39,7 @@ Install the required toolchain before relying on CI parity:
 
 - Node 20
 - Flutter stable, including Dart
+- JDK for Android Gradle builds
 - Supabase CLI
 - Deno
 

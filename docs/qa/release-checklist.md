@@ -1,6 +1,6 @@
 # Release Checklist
 
-Phase 0-1 merge gate:
+Foundation merge gate:
 
 - OpenAPI validation passes.
 - Backend function typecheck passes.

@@ -19,10 +19,12 @@ class TemplateRemoteService {
     final response = await _client.functions.invoke(
       'meal-templates',
       method: HttpMethod.post,
-      headers: clientRequestId == null ? null : {'Idempotency-Key': clientRequestId},
+      headers:
+          clientRequestId == null ? null : {'Idempotency-Key': clientRequestId},
       body: payload,
     );
-    return Map<String, dynamic>.from((response.data as Map)['meal_template'] as Map);
+    return Map<String, dynamic>.from(
+        (response.data as Map)['meal_template'] as Map);
   }
 
   Future<Map<String, dynamic>> softDelete({
@@ -43,6 +45,7 @@ class TemplateRemoteService {
         'deleted_at': deletedAt.toUtc().toIso8601String(),
       },
     );
-    return Map<String, dynamic>.from((response.data as Map)['meal_template'] as Map);
+    return Map<String, dynamic>.from(
+        (response.data as Map)['meal_template'] as Map);
   }
 }

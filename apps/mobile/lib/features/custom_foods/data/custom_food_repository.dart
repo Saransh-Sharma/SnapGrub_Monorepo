@@ -19,7 +19,8 @@ final customFoodRepositoryProvider = Provider<CustomFoodRepository>((ref) {
   );
 });
 
-final customFoodsProvider = StreamProvider.family<List<CustomFood>, String>((ref, userId) {
+final customFoodsProvider =
+    StreamProvider.family<List<CustomFood>, String>((ref, userId) {
   return ref.watch(customFoodRepositoryProvider).watchFoods(userId);
 });
 
@@ -48,7 +49,12 @@ class CustomFoodRepository {
     final id = draft.id ?? const Uuid().v4();
     final clientId = draft.clientId ?? const Uuid().v4();
     final now = DateTime.now().toUtc();
-    final payload = _payload(userId: userId, id: id, clientId: clientId, draft: draft, deletedAt: null);
+    final payload = _payload(
+        userId: userId,
+        id: id,
+        clientId: clientId,
+        draft: draft,
+        deletedAt: null);
 
     await _db.into(_db.customFoodsLocal).insertOnConflictUpdate(
           CustomFoodsLocalCompanion.insert(
@@ -74,12 +80,16 @@ class CustomFoodRepository {
       payload: payload,
       clientRequestId: const Uuid().v4(),
     );
-    return _fromRow((await (_db.select(_db.customFoodsLocal)..where((tbl) => tbl.id.equals(id))).getSingle()));
+    return _fromRow((await (_db.select(_db.customFoodsLocal)
+          ..where((tbl) => tbl.id.equals(id)))
+        .getSingle()));
   }
 
   Future<void> delete(CustomFood food) async {
     final now = DateTime.now().toUtc();
-    await (_db.update(_db.customFoodsLocal)..where((tbl) => tbl.id.equals(food.id))).write(
+    await (_db.update(_db.customFoodsLocal)
+          ..where((tbl) => tbl.id.equals(food.id)))
+        .write(
       CustomFoodsLocalCompanion(
         syncStatus: const Value('pending'),
         deletedAt: Value(now),
@@ -120,7 +130,8 @@ class CustomFoodRepository {
     final commands = await _outbox.pendingCustomFoodCommands(userId);
     for (final command in commands) {
       try {
-        final payload = Map<String, dynamic>.from(jsonDecode(command.payloadJson) as Map);
+        final payload =
+            Map<String, dynamic>.from(jsonDecode(command.payloadJson) as Map);
         final row = command.commandType == 'custom_food.delete'
             ? await _remote.softDelete(
                 userId: payload['user_id'] as String,
@@ -138,7 +149,8 @@ class CustomFoodRepository {
         if (isConflictSyncError(error)) {
           await _outbox.markConflict(command.id, error);
         } else {
-          await _outbox.markFailed(command.id, retryable: isRetryableSyncError(error), error: error);
+          await _outbox.markFailed(command.id,
+              retryable: isRetryableSyncError(error), error: error);
         }
       }
     }
@@ -152,15 +164,19 @@ class CustomFoodRepository {
             clientId: row['client_id'] as String,
             name: row['name'] as String,
             brand: Value(row['brand'] as String?),
-            servingQuantity: Value((row['serving_quantity'] as num?)?.toDouble()),
+            servingQuantity:
+                Value((row['serving_quantity'] as num?)?.toDouble()),
             servingUnit: Value(row['serving_unit'] as String?),
             servingGrams: Value((row['serving_grams'] as num?)?.toDouble()),
-            caloriesKcal: Value((row['calories_kcal'] as num?)?.toDouble() ?? 0),
+            caloriesKcal:
+                Value((row['calories_kcal'] as num?)?.toDouble() ?? 0),
             proteinG: Value((row['protein_g'] as num?)?.toDouble() ?? 0),
             carbsG: Value((row['carbs_g'] as num?)?.toDouble() ?? 0),
             fatG: Value((row['fat_g'] as num?)?.toDouble() ?? 0),
             syncStatus: const Value('synced'),
-            deletedAt: Value(row['deleted_at'] == null ? null : DateTime.parse(row['deleted_at'] as String)),
+            deletedAt: Value(row['deleted_at'] == null
+                ? null
+                : DateTime.parse(row['deleted_at'] as String)),
           ),
         );
   }

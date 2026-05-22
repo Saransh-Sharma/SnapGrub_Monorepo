@@ -12,22 +12,26 @@ class OnboardingMacroTargetScreen extends ConsumerWidget {
       children: [
         Text('Daily target', style: Theme.of(context).textTheme.headlineSmall),
         const SizedBox(height: 12),
-        const Text('Start with this target, then adjust it from Settings anytime.'),
+        const Text(
+            'Start with this target, then adjust it from Settings anytime.'),
         const SizedBox(height: 24),
         _NumberField(
           label: 'Calories',
           value: draft.caloriesKcal,
-          onChanged: ref.read(onboardingControllerProvider.notifier).updateCalories,
+          onChanged:
+              ref.read(onboardingControllerProvider.notifier).updateCalories,
         ),
         _NumberField(
           label: 'Protein g',
           value: draft.proteinG,
-          onChanged: ref.read(onboardingControllerProvider.notifier).updateProtein,
+          onChanged:
+              ref.read(onboardingControllerProvider.notifier).updateProtein,
         ),
         _NumberField(
           label: 'Carbs g',
           value: draft.carbsG,
-          onChanged: ref.read(onboardingControllerProvider.notifier).updateCarbs,
+          onChanged:
+              ref.read(onboardingControllerProvider.notifier).updateCarbs,
         ),
         _NumberField(
           label: 'Fat g',
@@ -57,7 +61,8 @@ class _NumberField extends StatelessWidget {
       child: TextField(
         keyboardType: TextInputType.number,
         onChanged: onChanged,
-        decoration: InputDecoration(labelText: label, hintText: value.toStringAsFixed(0)),
+        decoration: InputDecoration(
+            labelText: label, hintText: value.toStringAsFixed(0)),
       ),
     );
   }

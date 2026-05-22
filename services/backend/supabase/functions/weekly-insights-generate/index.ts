@@ -23,10 +23,45 @@ Deno.serve(async (req) => {
     requireServiceRole(req);
 
     const body = await parseBody(req);
-    const userId = requiredString(body.user_id, "user_id");
     const weekStart = weekStartDate(optionalString(body.week_start) ?? new Date().toISOString());
+    const userId = optionalString(body.user_id);
+    const limit = boundedLimit(body.limit);
     const client = serviceClient();
 
+    if (!userId) {
+      const { data: dueUsers, error: dueError } = await client.rpc("users_due_for_weekly_insights", {
+        p_week_start: weekStart,
+        p_limit: limit,
+      });
+      if (dueError) throw dueError;
+
+      const generated = [];
+      for (const dueUser of dueUsers ?? []) {
+        generated.push(...await generateForUser(client, String(dueUser.user_id), weekStart));
+      }
+
+      return jsonResponse({
+        weekly_insights: generated,
+        processed_users: dueUsers?.length ?? 0,
+        server_time: new Date().toISOString(),
+        request_id: requestId,
+      });
+    }
+
+    const data = await generateForUser(client, userId, weekStart);
+
+    return jsonResponse({
+      weekly_insights: data,
+      server_time: new Date().toISOString(),
+      request_id: requestId,
+    });
+  } catch (error) {
+    const status = error instanceof ApiError ? error.status : 500;
+    return jsonResponse(errorBody(error, requestId), status);
+  }
+});
+
+async function generateForUser(client: ReturnType<typeof serviceClient>, userId: string, weekStart: string) {
     const { data: profile, error: profileError } = await client
       .from("profiles")
       .select("id, timezone")
@@ -58,24 +93,29 @@ Deno.serve(async (req) => {
       .select("*")
       .order("insight_type", { ascending: true });
     if (error) throw error;
-
-    return jsonResponse({
-      weekly_insights: data ?? [],
-      server_time: new Date().toISOString(),
-      request_id: requestId,
-    });
-  } catch (error) {
-    const status = error instanceof ApiError ? error.status : 500;
-    return jsonResponse(errorBody(error, requestId), status);
-  }
-});
+    return data ?? [];
+}
 
 function requireServiceRole(req: Request) {
   const expected = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   const auth = req.headers.get("authorization") ?? "";
   const token = auth.replace(/^Bearer\s+/i, "");
-  if (!expected || token !== expected) {
-    throw new ApiError("AUTH_REQUIRED", "Service role authorization is required", 401, false);
+  if (expected && token === expected) return;
+  if (jwtRole(token) === "service_role") return;
+
+  throw new ApiError("AUTH_REQUIRED", "Service role authorization is required", 401, false);
+}
+
+function jwtRole(token: string) {
+  try {
+    const payload = token.split(".")[1];
+    if (!payload) return null;
+    const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, "=");
+    const json = JSON.parse(atob(padded));
+    return typeof json.role === "string" ? json.role : null;
+  } catch (_) {
+    return null;
   }
 }
 
@@ -267,6 +307,12 @@ function requiredString(value: unknown, field: string) {
 
 function optionalString(value: unknown) {
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+}
+
+function boundedLimit(value: unknown) {
+  const n = Number(value ?? 500);
+  if (!Number.isFinite(n)) return 500;
+  return Math.max(1, Math.min(Math.trunc(n), 5000));
 }
 
 function numberOrNull(value: unknown) {

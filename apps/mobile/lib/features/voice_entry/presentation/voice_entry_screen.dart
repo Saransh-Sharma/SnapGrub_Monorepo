@@ -56,7 +56,9 @@ class _VoiceEntryScreenState extends ConsumerState<VoiceEntryScreen> {
             children: [
               Expanded(
                 child: FilledButton.icon(
-                  onPressed: !_available || _loading ? null : (_listening ? _stop : _listen),
+                  onPressed: !_available || _loading
+                      ? null
+                      : (_listening ? _stop : _listen),
                   icon: Icon(_listening ? Icons.stop : Icons.mic),
                   label: Text(_listening ? 'Stop' : 'Push to talk'),
                 ),
@@ -66,7 +68,9 @@ class _VoiceEntryScreenState extends ConsumerState<VoiceEntryScreen> {
                 child: OutlinedButton.icon(
                   onPressed: _loading ? null : _parse,
                   icon: _loading
-                      ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                      ? const SizedBox.square(
+                          dimension: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2))
                       : const Icon(Icons.arrow_forward),
                   label: const Text('Review'),
                 ),
@@ -80,7 +84,8 @@ class _VoiceEntryScreenState extends ConsumerState<VoiceEntryScreen> {
           ),
           if (_error != null) ...[
             const SizedBox(height: 8),
-            Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+            Text(_error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error)),
           ],
         ],
       ),
@@ -99,7 +104,9 @@ class _VoiceEntryScreenState extends ConsumerState<VoiceEntryScreen> {
     if (mounted) {
       setState(() {
         _available = available;
-        if (!available) _error = 'Microphone permission is unavailable. Use text instead.';
+        if (!available) {
+          _error = 'Microphone permission is unavailable. Use text instead.';
+        }
       });
     }
   }
@@ -110,10 +117,13 @@ class _VoiceEntryScreenState extends ConsumerState<VoiceEntryScreen> {
       _listening = true;
     });
     await _speech.listen(
-      listenMode: ListenMode.confirmation,
+      listenOptions: SpeechListenOptions(
+        listenMode: ListenMode.confirmation,
+      ),
       onResult: (result) {
         _transcriptController.text = result.recognizedWords;
-        _transcriptController.selection = TextSelection.collapsed(offset: _transcriptController.text.length);
+        _transcriptController.selection =
+            TextSelection.collapsed(offset: _transcriptController.text.length);
         _confidence = result.confidence > 0 ? result.confidence : null;
       },
     );
@@ -138,12 +148,13 @@ class _VoiceEntryScreenState extends ConsumerState<VoiceEntryScreen> {
       final state = await ref.read(profileControllerProvider.future);
       final profile = state.profile;
       if (profile == null) throw StateError('Profile is not available.');
-      final draft = await ref.read(multimodalRemoteServiceProvider).parseVoiceTranscript(
-            userId: profile.id,
-            profile: profile,
-            transcript: transcript,
-            transcriptConfidence: _confidence,
-          );
+      final draft =
+          await ref.read(multimodalRemoteServiceProvider).parseVoiceTranscript(
+                userId: profile.id,
+                profile: profile,
+                transcript: transcript,
+                transcriptConfidence: _confidence,
+              );
       if (mounted) context.go('/meal-editor', extra: draft);
     } catch (error) {
       if (mounted) setState(() => _error = error.toString());

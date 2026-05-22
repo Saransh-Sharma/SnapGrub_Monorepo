@@ -69,13 +69,17 @@ class MealRepository {
     final query = _db.select(_db.dailyRollupsLocal)
       ..where((tbl) => tbl.userId.equals(userId) & tbl.day.equals(normalized));
     return query.watchSingleOrNull().map((row) {
-      if (row == null) return domain.DailyRollup.empty(userId: userId, day: normalized);
+      if (row == null) {
+        return domain.DailyRollup.empty(userId: userId, day: normalized);
+      }
       return _rollupFromRow(row);
     });
   }
 
   Future<domain.Meal?> getMeal(String id) async {
-    final row = await (_db.select(_db.mealsLocal)..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
+    final row = await (_db.select(_db.mealsLocal)
+          ..where((tbl) => tbl.id.equals(id)))
+        .getSingleOrNull();
     if (row == null) return null;
     return _mealFromRow(row);
   }
@@ -84,11 +88,14 @@ class MealRepository {
     draft.validate();
     final now = DateTime.now().toUtc();
     final requestId = const Uuid().v4();
-    final existing = await (_db.select(_db.mealsLocal)..where((tbl) => tbl.id.equals(draft.id))).getSingleOrNull();
+    final existing = await (_db.select(_db.mealsLocal)
+          ..where((tbl) => tbl.id.equals(draft.id)))
+        .getSingleOrNull();
     final commandType = existing == null ? 'meal.create' : 'meal.update';
 
     await _db.transaction(() async {
-      await _upsertDraftLocal(draft, status: domain.MealSyncStatus.pending, updatedAt: now);
+      await _upsertDraftLocal(draft,
+          status: domain.MealSyncStatus.pending, updatedAt: now);
       await _replaceItemsLocal(draft, updatedAt: now);
       await _insertCorrectionEvent(
         id: const Uuid().v4(),
@@ -147,7 +154,8 @@ class MealRepository {
   Future<void> deleteMeal(domain.Meal meal) async {
     final requestId = const Uuid().v4();
     final now = DateTime.now().toUtc();
-    await (_db.update(_db.mealsLocal)..where((tbl) => tbl.id.equals(meal.id))).write(
+    await (_db.update(_db.mealsLocal)..where((tbl) => tbl.id.equals(meal.id)))
+        .write(
       MealsLocalCompanion(
         deletedAt: Value(now),
         syncStatus: const Value('pending'),
@@ -179,7 +187,8 @@ class MealRepository {
     final pending = await _outbox.pendingMealCommands(userId);
     for (final command in pending) {
       try {
-        final payload = Map<String, dynamic>.from(jsonDecode(command.payloadJson) as Map);
+        final payload =
+            Map<String, dynamic>.from(jsonDecode(command.payloadJson) as Map);
         if (command.commandType == 'meal.delete') {
           final response = await _remote.deleteMeal(
             mealId: payload['meal_id'] as String,
@@ -191,7 +200,8 @@ class MealRepository {
           final request = _requestFromPayload(payload, command.clientRequestId);
           final mealId = payload['meal_id'] as String?;
           final response = command.commandType == 'meal.create'
-              ? await _remote.createMeal(clientRequestId: command.clientRequestId, request: request)
+              ? await _remote.createMeal(
+                  clientRequestId: command.clientRequestId, request: request)
               : await _remote.updateMeal(
                   mealId: mealId!,
                   clientRequestId: command.clientRequestId,
@@ -204,7 +214,8 @@ class MealRepository {
         if (isConflictSyncError(error)) {
           await _outbox.markConflict(command.id, error);
         } else {
-          await _outbox.markFailed(command.id, retryable: isRetryableSyncError(error), error: error);
+          await _outbox.markFailed(command.id,
+              retryable: isRetryableSyncError(error), error: error);
         }
       }
     }
@@ -212,7 +223,8 @@ class MealRepository {
 
   Future<void> cacheMealResponse(MealWriteResponseDto response) async {
     await _db.transaction(() async {
-      await _cacheMealDto(response.meal, syncStatus: domain.MealSyncStatus.synced);
+      await _cacheMealDto(response.meal,
+          syncStatus: domain.MealSyncStatus.synced);
       await _cacheRollupDto(response.dailyRollup);
       for (final event in response.correctionEvents) {
         await _cacheCorrectionEventDto(event);
@@ -220,7 +232,8 @@ class MealRepository {
     });
   }
 
-  Future<void> _cacheMealDto(MealDto meal, {required domain.MealSyncStatus syncStatus}) async {
+  Future<void> _cacheMealDto(MealDto meal,
+      {required domain.MealSyncStatus syncStatus}) async {
     await _db.into(_db.mealsLocal).insertOnConflictUpdate(
           MealsLocalCompanion.insert(
             id: meal.id,
@@ -244,7 +257,9 @@ class MealRepository {
             deletedAt: Value(meal.deletedAt),
           ),
         );
-    await (_db.delete(_db.mealItemsLocal)..where((tbl) => tbl.mealId.equals(meal.id))).go();
+    await (_db.delete(_db.mealItemsLocal)
+          ..where((tbl) => tbl.mealId.equals(meal.id)))
+        .go();
     for (final item in meal.items) {
       await _db.into(_db.mealItemsLocal).insert(
             MealItemsLocalCompanion.insert(
@@ -320,8 +335,11 @@ class MealRepository {
         );
   }
 
-  Future<void> _replaceItemsLocal(domain.MealDraft draft, {required DateTime updatedAt}) async {
-    await (_db.delete(_db.mealItemsLocal)..where((tbl) => tbl.mealId.equals(draft.id))).go();
+  Future<void> _replaceItemsLocal(domain.MealDraft draft,
+      {required DateTime updatedAt}) async {
+    await (_db.delete(_db.mealItemsLocal)
+          ..where((tbl) => tbl.mealId.equals(draft.id)))
+        .go();
     for (var i = 0; i < draft.items.length; i++) {
       final item = draft.items[i];
       await _db.into(_db.mealItemsLocal).insert(
@@ -377,7 +395,8 @@ class MealRepository {
             carbsG: Value(carbs),
             fatG: Value(fat),
             mealCount: Value(rows.length),
-            hasPhotoMeal: Value(rows.any((row) => row.source == domain.MealSource.photo.name)),
+            hasPhotoMeal: Value(
+                rows.any((row) => row.source == domain.MealSource.photo.name)),
             updatedAt: Value(DateTime.now().toUtc()),
           ),
         );
@@ -449,7 +468,8 @@ class MealRepository {
     );
   }
 
-  MealWriteRequestDto _requestFromDraft(String requestId, domain.MealDraft draft) {
+  MealWriteRequestDto _requestFromDraft(
+      String requestId, domain.MealDraft draft) {
     return MealWriteRequestDto(
       clientRequestId: requestId,
       id: draft.id,
@@ -490,9 +510,11 @@ class MealRepository {
     );
   }
 
-  MealWriteRequestDto _requestFromPayload(Map<String, dynamic> payload, String fallbackRequestId) {
+  MealWriteRequestDto _requestFromPayload(
+      Map<String, dynamic> payload, String fallbackRequestId) {
     return MealWriteRequestDto(
-      clientRequestId: payload['client_request_id'] as String? ?? fallbackRequestId,
+      clientRequestId:
+          payload['client_request_id'] as String? ?? fallbackRequestId,
       id: payload['id'] as String?,
       clientId: payload['client_id'] as String,
       expectedRevision: payload['expected_revision'] as int?,
@@ -505,31 +527,29 @@ class MealRepository {
       provenanceType: payload['provenance_type'] as String?,
       analysisJobId: payload['analysis_job_id'] as String?,
       photoAssetId: payload['photo_asset_id'] as String?,
-      items: (payload['items'] as List)
-          .map((raw) {
-            final item = Map<String, dynamic>.from(raw as Map);
-            return MealItemWriteDto(
-              clientId: item['client_id'] as String,
-              position: item['position'] as int,
-              name: item['name'] as String,
-              foodRefKind: item['food_ref_kind'] as String? ?? 'manual',
-              canonicalFoodId: item['canonical_food_id'] as String?,
-              brandedProductId: item['branded_product_id'] as String?,
-              customFoodId: item['custom_food_id'] as String?,
-              quantity: (item['quantity'] as num).toDouble(),
-              unit: item['unit'] as String,
-              gramsEstimated: (item['grams_estimated'] as num?)?.toDouble(),
-              caloriesKcal: (item['calories_kcal'] as num).toDouble(),
-              proteinG: (item['protein_g'] as num).toDouble(),
-              carbsG: (item['carbs_g'] as num).toDouble(),
-              fatG: (item['fat_g'] as num).toDouble(),
-              confidence: (item['confidence'] as num?)?.toDouble(),
-              sourceType: item['source_type'] as String?,
-              sourceId: item['source_id'] as String?,
-              notes: item['notes'] as String?,
-            );
-          })
-          .toList(),
+      items: (payload['items'] as List).map((raw) {
+        final item = Map<String, dynamic>.from(raw as Map);
+        return MealItemWriteDto(
+          clientId: item['client_id'] as String,
+          position: item['position'] as int,
+          name: item['name'] as String,
+          foodRefKind: item['food_ref_kind'] as String? ?? 'manual',
+          canonicalFoodId: item['canonical_food_id'] as String?,
+          brandedProductId: item['branded_product_id'] as String?,
+          customFoodId: item['custom_food_id'] as String?,
+          quantity: (item['quantity'] as num).toDouble(),
+          unit: item['unit'] as String,
+          gramsEstimated: (item['grams_estimated'] as num?)?.toDouble(),
+          caloriesKcal: (item['calories_kcal'] as num).toDouble(),
+          proteinG: (item['protein_g'] as num).toDouble(),
+          carbsG: (item['carbs_g'] as num).toDouble(),
+          fatG: (item['fat_g'] as num).toDouble(),
+          confidence: (item['confidence'] as num?)?.toDouble(),
+          sourceType: item['source_type'] as String?,
+          sourceId: item['source_id'] as String?,
+          notes: item['notes'] as String?,
+        );
+      }).toList(),
     );
   }
 
@@ -551,8 +571,10 @@ class MealRepository {
             userId: userId,
             mealId: Value(mealId),
             eventType: eventType,
-            beforeValueJson: Value(beforeValue == null ? null : jsonEncode(beforeValue)),
-            afterValueJson: Value(afterValue == null ? null : jsonEncode(afterValue)),
+            beforeValueJson:
+                Value(beforeValue == null ? null : jsonEncode(beforeValue)),
+            afterValueJson:
+                Value(afterValue == null ? null : jsonEncode(afterValue)),
           ),
         );
   }
@@ -566,15 +588,19 @@ class MealRepository {
             analysisJobId: Value(event.analysisJobId),
             eventType: event.eventType,
             fieldName: Value(event.fieldName),
-            beforeValueJson: Value(event.beforeValue == null ? null : jsonEncode(event.beforeValue)),
-            afterValueJson: Value(event.afterValue == null ? null : jsonEncode(event.afterValue)),
+            beforeValueJson: Value(event.beforeValue == null
+                ? null
+                : jsonEncode(event.beforeValue)),
+            afterValueJson: Value(
+                event.afterValue == null ? null : jsonEncode(event.afterValue)),
             reason: Value(event.reason),
             createdAt: Value(event.createdAt),
           ),
         );
   }
 
-  DateTime _dateOnly(DateTime value) => DateTime(value.year, value.month, value.day);
+  DateTime _dateOnly(DateTime value) =>
+      DateTime(value.year, value.month, value.day);
 
   domain.MealType _mealTypeForNow(DateTime now) {
     if (now.hour < 11) return domain.MealType.breakfast;
@@ -584,11 +610,14 @@ class MealRepository {
   }
 
   domain.MealType _parseMealType(String value) =>
-      domain.MealType.values.firstWhere((type) => type.name == value, orElse: () => domain.MealType.unknown);
+      domain.MealType.values.firstWhere((type) => type.name == value,
+          orElse: () => domain.MealType.unknown);
 
   domain.MealSource _parseMealSource(String value) =>
-      domain.MealSource.values.firstWhere((source) => source.name == value, orElse: () => domain.MealSource.manual);
+      domain.MealSource.values.firstWhere((source) => source.name == value,
+          orElse: () => domain.MealSource.manual);
 
-  domain.MealSyncStatus _parseSyncStatus(String value) => domain.MealSyncStatus.values
-      .firstWhere((status) => status.name == value, orElse: () => domain.MealSyncStatus.synced);
+  domain.MealSyncStatus _parseSyncStatus(String value) =>
+      domain.MealSyncStatus.values.firstWhere((status) => status.name == value,
+          orElse: () => domain.MealSyncStatus.synced);
 }

@@ -8,7 +8,8 @@ import 'package:snapgrub/features/profile/domain/profile.dart';
 import 'package:snapgrub_api_contracts/snapgrub_api_contracts.dart';
 import 'package:uuid/uuid.dart';
 
-final photoAnalysisRepositoryProvider = Provider<PhotoAnalysisRepository>((ref) {
+final photoAnalysisRepositoryProvider =
+    Provider<PhotoAnalysisRepository>((ref) {
   return PhotoAnalysisRepository(
     remote: ref.watch(photoAnalysisRemoteServiceProvider),
     assets: ref.watch(captureAssetRepositoryProvider),
@@ -57,7 +58,8 @@ class PhotoAnalysisRepository {
       ),
     );
     if (response.status != 'completed' || response.result == null) {
-      throw StateError(response.errorCode ?? 'Photo analysis did not complete.');
+      throw StateError(
+          response.errorCode ?? 'Photo analysis did not complete.');
     }
     if (response.assetId == null) {
       throw StateError('Photo analysis did not return an asset id.');

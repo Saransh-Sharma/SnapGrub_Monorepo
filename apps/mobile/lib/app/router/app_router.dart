@@ -13,6 +13,7 @@ import 'package:snapgrub/features/meal_editor/domain/meal.dart';
 import 'package:snapgrub/features/meal_editor/presentation/meal_editor_screen.dart';
 import 'package:snapgrub/features/onboarding/presentation/onboarding_flow_screen.dart';
 import 'package:snapgrub/features/photo_analysis/presentation/photo_analysis_screen.dart';
+import 'package:snapgrub/features/privacy/presentation/privacy_settings_screen.dart';
 import 'package:snapgrub/features/progress/presentation/progress_screen.dart';
 import 'package:snapgrub/features/profile/application/profile_controller.dart';
 import 'package:snapgrub/features/profile/presentation/settings_screen.dart';
@@ -48,7 +49,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/meal-editor',
         builder: (context, state) => MealEditorScreen(
           mealId: state.uri.queryParameters['id'],
-          initialDraft: state.extra is MealDraft ? state.extra! as MealDraft : null,
+          initialDraft:
+              state.extra is MealDraft ? state.extra! as MealDraft : null,
         ),
       ),
       GoRoute(
@@ -92,6 +94,30 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const SettingsScreen(),
       ),
       GoRoute(
+        path: '/settings/privacy',
+        builder: (context, state) => const PrivacySettingsScreen(),
+      ),
+      GoRoute(
+        path: '/settings/privacy/ai-consent',
+        builder: (context, state) => const AIConsentScreen(),
+      ),
+      GoRoute(
+        path: '/settings/privacy/media-retention',
+        builder: (context, state) => const MediaRetentionScreen(),
+      ),
+      GoRoute(
+        path: '/settings/privacy/export',
+        builder: (context, state) => const ExportDataScreen(),
+      ),
+      GoRoute(
+        path: '/settings/privacy/delete-account',
+        builder: (context, state) => const DeleteAccountScreen(),
+      ),
+      GoRoute(
+        path: '/settings/privacy/clear-local-data',
+        builder: (context, state) => const ClearLocalDataScreen(),
+      ),
+      GoRoute(
         path: '/sync',
         builder: (context, state) => const SyncStatusScreen(),
       ),
@@ -114,7 +140,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return location == '/onboarding' ? null : '/onboarding';
       }
 
-      if (location == '/splash' || location == '/auth' || location == '/onboarding') {
+      if (location == '/splash' ||
+          location == '/auth' ||
+          location == '/onboarding') {
         return '/home';
       }
       return null;

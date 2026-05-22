@@ -6,7 +6,8 @@ import 'package:snapgrub/features/capture/domain/capture_asset.dart';
 import 'package:snapgrub/features/capture/domain/capture_state.dart';
 import 'package:snapgrub/features/profile/application/profile_controller.dart';
 
-final cameraControllerAdapterProvider = Provider<CameraControllerAdapter>((ref) {
+final cameraControllerAdapterProvider =
+    Provider<CameraControllerAdapter>((ref) {
   final adapter = CameraControllerAdapter();
   ref.onDispose(() {
     adapter.dispose();
@@ -14,14 +15,17 @@ final cameraControllerAdapterProvider = Provider<CameraControllerAdapter>((ref) 
   return adapter;
 });
 
-final captureControllerProvider = NotifierProvider<CaptureController, CaptureState>(
+final captureControllerProvider =
+    NotifierProvider<CaptureController, CaptureState>(
   CaptureController.new,
 );
 
 class CaptureController extends Notifier<CaptureState> {
-  CameraControllerAdapter get _camera => ref.read(cameraControllerAdapterProvider);
+  CameraControllerAdapter get _camera =>
+      ref.read(cameraControllerAdapterProvider);
   AnalyticsRepository get _analytics => ref.read(analyticsRepositoryProvider);
-  CaptureAssetRepository get _assets => ref.read(captureAssetRepositoryProvider);
+  CaptureAssetRepository get _assets =>
+      ref.read(captureAssetRepositoryProvider);
 
   @override
   CaptureState build() {
@@ -45,8 +49,23 @@ class CaptureController extends Notifier<CaptureState> {
     await initializePreview();
   }
 
+  Future<void> initializeIfPermitted() async {
+    if (state.status == CaptureStatus.featureDisabled ||
+        state.status == CaptureStatus.cameraReady) {
+      return;
+    }
+    final granted = await _camera.refreshPermissionStatus();
+    if (!granted) {
+      state = const CaptureState(status: CaptureStatus.permissionNeeded);
+      return;
+    }
+    await initializePreview();
+  }
+
   Future<void> initializePreview() async {
-    if (state.status == CaptureStatus.featureDisabled) return;
+    if (state.status == CaptureStatus.featureDisabled) {
+      return;
+    }
     if (!_camera.hasPermission) {
       state = const CaptureState(status: CaptureStatus.permissionNeeded);
       return;
@@ -57,7 +76,8 @@ class CaptureController extends Notifier<CaptureState> {
       await _analytics.track('snapstrip_preview_started');
       state = const CaptureState(status: CaptureStatus.cameraReady);
     } catch (error) {
-      state = CaptureState(status: CaptureStatus.error, message: error.toString());
+      state =
+          CaptureState(status: CaptureStatus.error, message: error.toString());
     }
   }
 
@@ -69,7 +89,10 @@ class CaptureController extends Notifier<CaptureState> {
   }
 
   Future<void> resumePreview() async {
-    if (!_camera.hasPermission || state.status == CaptureStatus.featureDisabled) return;
+    if (!_camera.hasPermission ||
+        state.status == CaptureStatus.featureDisabled) {
+      return;
+    }
     await _camera.resume();
     state = const CaptureState(status: CaptureStatus.cameraReady);
   }
@@ -85,7 +108,8 @@ class CaptureController extends Notifier<CaptureState> {
       state = const CaptureState(status: CaptureStatus.cameraReady);
       return asset;
     } catch (error) {
-      state = CaptureState(status: CaptureStatus.error, message: error.toString());
+      state =
+          CaptureState(status: CaptureStatus.error, message: error.toString());
       return null;
     }
   }
@@ -97,7 +121,9 @@ class CaptureController extends Notifier<CaptureState> {
       'snapstrip_text_tapped' => 'ocr_assist.enabled',
       _ => null,
     };
-    if (requiredFlag != null && !_flagEnabled(requiredFlag)) return Future<void>.value();
+    if (requiredFlag != null && !_flagEnabled(requiredFlag)) {
+      return Future<void>.value();
+    }
     return _analytics.track(eventName);
   }
 

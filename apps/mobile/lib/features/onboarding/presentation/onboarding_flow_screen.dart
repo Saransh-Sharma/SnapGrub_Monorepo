@@ -16,7 +16,8 @@ class OnboardingFlowScreen extends ConsumerStatefulWidget {
   const OnboardingFlowScreen({super.key});
 
   @override
-  ConsumerState<OnboardingFlowScreen> createState() => _OnboardingFlowScreenState();
+  ConsumerState<OnboardingFlowScreen> createState() =>
+      _OnboardingFlowScreenState();
 }
 
 class _OnboardingFlowScreenState extends ConsumerState<OnboardingFlowScreen> {
@@ -60,7 +61,8 @@ class _OnboardingFlowScreenState extends ConsumerState<OnboardingFlowScreen> {
           if (_error != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
-              child: Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              child: Text(_error!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error)),
             ),
           Row(
             children: [
@@ -89,15 +91,20 @@ class _OnboardingFlowScreenState extends ConsumerState<OnboardingFlowScreen> {
                           }
                           try {
                             draft.validate();
-                            final auth = await ref.read(authControllerProvider.future);
+                            final auth =
+                                await ref.read(authControllerProvider.future);
                             final userId = auth.userId;
-                            if (userId == null) throw StateError('Sign in again.');
+                            if (userId == null) {
+                              throw StateError('Sign in again.');
+                            }
                             await ref
                                 .read(profileControllerProvider.notifier)
                                 .completeOnboarding(userId, draft);
                             if (context.mounted) context.go('/home');
                           } catch (error) {
-                            setState(() => _error = error.toString().replaceFirst('Invalid argument(s): ', ''));
+                            setState(() => _error = error
+                                .toString()
+                                .replaceFirst('Invalid argument(s): ', ''));
                           }
                         },
                   child: Text(_index == pages.length - 1 ? 'Finish' : 'Next'),

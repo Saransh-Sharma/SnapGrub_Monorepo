@@ -16,7 +16,9 @@ class SnapStrip extends ConsumerWidget {
     final controller = ref.read(captureControllerProvider.notifier);
     final camera = ref.read(cameraControllerAdapterProvider).controller;
     final userContext = ref.watch(homeUserContextProvider).valueOrNull;
-    final flags = ref.watch(profileControllerProvider).valueOrNull?.featureFlags ?? const <String, Object?>{};
+    final flags =
+        ref.watch(profileControllerProvider).valueOrNull?.featureFlags ??
+            const <String, Object?>{};
     final photoEnabled = _flagEnabled(flags, 'photo_analysis.enabled');
     final barcodeEnabled = _flagEnabled(flags, 'barcode.enabled');
     final voiceEnabled = _flagEnabled(flags, 'voice_capture.enabled');
@@ -44,7 +46,8 @@ class SnapStrip extends ConsumerWidget {
                   tooltip: 'Barcode',
                   onPressed: barcodeEnabled
                       ? () async {
-                          await controller.trackAction('snapstrip_barcode_tapped');
+                          await controller
+                              .trackAction('snapstrip_barcode_tapped');
                           if (context.mounted) context.go('/barcode');
                         }
                       : null,
@@ -52,14 +55,16 @@ class SnapStrip extends ConsumerWidget {
                 ),
                 IconButton.filled(
                   tooltip: 'Capture',
-                  onPressed: photoEnabled && capture.canCapture && userContext != null
-                      ? () async {
-                          final asset = await controller.capture(userId: userContext.userId);
-                          if (asset != null && context.mounted) {
-                            context.go('/photo-analysis', extra: asset);
-                          }
-                        }
-                      : null,
+                  onPressed:
+                      photoEnabled && capture.canCapture && userContext != null
+                          ? () async {
+                              final asset = await controller.capture(
+                                  userId: userContext.userId);
+                              if (asset != null && context.mounted) {
+                                context.go('/photo-analysis', extra: asset);
+                              }
+                            }
+                          : null,
                   icon: const Icon(Icons.camera_alt),
                 ),
                 IconButton(
@@ -76,7 +81,8 @@ class SnapStrip extends ConsumerWidget {
                   tooltip: 'Voice',
                   onPressed: voiceEnabled
                       ? () async {
-                          await controller.trackAction('snapstrip_voice_tapped');
+                          await controller
+                              .trackAction('snapstrip_voice_tapped');
                           if (context.mounted) context.go('/voice-entry');
                         }
                       : null,

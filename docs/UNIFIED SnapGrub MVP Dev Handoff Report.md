@@ -12,6 +12,14 @@
 
 ## Executive summary
 
+### Current implementation addendum - 2026-05-21
+
+Phase 0-8 source has been reviewed and gap-closed against this report for backend/source implementation. Backend Phase 1, Phase 4, RLS, meal-core, Phase 5, Phase 6, Phase 7, and Phase 8 smoke checks pass locally with `NODE_OPTIONS=--experimental-websocket`; native Android/iOS project files and generated Drift code are present.
+
+Phase 8 now includes export artifact generation, signed export polling, account deletion, media-retention cleanup, mobile privacy screens, and Phase 8 backend smoke coverage. Remaining gaps are Flutter/Dart availability in the local shell, iOS/Android manual acceptance, real-provider staging validation, scheduled weekly insight/media-cleanup validation, observability dashboards/alerts, and release-candidate distribution.
+
+Canonical current-state reviews: [14-project-management/phase-0-7-implementation-review-2026-05-21.md](14-project-management/phase-0-7-implementation-review-2026-05-21.md) and [14-project-management/phase-8-10-implementation-review-2026-05-21.md](14-project-management/phase-8-10-implementation-review-2026-05-21.md).
+
 This unified handoff merges the strongest ideas from the two architect ZIP handoffs you provided plus the earlier SnapGrub PRD, roadmap, technical notes, mocks, and the inspiration repos. In practical terms, the merged result keeps the **Supabase-first backend, explicit RLS/storage/cron discipline, and editability-first data model** from the more backend-heavy handoff, while also keeping the **screen-level product UX, design-system direction, richer Flutter feature slicing, and SnapStrip-first home experience** from the more frontend-heavy handoff.
 
 The premium calorie-tracking market has shifted in a very specific direction: **photo logging is now table stakes, not differentiation**. Cal AI markets photo, barcode, and natural-language logging; MyFitnessPal has barcode, voice log, and ML/CV-based Meal Scan; YAZIO markets AI photo tracking plus barcode, recipes, fasting, and device sync; Lose It! Premium advertises photo meal logging and AI Voice; Cronometer Gold offers Photo Log and Voice Log; and MacroFactor combines adaptive coaching check-ins with newly launched AI photo logging. SnapGrub should therefore not position itself as “an app that can identify food from a photo.” It should position itself as **the fastest trustworthy multimodal food ledger**: camera-first, brutally editable, globally relevant, and privacy-forward. citeturn9view0turn9view1turn9view2turn9view3turn9view5turn9view7turn9view8turn9view9

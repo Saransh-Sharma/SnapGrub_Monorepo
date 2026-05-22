@@ -46,7 +46,8 @@ class SyncCommandRepository {
   Future<void> drainEarlyCommands(String userId) async {
     if (!isConfigured) return;
     await _drain(userId, _outbox.pendingAssetUploadCommands, _uploadAsset);
-    await _drain(userId, _outbox.pendingBodyMeasurementCommands, _createBodyMeasurement);
+    await _drain(
+        userId, _outbox.pendingBodyMeasurementCommands, _createBodyMeasurement);
   }
 
   Future<void> drainDeferredCommands(String userId) async {
@@ -63,37 +64,43 @@ class SyncCommandRepository {
     await _pullTemplates(userId);
     await _pullMealsAndRollups(userId);
     await _pullPhase7(userId);
-    await _updateCursor('authoritative:$userId', DateTime.now().toUtc().toIso8601String());
+    await _updateCursor(
+        'authoritative:$userId', DateTime.now().toUtc().toIso8601String());
   }
 
   Future<void> _drain(
     String userId,
     Future<List<OutboxCommand>> Function(String userId) loader,
-    Future<void> Function(OutboxCommand command, Map<String, dynamic> payload) handler,
+    Future<void> Function(OutboxCommand command, Map<String, dynamic> payload)
+        handler,
   ) async {
     final commands = await loader(userId);
     for (final command in commands) {
       try {
-        final payload = Map<String, dynamic>.from(jsonDecode(command.payloadJson) as Map);
+        final payload =
+            Map<String, dynamic>.from(jsonDecode(command.payloadJson) as Map);
         await handler(command, payload);
         await _outbox.markSynced(command.id);
       } catch (error) {
         if (isConflictSyncError(error)) {
           await _outbox.markConflict(command.id, error);
         } else {
-          await _outbox.markFailed(command.id, retryable: isRetryableSyncError(error), error: error);
+          await _outbox.markFailed(command.id,
+              retryable: isRetryableSyncError(error), error: error);
         }
       }
     }
   }
 
-  Future<void> _uploadAsset(OutboxCommand command, Map<String, dynamic> payload) async {
+  Future<void> _uploadAsset(
+      OutboxCommand command, Map<String, dynamic> payload) async {
     final localPath = payload['local_path'] as String;
     final file = File(localPath);
     if (!await file.exists()) {
       throw NonRetryableSyncException('not_found: local asset file is missing');
     }
-    final storageBucket = payload['storage_bucket'] as String? ?? 'meal-originals-private';
+    final storageBucket =
+        payload['storage_bucket'] as String? ?? 'meal-originals-private';
     final storagePath = payload['storage_path'] as String;
     final mimeType = payload['mime_type'] as String? ?? 'image/jpeg';
     await _client.storage.from(storageBucket).uploadBinary(
@@ -108,13 +115,16 @@ class SyncCommandRepository {
       await _client.storage.from('meal-thumbnails-private').uploadBinary(
             thumbStoragePath,
             await File(thumbLocalPath).readAsBytes(),
-            fileOptions: const FileOptions(contentType: 'image/jpeg', upsert: true),
+            fileOptions:
+                const FileOptions(contentType: 'image/jpeg', upsert: true),
           );
     }
 
     final assetId = payload['asset_id'] as String?;
     if (assetId != null) {
-      await (_db.update(_db.mealAssetsLocal)..where((tbl) => tbl.id.equals(assetId))).write(
+      await (_db.update(_db.mealAssetsLocal)
+            ..where((tbl) => tbl.id.equals(assetId)))
+          .write(
         MealAssetsLocalCompanion(
           uploadStatus: const Value('uploaded'),
           uploadedAt: Value(DateTime.now().toUtc()),
@@ -123,7 +133,8 @@ class SyncCommandRepository {
     }
   }
 
-  Future<void> _createBodyMeasurement(OutboxCommand command, Map<String, dynamic> payload) async {
+  Future<void> _createBodyMeasurement(
+      OutboxCommand command, Map<String, dynamic> payload) async {
     final response = await _client.functions.invoke(
       'body-measurements',
       method: HttpMethod.post,
@@ -133,26 +144,33 @@ class SyncCommandRepository {
         'client_request_id': command.clientRequestId,
       },
     );
-    final measurement = Map<String, dynamic>.from((response.data as Map)['body_measurement'] as Map);
+    final measurement = Map<String, dynamic>.from(
+        (response.data as Map)['body_measurement'] as Map);
     final localId = payload['id'] as String?;
     if (localId != null) {
-      await (_db.update(_db.bodyMeasurementsLocal)..where((tbl) => tbl.id.equals(localId))).write(
+      await (_db.update(_db.bodyMeasurementsLocal)
+            ..where((tbl) => tbl.id.equals(localId)))
+          .write(
         BodyMeasurementsLocalCompanion(
           syncStatus: const Value('synced'),
-          updatedAt: Value(DateTime.parse(measurement['updated_at'] as String? ?? DateTime.now().toUtc().toIso8601String())),
+          updatedAt: Value(DateTime.parse(
+              measurement['updated_at'] as String? ??
+                  DateTime.now().toUtc().toIso8601String())),
         ),
       );
     }
   }
 
-  Future<void> _ingestAnalytics(OutboxCommand command, Map<String, dynamic> payload) async {
+  Future<void> _ingestAnalytics(
+      OutboxCommand command, Map<String, dynamic> payload) async {
     final events = (payload['events'] as List? ?? const [])
         .map((event) => Map<String, Object?>.from(event as Map))
         .toList(growable: false);
     await _events.ingest(events, clientRequestId: command.clientRequestId);
   }
 
-  Future<void> _createExport(OutboxCommand command, Map<String, dynamic> payload) async {
+  Future<void> _createExport(
+      OutboxCommand command, Map<String, dynamic> payload) async {
     await _client.functions.invoke(
       'exports-create',
       method: HttpMethod.post,
@@ -177,7 +195,10 @@ class SyncCommandRepository {
   }
 
   Future<void> _pullBodyMeasurements(String userId) async {
-    final response = await _client.from('body_measurements').select('*').eq('user_id', userId);
+    final response = await _client
+        .from('body_measurements')
+        .select('*')
+        .eq('user_id', userId);
     for (final row in List<Map<String, dynamic>>.from(response as List)) {
       await _db.into(_db.bodyMeasurementsLocal).insertOnConflictUpdate(
             BodyMeasurementsLocalCompanion.insert(
@@ -195,7 +216,8 @@ class SyncCommandRepository {
   }
 
   Future<void> _pullCustomFoods(String userId) async {
-    final response = await _client.from('custom_foods').select('*').eq('user_id', userId);
+    final response =
+        await _client.from('custom_foods').select('*').eq('user_id', userId);
     for (final row in List<Map<String, dynamic>>.from(response as List)) {
       await _db.into(_db.customFoodsLocal).insertOnConflictUpdate(
             CustomFoodsLocalCompanion.insert(
@@ -204,10 +226,12 @@ class SyncCommandRepository {
               clientId: row['client_id'] as String,
               name: row['name'] as String,
               brand: Value(row['brand'] as String?),
-              servingQuantity: Value((row['serving_quantity'] as num?)?.toDouble()),
+              servingQuantity:
+                  Value((row['serving_quantity'] as num?)?.toDouble()),
               servingUnit: Value(row['serving_unit'] as String?),
               servingGrams: Value((row['serving_grams'] as num?)?.toDouble()),
-              caloriesKcal: Value((row['calories_kcal'] as num?)?.toDouble() ?? 0),
+              caloriesKcal:
+                  Value((row['calories_kcal'] as num?)?.toDouble() ?? 0),
               proteinG: Value((row['protein_g'] as num?)?.toDouble() ?? 0),
               carbsG: Value((row['carbs_g'] as num?)?.toDouble() ?? 0),
               fatG: Value((row['fat_g'] as num?)?.toDouble() ?? 0),
@@ -220,7 +244,8 @@ class SyncCommandRepository {
   }
 
   Future<void> _pullTemplates(String userId) async {
-    final response = await _client.from('meal_templates').select('*').eq('user_id', userId);
+    final response =
+        await _client.from('meal_templates').select('*').eq('user_id', userId);
     for (final row in List<Map<String, dynamic>>.from(response as List)) {
       await _db.into(_db.mealTemplatesLocal).insertOnConflictUpdate(
             MealTemplatesLocalCompanion.insert(
@@ -249,13 +274,15 @@ class SyncCommandRepository {
       await _cacheMealRow(raw);
     }
 
-    final rollups = await _client.from('daily_rollups').select('*').eq('user_id', userId);
+    final rollups =
+        await _client.from('daily_rollups').select('*').eq('user_id', userId);
     for (final row in List<Map<String, dynamic>>.from(rollups as List)) {
       await _db.into(_db.dailyRollupsLocal).insertOnConflictUpdate(
             DailyRollupsLocalCompanion.insert(
               userId: row['user_id'] as String,
               day: DateTime.parse(row['day'] as String),
-              caloriesKcal: Value((row['calories_kcal'] as num?)?.toDouble() ?? 0),
+              caloriesKcal:
+                  Value((row['calories_kcal'] as num?)?.toDouble() ?? 0),
               proteinG: Value((row['protein_g'] as num?)?.toDouble() ?? 0),
               carbsG: Value((row['carbs_g'] as num?)?.toDouble() ?? 0),
               fatG: Value((row['fat_g'] as num?)?.toDouble() ?? 0),
@@ -283,7 +310,8 @@ class SyncCommandRepository {
               insightType: row['insight_type'] as String,
               title: row['title'] as String,
               summary: row['summary'] as String,
-              payloadJson: Value(jsonEncode(row['payload'] as Object? ?? const {})),
+              payloadJson:
+                  Value(jsonEncode(row['payload'] as Object? ?? const {})),
               status: Value(row['status'] as String? ?? 'ready'),
               generatedAt: Value(_parseNullableDate(row['generated_at'])),
               updatedAt: Value(_parseDate(row['updated_at'])),
@@ -291,7 +319,10 @@ class SyncCommandRepository {
           );
     }
 
-    final defaults = await _client.from('user_food_defaults').select('*').eq('user_id', userId);
+    final defaults = await _client
+        .from('user_food_defaults')
+        .select('*')
+        .eq('user_id', userId);
     for (final row in List<Map<String, dynamic>>.from(defaults as List)) {
       await _db.into(_db.userFoodDefaultsLocal).insertOnConflictUpdate(
             UserFoodDefaultsLocalCompanion.insert(
@@ -300,10 +331,13 @@ class SyncCommandRepository {
               foodRefKind: row['food_ref_kind'] as String,
               foodRefId: row['food_ref_id'] as String,
               foodName: row['food_name'] as String,
-              preferredQuantity: Value((row['preferred_quantity'] as num?)?.toDouble() ?? 1),
+              preferredQuantity:
+                  Value((row['preferred_quantity'] as num?)?.toDouble() ?? 1),
               preferredUnit: row['preferred_unit'] as String,
-              preferredGrams: Value((row['preferred_grams'] as num?)?.toDouble()),
-              caloriesKcal: Value((row['calories_kcal'] as num?)?.toDouble() ?? 0),
+              preferredGrams:
+                  Value((row['preferred_grams'] as num?)?.toDouble()),
+              caloriesKcal:
+                  Value((row['calories_kcal'] as num?)?.toDouble() ?? 0),
               proteinG: Value((row['protein_g'] as num?)?.toDouble() ?? 0),
               carbsG: Value((row['carbs_g'] as num?)?.toDouble() ?? 0),
               fatG: Value((row['fat_g'] as num?)?.toDouble() ?? 0),
@@ -327,11 +361,13 @@ class SyncCommandRepository {
             source: meal['source'] as String,
             loggedAt: DateTime.parse(meal['logged_at'] as String),
             timezone: meal['timezone'] as String,
-            caloriesKcal: Value((meal['calories_kcal'] as num?)?.toDouble() ?? 0),
+            caloriesKcal:
+                Value((meal['calories_kcal'] as num?)?.toDouble() ?? 0),
             proteinG: Value((meal['protein_g'] as num?)?.toDouble() ?? 0),
             carbsG: Value((meal['carbs_g'] as num?)?.toDouble() ?? 0),
             fatG: Value((meal['fat_g'] as num?)?.toDouble() ?? 0),
-            confidenceOverall: Value((meal['confidence_overall'] as num?)?.toDouble()),
+            confidenceOverall:
+                Value((meal['confidence_overall'] as num?)?.toDouble()),
             provenanceType: Value(meal['provenance_type'] as String?),
             photoAssetId: Value(meal['photo_asset_id'] as String?),
             revision: Value((meal['revision'] as num?)?.toInt() ?? 1),
@@ -340,8 +376,11 @@ class SyncCommandRepository {
             updatedAt: Value(_parseDate(meal['updated_at'])),
           ),
         );
-    await (_db.delete(_db.mealItemsLocal)..where((tbl) => tbl.mealId.equals(meal['id'] as String))).go();
-    for (final raw in List<Map<String, dynamic>>.from((meal['meal_items'] as List?) ?? const [])) {
+    await (_db.delete(_db.mealItemsLocal)
+          ..where((tbl) => tbl.mealId.equals(meal['id'] as String)))
+        .go();
+    for (final raw in List<Map<String, dynamic>>.from(
+        (meal['meal_items'] as List?) ?? const [])) {
       await _db.into(_db.mealItemsLocal).insert(
             MealItemsLocalCompanion.insert(
               id: raw['id'] as String,
@@ -356,8 +395,10 @@ class SyncCommandRepository {
               customFoodId: Value(raw['custom_food_id'] as String?),
               quantity: (raw['quantity'] as num?)?.toDouble() ?? 1,
               unit: raw['unit'] as String,
-              gramsEstimated: Value((raw['grams_estimated'] as num?)?.toDouble()),
-              caloriesKcal: Value((raw['calories_kcal'] as num?)?.toDouble() ?? 0),
+              gramsEstimated:
+                  Value((raw['grams_estimated'] as num?)?.toDouble()),
+              caloriesKcal:
+                  Value((raw['calories_kcal'] as num?)?.toDouble() ?? 0),
               proteinG: Value((raw['protein_g'] as num?)?.toDouble() ?? 0),
               carbsG: Value((raw['carbs_g'] as num?)?.toDouble() ?? 0),
               fatG: Value((raw['fat_g'] as num?)?.toDouble() ?? 0),

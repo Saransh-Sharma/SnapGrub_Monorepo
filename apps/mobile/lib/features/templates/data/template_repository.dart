@@ -19,7 +19,8 @@ final templateRepositoryProvider = Provider<TemplateRepository>((ref) {
   );
 });
 
-final mealTemplatesProvider = StreamProvider.family<List<MealTemplate>, String>((ref, userId) {
+final mealTemplatesProvider =
+    StreamProvider.family<List<MealTemplate>, String>((ref, userId) {
   return ref.watch(templateRepositoryProvider).watchTemplates(userId);
 });
 
@@ -67,7 +68,9 @@ class TemplateRepository {
     required Map<String, Object?> snapshot,
     String? sourceMealId,
   }) async {
-    if (title.trim().isEmpty) throw ArgumentError('Template title is required.');
+    if (title.trim().isEmpty) {
+      throw ArgumentError('Template title is required.');
+    }
     final id = const Uuid().v4();
     final clientId = const Uuid().v4();
     final now = DateTime.now().toUtc();
@@ -99,12 +102,16 @@ class TemplateRepository {
       payload: payload,
       clientRequestId: const Uuid().v4(),
     );
-    return _fromRow((await (_db.select(_db.mealTemplatesLocal)..where((tbl) => tbl.id.equals(id))).getSingle()));
+    return _fromRow((await (_db.select(_db.mealTemplatesLocal)
+          ..where((tbl) => tbl.id.equals(id)))
+        .getSingle()));
   }
 
   Future<void> delete(MealTemplate template) async {
     final now = DateTime.now().toUtc();
-    await (_db.update(_db.mealTemplatesLocal)..where((tbl) => tbl.id.equals(template.id))).write(
+    await (_db.update(_db.mealTemplatesLocal)
+          ..where((tbl) => tbl.id.equals(template.id)))
+        .write(
       MealTemplatesLocalCompanion(
         syncStatus: const Value('pending'),
         deletedAt: Value(now),
@@ -128,7 +135,8 @@ class TemplateRepository {
     final commands = await _outbox.pendingTemplateCommands(userId);
     for (final command in commands) {
       try {
-        final payload = Map<String, dynamic>.from(jsonDecode(command.payloadJson) as Map);
+        final payload =
+            Map<String, dynamic>.from(jsonDecode(command.payloadJson) as Map);
         final row = command.commandType == 'template.delete'
             ? await _remote.softDelete(
                 userId: payload['user_id'] as String,
@@ -146,7 +154,8 @@ class TemplateRepository {
         if (isConflictSyncError(error)) {
           await _outbox.markConflict(command.id, error);
         } else {
-          await _outbox.markFailed(command.id, retryable: isRetryableSyncError(error), error: error);
+          await _outbox.markFailed(command.id,
+              retryable: isRetryableSyncError(error), error: error);
         }
       }
     }
@@ -162,7 +171,9 @@ class TemplateRepository {
             snapshotJson: jsonEncode(row['snapshot'] as Object? ?? const {}),
             sourceMealId: Value(row['source_meal_id'] as String?),
             syncStatus: const Value('synced'),
-            deletedAt: Value(row['deleted_at'] == null ? null : DateTime.parse(row['deleted_at'] as String)),
+            deletedAt: Value(row['deleted_at'] == null
+                ? null
+                : DateTime.parse(row['deleted_at'] as String)),
           ),
         );
   }
@@ -173,7 +184,8 @@ class TemplateRepository {
       userId: row.userId as String,
       clientId: row.clientId as String,
       title: row.title as String,
-      snapshot: Map<String, Object?>.from(jsonDecode(row.snapshotJson as String) as Map),
+      snapshot: Map<String, Object?>.from(
+          jsonDecode(row.snapshotJson as String) as Map),
       sourceMealId: row.sourceMealId as String?,
       syncStatus: row.syncStatus as String,
       deletedAt: row.deletedAt as DateTime?,

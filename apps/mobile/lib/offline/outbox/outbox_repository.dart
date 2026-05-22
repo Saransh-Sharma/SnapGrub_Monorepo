@@ -31,7 +31,8 @@ class OutboxRepository {
             userId: userId,
             commandType: commandType,
             payloadJson: payloadJson,
-            payloadHash: Value<String?>(sha256.convert(utf8.encode(payloadJson)).toString()),
+            payloadHash: Value<String?>(
+                sha256.convert(utf8.encode(payloadJson)).toString()),
             clientRequestId: clientRequestId,
             dependencyCommandId: Value<String?>(dependencyCommandId),
             status: const Value('pending'),
@@ -45,7 +46,8 @@ class OutboxRepository {
               tbl.userId.equals(userId) &
               tbl.commandType.equals('settings.patch') &
               tbl.status.equals('pending') &
-              (tbl.nextRetryAt.isNull() | tbl.nextRetryAt.isSmallerOrEqualValue(DateTime.now())))
+              (tbl.nextRetryAt.isNull() |
+                  tbl.nextRetryAt.isSmallerOrEqualValue(DateTime.now())))
           ..orderBy([(tbl) => OrderingTerm.asc(tbl.createdAt)]))
         .get();
   }
@@ -66,19 +68,23 @@ class OutboxRepository {
   }
 
   Future<List<OutboxCommand>> pendingBodyMeasurementCommands(String userId) {
-    return pendingCommands(userId: userId, commandTypes: const ['body_measurement.create']);
+    return pendingCommands(
+        userId: userId, commandTypes: const ['body_measurement.create']);
   }
 
   Future<List<OutboxCommand>> pendingAssetUploadCommands(String userId) {
-    return pendingCommands(userId: userId, commandTypes: const ['asset.upload']);
+    return pendingCommands(
+        userId: userId, commandTypes: const ['asset.upload']);
   }
 
   Future<List<OutboxCommand>> pendingAnalyticsCommands(String userId) {
-    return pendingCommands(userId: userId, commandTypes: const ['analytics.batch']);
+    return pendingCommands(
+        userId: userId, commandTypes: const ['analytics.batch']);
   }
 
   Future<List<OutboxCommand>> pendingExportCommands(String userId) {
-    return pendingCommands(userId: userId, commandTypes: const ['export.create']);
+    return pendingCommands(
+        userId: userId, commandTypes: const ['export.create']);
   }
 
   Future<List<OutboxCommand>> pendingCommands({
@@ -90,8 +96,11 @@ class OutboxRepository {
               tbl.userId.equals(userId) &
               tbl.commandType.isIn(commandTypes) &
               tbl.status.equals('pending') &
-              (tbl.nextRetryAt.isNull() | tbl.nextRetryAt.isSmallerOrEqualValue(DateTime.now())) &
-              (tbl.dependencyCommandId.isNull() | tbl.dependencyCommandId.isNotInQuery(_blockedDependencyIds(userId))))
+              (tbl.nextRetryAt.isNull() |
+                  tbl.nextRetryAt.isSmallerOrEqualValue(DateTime.now())) &
+              (tbl.dependencyCommandId.isNull() |
+                  tbl.dependencyCommandId
+                      .isNotInQuery(_blockedDependencyIds(userId))))
           ..orderBy([(tbl) => OrderingTerm.asc(tbl.createdAt)]))
         .get();
   }
@@ -102,7 +111,8 @@ class OutboxRepository {
           ..addColumns([count])
           ..where(
             _db.outboxCommands.userId.equals(userId) &
-                _db.outboxCommands.status.isIn(const ['pending', 'conflict', 'failed', 'blocked']),
+                _db.outboxCommands.status
+                    .isIn(const ['pending', 'conflict', 'failed', 'blocked']),
           ))
         .getSingle();
     return row.read(count) ?? 0;
@@ -112,20 +122,23 @@ class OutboxRepository {
     final count = _db.outboxCommands.id.count();
     final row = await (_db.selectOnly(_db.outboxCommands)
           ..addColumns([count])
-          ..where(_db.outboxCommands.userId.equals(userId) & _db.outboxCommands.status.equals('conflict')))
+          ..where(_db.outboxCommands.userId.equals(userId) &
+              _db.outboxCommands.status.equals('conflict')))
         .getSingle();
     return (row.read(count) ?? 0) > 0;
   }
 
   Future<List<OutboxCommand>> conflictCommands(String userId) {
     return (_db.select(_db.outboxCommands)
-          ..where(_db.outboxCommands.userId.equals(userId) & _db.outboxCommands.status.equals('conflict'))
+          ..where((tbl) =>
+              tbl.userId.equals(userId) & tbl.status.equals('conflict'))
           ..orderBy([(tbl) => OrderingTerm.asc(tbl.createdAt)]))
         .get();
   }
 
   Future<void> retryCommand(String id) async {
-    await (_db.update(_db.outboxCommands)..where((tbl) => tbl.id.equals(id))).write(
+    await (_db.update(_db.outboxCommands)..where((tbl) => tbl.id.equals(id)))
+        .write(
       OutboxCommandsCompanion(
         status: const Value('pending'),
         nextRetryAt: const Value<DateTime?>(null),
@@ -136,7 +149,8 @@ class OutboxRepository {
   }
 
   Future<void> discardCommand(String id) async {
-    await (_db.update(_db.outboxCommands)..where((tbl) => tbl.id.equals(id))).write(
+    await (_db.update(_db.outboxCommands)..where((tbl) => tbl.id.equals(id)))
+        .write(
       OutboxCommandsCompanion(
         status: const Value('synced'),
         lastError: const Value<String?>(null),
@@ -152,10 +166,12 @@ class OutboxRepository {
     }
   }
 
-  Future<List<OutboxCommand>> pendingAssetUploadCommandsForAllStatuses(String assetId) async {
+  Future<List<OutboxCommand>> pendingAssetUploadCommandsForAllStatuses(
+      String assetId) async {
     final rows = await (_db.select(_db.outboxCommands)
-          ..where(_db.outboxCommands.commandType.equals('asset.upload') &
-              _db.outboxCommands.status.isIn(const ['pending', 'failed', 'blocked'])))
+          ..where((tbl) =>
+              tbl.commandType.equals('asset.upload') &
+              tbl.status.isIn(const ['pending', 'failed', 'blocked'])))
         .get();
     return rows.where((command) {
       try {
@@ -168,7 +184,8 @@ class OutboxRepository {
   }
 
   Future<void> markSynced(String id) async {
-    await (_db.update(_db.outboxCommands)..where((tbl) => tbl.id.equals(id))).write(
+    await (_db.update(_db.outboxCommands)..where((tbl) => tbl.id.equals(id)))
+        .write(
       OutboxCommandsCompanion(
         status: const Value('synced'),
         lastError: const Value<String?>(null),
@@ -177,11 +194,16 @@ class OutboxRepository {
     );
   }
 
-  Future<void> markFailed(String id, {bool retryable = true, Object? error}) async {
-    final current = await (_db.select(_db.outboxCommands)..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
+  Future<void> markFailed(String id,
+      {bool retryable = true, Object? error}) async {
+    final current = await (_db.select(_db.outboxCommands)
+          ..where((tbl) => tbl.id.equals(id)))
+        .getSingleOrNull();
     final retryCount = (current?.retryCount ?? 0) + 1;
-    final nextRetry = retryable ? DateTime.now().add(_backoffDelay(retryCount)) : null;
-    await (_db.update(_db.outboxCommands)..where((tbl) => tbl.id.equals(id))).write(
+    final nextRetry =
+        retryable ? DateTime.now().add(_backoffDelay(retryCount)) : null;
+    await (_db.update(_db.outboxCommands)..where((tbl) => tbl.id.equals(id)))
+        .write(
       OutboxCommandsCompanion(
         status: Value(retryable ? 'pending' : 'failed'),
         retryCount: Value(retryCount),
@@ -193,7 +215,8 @@ class OutboxRepository {
   }
 
   Future<void> markConflict(String id, Object error) async {
-    await (_db.update(_db.outboxCommands)..where((tbl) => tbl.id.equals(id))).write(
+    await (_db.update(_db.outboxCommands)..where((tbl) => tbl.id.equals(id)))
+        .write(
       OutboxCommandsCompanion(
         status: const Value('conflict'),
         lastError: Value(error.toString()),
@@ -203,7 +226,8 @@ class OutboxRepository {
   }
 
   Future<void> markBlocked(String id, Object error) async {
-    await (_db.update(_db.outboxCommands)..where((tbl) => tbl.id.equals(id))).write(
+    await (_db.update(_db.outboxCommands)..where((tbl) => tbl.id.equals(id)))
+        .write(
       OutboxCommandsCompanion(
         status: const Value('blocked'),
         lastError: Value(error.toString()),
@@ -217,13 +241,15 @@ class OutboxRepository {
       ..addColumns([_db.outboxCommands.id])
       ..where(
         _db.outboxCommands.userId.equals(userId) &
-            _db.outboxCommands.status.isIn(const ['pending', 'failed', 'conflict', 'blocked']),
+            _db.outboxCommands.status
+                .isIn(const ['pending', 'failed', 'conflict', 'blocked']),
       );
   }
 
   Duration _backoffDelay(int retryCount) {
     final cappedExponent = min(retryCount, 6);
-    final baseSeconds = min(30 * pow(2, cappedExponent - 1).toInt(), 30 * 60).toInt();
+    final baseSeconds =
+        min(30 * pow(2, cappedExponent - 1).toInt(), 30 * 60).toInt();
     final jitterSeconds = Random().nextInt(max(1, baseSeconds ~/ 4));
     return Duration(seconds: baseSeconds + jitterSeconds);
   }

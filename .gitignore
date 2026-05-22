@@ -31,6 +31,8 @@ build/
 coverage/
 .turbo/
 .cache/
+services/backend/supabase/.branches/
+services/backend/supabase/.temp/
 
 # Python
 __pycache__/

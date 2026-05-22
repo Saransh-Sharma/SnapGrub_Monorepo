@@ -1,6 +1,8 @@
 bool isConflictSyncError(Object error) {
   final message = error.toString().toLowerCase();
-  return message.contains('conflict') || message.contains('409') || message.contains('idempotency_conflict');
+  return message.contains('conflict') ||
+      message.contains('409') ||
+      message.contains('idempotency_conflict');
 }
 
 bool isRetryableSyncError(Object error) {

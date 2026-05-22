@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
   title: SnapGrub API
-  version: 0.2.0
-  description: Phase 0-6 contracts for auth bootstrap, settings, meal core, multimodal entry, and offline sync mutations.
+  version: 0.3.0
+  description: Phase 0-8 contracts for auth bootstrap, settings, meal core, multimodal entry, offline sync, privacy export, and account deletion.
   license:
     name: Proprietary
     url: https://snapgrub.app/legal
@@ -164,7 +164,7 @@ paths:
   /exports-create:
     post:
       operationId: exportCreate
-      summary: Idempotently enqueue a user data export
+      summary: Idempotently create a user data export artifact
       parameters:
         - $ref: "#/components/parameters/IdempotencyKey"
       requestBody:
@@ -175,13 +175,81 @@ paths:
               $ref: "#/components/schemas/ExportCreateRequest"
       responses:
         "202":
-          description: Export request queued
+          description: Export request accepted and artifact generated when possible
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ExportCreateResponse"
         "400":
           $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+  /exports-create/{export_request_id}:
+    get:
+      operationId: exportGet
+      summary: Poll an export request and refresh its signed download URL
+      parameters:
+        - name: export_request_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Export request state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExportCreateResponse"
+        "401":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+  /account-delete:
+    post:
+      operationId: accountDelete
+      summary: Delete the authenticated user's account and user-owned data
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountDeleteRequest"
+      responses:
+        "200":
+          description: Account deletion completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountDeleteResponse"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+  /media-retention-cleanup:
+    post:
+      operationId: mediaRetentionCleanup
+      summary: Service-role cleanup for expired exports and retained meal media
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                limit:
+                  type: integer
+                  minimum: 1
+                  maximum: 5000
+      responses:
+        "200":
+          description: Cleanup counts
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
         "401":
           $ref: "#/components/responses/Error"
   /weekly-insights-generate:
@@ -1013,6 +1081,75 @@ components:
       required: [export_request, server_time, request_id]
       properties:
         export_request:
+          $ref: "#/components/schemas/ExportRequest"
+        server_time:
+          type: string
+          format: date-time
+        request_id:
+          $ref: "#/components/schemas/RequestId"
+    ExportRequest:
+      type: object
+      required: [id, user_id, client_request_id, export_type, status, created_at, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        client_request_id:
+          type: string
+        export_type:
+          type: string
+          enum: [journal_csv, nutrition_json]
+        status:
+          type: string
+          enum: [queued, processing, completed, failed]
+        filters:
+          type: object
+          additionalProperties: true
+        result_storage_bucket:
+          type: [string, "null"]
+        result_storage_path:
+          type: [string, "null"]
+        signed_url:
+          type: [string, "null"]
+        signed_url_expires_at:
+          type: [string, "null"]
+          format: date-time
+        expires_at:
+          type: [string, "null"]
+          format: date-time
+        size_bytes:
+          type: [integer, "null"]
+        content_type:
+          type: [string, "null"]
+        row_counts:
+          type: object
+          additionalProperties: true
+        error_code:
+          type: [string, "null"]
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: [string, "null"]
+          format: date-time
+    AccountDeleteRequest:
+      type: object
+      required: [confirmation]
+      properties:
+        confirmation:
+          type: string
+          description: Must equal DELETE.
+    AccountDeleteResponse:
+      type: object
+      required: [account_deletion, server_time, request_id]
+      properties:
+        account_deletion:
           type: object
           additionalProperties: true
         server_time:

@@ -17,7 +17,8 @@ class AppScaffold extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final syncStatus = ref.watch(syncControllerProvider).valueOrNull ?? SyncStatus.idle;
+    final syncStatus =
+        ref.watch(syncControllerProvider).valueOrNull ?? SyncStatus.idle;
     return Scaffold(
       appBar: AppBar(title: Text(title), actions: actions),
       body: SafeArea(
@@ -50,9 +51,15 @@ class _SyncBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final (icon, label) = switch (status) {
       SyncStatus.syncing => (Icons.sync, 'Syncing changes...'),
-      SyncStatus.pending => (Icons.cloud_queue_outlined, 'Saved locally. Sync pending.'),
+      SyncStatus.pending => (
+          Icons.cloud_queue_outlined,
+          'Saved locally. Sync pending.'
+        ),
       SyncStatus.failed => (Icons.error_outline, 'Sync needs a retry.'),
-      SyncStatus.conflict => (Icons.report_problem_outlined, 'Sync conflict needs review.'),
+      SyncStatus.conflict => (
+          Icons.report_problem_outlined,
+          'Sync conflict needs review.'
+        ),
       _ => (Icons.cloud_done_outlined, ''),
     };
     final color = status == SyncStatus.conflict || status == SyncStatus.failed

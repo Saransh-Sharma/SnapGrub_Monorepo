@@ -17,7 +17,7 @@ ThemeData buildSnapGrubTheme() {
       backgroundColor: Color(0xFFFFF8F1),
       foregroundColor: Color(0xFF251C17),
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       elevation: 0,
       color: Colors.white,
       shape: RoundedRectangleBorder(

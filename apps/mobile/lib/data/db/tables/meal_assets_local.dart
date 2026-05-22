@@ -4,7 +4,8 @@ class MealAssetsLocal extends Table {
   TextColumn get id => text()();
   TextColumn get userId => text()();
   TextColumn get localPath => text()();
-  TextColumn get storageBucket => text().withDefault(const Constant('meal-originals-private'))();
+  TextColumn get storageBucket =>
+      text().withDefault(const Constant('meal-originals-private'))();
   TextColumn get storagePath => text()();
   TextColumn get thumbLocalPath => text().nullable()();
   TextColumn get thumbStoragePath => text().nullable()();
@@ -13,7 +14,8 @@ class MealAssetsLocal extends Table {
   IntColumn get width => integer().nullable()();
   IntColumn get height => integer().nullable()();
   IntColumn get sizeBytes => integer().nullable()();
-  TextColumn get uploadStatus => text().withDefault(const Constant('pending'))();
+  TextColumn get uploadStatus =>
+      text().withDefault(const Constant('pending'))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get uploadedAt => dateTime().nullable()();
 

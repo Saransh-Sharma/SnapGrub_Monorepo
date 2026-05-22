@@ -17,7 +17,8 @@ class SyncStatusScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final status = ref.watch(syncControllerProvider).valueOrNull ?? SyncStatus.idle;
+    final status =
+        ref.watch(syncControllerProvider).valueOrNull ?? SyncStatus.idle;
     final conflicts = ref.watch(conflictCommandsProvider);
     return AppScaffold(
       title: 'Sync',
@@ -36,7 +37,8 @@ class SyncStatusScreen extends ConsumerWidget {
             subtitle: Text(_subtitleFor(status)),
           ),
           const SizedBox(height: 12),
-          Text('Needs attention', style: Theme.of(context).textTheme.titleMedium),
+          Text('Needs attention',
+              style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           conflicts.when(
             loading: () => const Center(child: CircularProgressIndicator()),
@@ -49,23 +51,30 @@ class SyncStatusScreen extends ConsumerWidget {
                     Card(
                       child: ListTile(
                         title: Text(command.commandType),
-                        subtitle: Text(command.lastError ?? 'Conflict needs review.'),
+                        subtitle:
+                            Text(command.lastError ?? 'Conflict needs review.'),
                         trailing: Wrap(
                           spacing: 4,
                           children: [
                             IconButton(
                               tooltip: 'Retry',
                               onPressed: () async {
-                                await ref.read(outboxRepositoryProvider).retryCommand(command.id);
+                                await ref
+                                    .read(outboxRepositoryProvider)
+                                    .retryCommand(command.id);
                                 ref.invalidate(conflictCommandsProvider);
-                                await ref.read(syncControllerProvider.notifier).syncNow();
+                                await ref
+                                    .read(syncControllerProvider.notifier)
+                                    .syncNow();
                               },
                               icon: const Icon(Icons.refresh),
                             ),
                             IconButton(
                               tooltip: 'Discard local command',
                               onPressed: () async {
-                                await ref.read(outboxRepositoryProvider).discardCommand(command.id);
+                                await ref
+                                    .read(outboxRepositoryProvider)
+                                    .discardCommand(command.id);
                                 ref.invalidate(conflictCommandsProvider);
                               },
                               icon: const Icon(Icons.check),
@@ -102,9 +111,11 @@ class SyncStatusScreen extends ConsumerWidget {
       };
 
   String _subtitleFor(SyncStatus status) => switch (status) {
-        SyncStatus.syncing => 'Saving pending changes and refreshing server state.',
+        SyncStatus.syncing =>
+          'Saving pending changes and refreshing server state.',
         SyncStatus.synced => 'Local data matches the latest server state.',
-        SyncStatus.pending => 'Changes are saved locally and will sync when network is available.',
+        SyncStatus.pending =>
+          'Changes are saved locally and will sync when network is available.',
         SyncStatus.failed => 'Some changes will retry automatically.',
         SyncStatus.conflict => 'Review the affected commands below.',
         SyncStatus.idle => 'Sign in to sync data.',

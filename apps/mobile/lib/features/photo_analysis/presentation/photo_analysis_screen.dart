@@ -15,7 +15,8 @@ class PhotoAnalysisScreen extends ConsumerStatefulWidget {
   final CaptureAsset asset;
 
   @override
-  ConsumerState<PhotoAnalysisScreen> createState() => _PhotoAnalysisScreenState();
+  ConsumerState<PhotoAnalysisScreen> createState() =>
+      _PhotoAnalysisScreenState();
 }
 
 class _PhotoAnalysisScreenState extends ConsumerState<PhotoAnalysisScreen> {
@@ -39,7 +40,8 @@ class _PhotoAnalysisScreenState extends ConsumerState<PhotoAnalysisScreen> {
     _started = true;
     _timer = Timer.periodic(const Duration(milliseconds: 1200), (_) {
       if (!mounted) return;
-      setState(() => _stage = ((_stage + 1).clamp(0, _stages.length - 1) as num).toInt());
+      setState(() =>
+          _stage = ((_stage + 1).clamp(0, _stages.length - 1) as num).toInt());
     });
     _run();
   }
@@ -73,11 +75,14 @@ class _PhotoAnalysisScreenState extends ConsumerState<PhotoAnalysisScreen> {
           if (!_failed) ...[
             LinearProgressIndicator(value: (_stage + 1) / _stages.length),
             const SizedBox(height: 12),
-            Text(_stages[_stage], style: Theme.of(context).textTheme.titleMedium),
+            Text(_stages[_stage],
+                style: Theme.of(context).textTheme.titleMedium),
           ] else ...[
-            Text('Analysis needs attention', style: Theme.of(context).textTheme.titleMedium),
+            Text('Analysis needs attention',
+                style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
-            Text(_error ?? 'The photo could not be analyzed. You can retry or log it manually.'),
+            Text(_error ??
+                'The photo could not be analyzed. You can retry or log it manually.'),
             const SizedBox(height: 16),
             Row(
               children: [
@@ -111,12 +116,14 @@ class _PhotoAnalysisScreenState extends ConsumerState<PhotoAnalysisScreen> {
       _stage = 0;
     });
     try {
-      final profile = (await ref.read(profileControllerProvider.future)).profile;
+      final profile =
+          (await ref.read(profileControllerProvider.future)).profile;
       if (profile == null) throw StateError('Profile is not available.');
-      final draft = await ref.read(photoAnalysisRepositoryProvider).analyzeAsset(
-            asset: widget.asset,
-            profile: profile,
-          );
+      final draft =
+          await ref.read(photoAnalysisRepositoryProvider).analyzeAsset(
+                asset: widget.asset,
+                profile: profile,
+              );
       if (mounted) context.go('/meal-editor', extra: draft);
     } catch (error) {
       if (!mounted) return;
