@@ -7,14 +7,14 @@
     "check:contracts": "npm run validate:openapi && bash scripts/generate-api-clients.sh --check",
     "backend:typecheck": "npx --yes deno check --no-lock services/backend/supabase/functions/*/index.ts",
     "backend:lint:migrations": "bash scripts/lint-supabase-migrations.sh",
-    "backend:test:phase1": "node services/backend/supabase/tests/phase1_bootstrap_smoke.mjs",
-    "backend:test:phase4": "node services/backend/supabase/tests/phase4_photo_analysis_smoke.mjs",
-    "backend:test:rls": "node services/backend/supabase/tests/rls_isolation.mjs",
-    "backend:test:meal-core": "node services/backend/supabase/tests/meal_core_smoke.mjs",
-    "backend:test:phase5": "node services/backend/supabase/tests/phase5_multimodal_smoke.mjs",
-    "backend:test:phase6": "node services/backend/supabase/tests/phase6_sync_smoke.mjs",
-    "backend:test:phase7": "node services/backend/supabase/tests/phase7_insights_smoke.mjs",
-    "backend:test:phase8": "node services/backend/supabase/tests/phase8_privacy_smoke.mjs"
+    "backend:test:auth-profile": "node services/backend/supabase/tests/integration/auth/profile_settings_events_smoke.mjs",
+    "backend:test:photo-analysis": "node services/backend/supabase/tests/integration/photo-analysis/photo_analysis_smoke.mjs",
+    "backend:test:rls": "node services/backend/supabase/tests/security/rls_isolation.mjs",
+    "backend:test:meal-core": "node services/backend/supabase/tests/integration/meal-logging/meal_core_smoke.mjs",
+    "backend:test:multimodal": "node services/backend/supabase/tests/integration/multimodal/multimodal_entry_smoke.mjs",
+    "backend:test:offline-sync": "node services/backend/supabase/tests/integration/offline-sync/sync_readiness_smoke.mjs",
+    "backend:test:insights": "node services/backend/supabase/tests/integration/insights/insights_defaults_smoke.mjs",
+    "backend:test:privacy": "node services/backend/supabase/tests/integration/privacy/privacy_export_delete_smoke.mjs"
   },
   "devDependencies": {
     "@redocly/cli": "^2.31.2",
