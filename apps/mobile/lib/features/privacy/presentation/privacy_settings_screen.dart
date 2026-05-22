@@ -50,7 +50,8 @@ class PrivacySettingsScreen extends ConsumerWidget {
           ListTile(
             leading: const Icon(Icons.cleaning_services_outlined),
             title: const Text('Clear local data'),
-            subtitle: const Text('Remove this device cache without deleting cloud data'),
+            subtitle: const Text(
+                'Remove this device cache without deleting cloud data'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.go('/settings/privacy/clear-local-data'),
           ),
@@ -90,7 +91,8 @@ class _AIConsentScreenState extends ConsumerState<AIConsentScreen> {
           SwitchListTile(
             value: enabled,
             title: const Text('Help improve food analysis'),
-            subtitle: const Text('Uses your explicit consent setting for future improvement workflows.'),
+            subtitle: const Text(
+                'Uses your explicit consent setting for future improvement workflows.'),
             onChanged: profile == null || _saving
                 ? null
                 : (value) => _save(
@@ -130,7 +132,8 @@ class MediaRetentionScreen extends ConsumerStatefulWidget {
   const MediaRetentionScreen({super.key});
 
   @override
-  ConsumerState<MediaRetentionScreen> createState() => _MediaRetentionScreenState();
+  ConsumerState<MediaRetentionScreen> createState() =>
+      _MediaRetentionScreenState();
 }
 
 class _MediaRetentionScreenState extends ConsumerState<MediaRetentionScreen> {
@@ -147,7 +150,8 @@ class _MediaRetentionScreenState extends ConsumerState<MediaRetentionScreen> {
           SwitchListTile(
             value: profile?.cloudMediaStorage ?? true,
             title: const Text('Cloud media storage'),
-            subtitle: const Text('Allow meal images needed for analysis and sync to be stored privately.'),
+            subtitle: const Text(
+                'Allow meal images needed for analysis and sync to be stored privately.'),
             onChanged: profile == null || _saving
                 ? null
                 : (value) => _save(
@@ -159,7 +163,8 @@ class _MediaRetentionScreenState extends ConsumerState<MediaRetentionScreen> {
           SwitchListTile(
             value: profile?.saveOriginalPhotos ?? false,
             title: const Text('Save original photos'),
-            subtitle: const Text('Keep original captures beyond the analysis workflow when enabled.'),
+            subtitle: const Text(
+                'Keep original captures beyond the analysis workflow when enabled.'),
             onChanged: profile == null || _saving
                 ? null
                 : (value) => _save(
@@ -220,8 +225,9 @@ class _ExportDataScreenState extends ConsumerState<ExportDataScreen> {
               ButtonSegment(value: 'journal_csv', label: Text('CSV')),
             ],
             selected: {_exportType},
-            onSelectionChanged:
-                _loading ? null : (value) => setState(() => _exportType = value.single),
+            onSelectionChanged: _loading
+                ? null
+                : (value) => setState(() => _exportType = value.single),
           ),
           const SizedBox(height: 16),
           FilledButton.icon(
@@ -255,12 +261,14 @@ class _ExportDataScreenState extends ConsumerState<ExportDataScreen> {
       _error = null;
     });
     try {
-      final response = await ref.read(privacyRemoteServiceProvider).createExport(
-            clientRequestId: const Uuid().v4(),
-            exportType: _exportType,
-          );
+      final response =
+          await ref.read(privacyRemoteServiceProvider).createExport(
+                clientRequestId: const Uuid().v4(),
+                exportType: _exportType,
+              );
       setState(() {
-        _exportRequest = Map<String, dynamic>.from(response['export_request'] as Map);
+        _exportRequest =
+            Map<String, dynamic>.from(response['export_request'] as Map);
       });
     } catch (error) {
       setState(() => _error = error.toString());
@@ -296,7 +304,8 @@ class _ExportStatusCard extends StatelessWidget {
               Align(
                 alignment: Alignment.centerLeft,
                 child: TextButton.icon(
-                  onPressed: () => Clipboard.setData(ClipboardData(text: signedUrl)),
+                  onPressed: () =>
+                      Clipboard.setData(ClipboardData(text: signedUrl)),
                   icon: const Icon(Icons.copy),
                   label: const Text('Copy download link'),
                 ),
@@ -313,7 +322,8 @@ class DeleteAccountScreen extends ConsumerStatefulWidget {
   const DeleteAccountScreen({super.key});
 
   @override
-  ConsumerState<DeleteAccountScreen> createState() => _DeleteAccountScreenState();
+  ConsumerState<DeleteAccountScreen> createState() =>
+      _DeleteAccountScreenState();
 }
 
 class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
@@ -395,7 +405,8 @@ class ClearLocalDataScreen extends ConsumerStatefulWidget {
   const ClearLocalDataScreen({super.key});
 
   @override
-  ConsumerState<ClearLocalDataScreen> createState() => _ClearLocalDataScreenState();
+  ConsumerState<ClearLocalDataScreen> createState() =>
+      _ClearLocalDataScreenState();
 }
 
 class _ClearLocalDataScreenState extends ConsumerState<ClearLocalDataScreen> {
