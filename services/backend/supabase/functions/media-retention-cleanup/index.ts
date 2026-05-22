@@ -33,8 +33,22 @@ function requireServiceRole(req: Request) {
   const expected = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   const auth = req.headers.get("authorization") ?? "";
   const token = auth.replace(/^Bearer\s+/i, "");
-  if (!expected || token !== expected) {
-    throw new ApiError("AUTH_REQUIRED", "Service role authorization is required", 401, false);
+  if (expected && token === expected) return;
+  if (jwtRole(token) === "service_role") return;
+
+  throw new ApiError("AUTH_REQUIRED", "Service role authorization is required", 401, false);
+}
+
+function jwtRole(token: string) {
+  try {
+    const payload = token.split(".")[1];
+    if (!payload) return null;
+    const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, "=");
+    const json = JSON.parse(atob(padded));
+    return typeof json.role === "string" ? json.role : null;
+  } catch (_) {
+    return null;
   }
 }
 
