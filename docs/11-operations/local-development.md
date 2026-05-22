@@ -25,7 +25,7 @@ npm run backend:lint:migrations
 npm run backend:typecheck
 ```
 
-## Phase 4 Photo Analysis Env
+## Photo Analysis Env
 
 Copy `services/backend/supabase/.env.example` and set backend-only AI values in the Supabase runtime environment:
 
@@ -74,13 +74,14 @@ set -a
 . /tmp/snapgrub-supabase.env
 set +a
 export NODE_OPTIONS=--experimental-websocket
-npm run backend:test:phase1
-npm run backend:test:phase4
+npm run backend:test:auth-profile
+npm run backend:test:photo-analysis
 npm run backend:test:rls
 npm run backend:test:meal-core
-npm run backend:test:phase5
-npm run backend:test:phase6
-npm run backend:test:phase7
+npm run backend:test:multimodal
+npm run backend:test:offline-sync
+npm run backend:test:insights
+npm run backend:test:privacy
 ```
 
 `NODE_OPTIONS=--experimental-websocket` is needed on Node 20 because Supabase JS initializes realtime support with a WebSocket dependency. Remove it only after verifying the tests on Node 22 or newer.

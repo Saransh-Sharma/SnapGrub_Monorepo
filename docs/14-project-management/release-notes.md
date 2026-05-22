@@ -85,7 +85,7 @@ Developer-facing Phase 8 work:
 - Added `media-retention-cleanup` for expired export artifacts and expired retained meal media.
 - Extended `weekly-insights-generate` so service-role scheduled jobs can generate insights for due users without passing one `user_id`.
 - Added mobile privacy surfaces for AI consent, media retention, export, delete account, and clear local data under Settings.
-- Added `npm run backend:test:phase8` and wired it into CI.
+- Added `npm run backend:test:privacy` and wired it into CI.
 
 Verified locally on 2026-05-21:
 

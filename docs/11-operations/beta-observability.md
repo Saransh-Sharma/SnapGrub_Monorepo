@@ -1,6 +1,6 @@
 # Beta Observability and Release Gates
 
-This checklist turns Phase 9 and Phase 10 into staging/prod gates. Dashboards and alerts must be validated with synthetic traffic before beta rollout.
+This checklist turns beta and release-candidate readiness into staging/prod gates. Dashboards and alerts must be validated with synthetic traffic before beta rollout.
 
 ## Metric Sources
 

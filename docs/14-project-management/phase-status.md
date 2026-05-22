@@ -48,14 +48,14 @@ Verified locally on 2026-05-21:
 - `npm run backend:typecheck`
 - `npm run backend:lint:migrations`
 - `supabase db reset`
-- `npm run backend:test:phase1`
+- `npm run backend:test:auth-profile`
 - `npm run backend:test:rls`
 - `npm run backend:test:meal-core`
-- `npm run backend:test:phase4`
-- `npm run backend:test:phase5`
-- `npm run backend:test:phase6`
-- `npm run backend:test:phase7`
-- `npm run backend:test:phase8`
+- `npm run backend:test:photo-analysis`
+- `npm run backend:test:multimodal`
+- `npm run backend:test:offline-sync`
+- `npm run backend:test:insights`
+- `npm run backend:test:privacy`
 
 ## Remaining Gates
 

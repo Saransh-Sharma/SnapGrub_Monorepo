@@ -37,14 +37,14 @@ set -a
 . /tmp/snapgrub-supabase.env
 set +a
 export NODE_OPTIONS=--experimental-websocket
-npm run backend:test:phase1
-npm run backend:test:phase4
+npm run backend:test:auth-profile
+npm run backend:test:photo-analysis
 npm run backend:test:rls
 npm run backend:test:meal-core
-npm run backend:test:phase5
-npm run backend:test:phase6
-npm run backend:test:phase7
-npm run backend:test:phase8
+npm run backend:test:multimodal
+npm run backend:test:offline-sync
+npm run backend:test:insights
+npm run backend:test:privacy
 ```
 
 `NODE_OPTIONS=--experimental-websocket` is required for the current Node 20 local test runtime because Supabase JS needs a WebSocket constructor. Recheck this when the repo moves to Node 22 or newer.

@@ -18,14 +18,14 @@ Passed on 2026-05-21 after applying Phase 8 source:
 - `npm run backend:typecheck`
 - `npm run backend:lint:migrations`
 - `supabase db reset`
-- `npm run backend:test:phase1`
+- `npm run backend:test:auth-profile`
 - `npm run backend:test:rls`
 - `npm run backend:test:meal-core`
-- `npm run backend:test:phase4`
-- `npm run backend:test:phase5`
-- `npm run backend:test:phase6`
-- `npm run backend:test:phase7`
-- `npm run backend:test:phase8`
+- `npm run backend:test:photo-analysis`
+- `npm run backend:test:multimodal`
+- `npm run backend:test:offline-sync`
+- `npm run backend:test:insights`
+- `npm run backend:test:privacy`
 
 Blocked in the current local shell:
 
@@ -36,7 +36,7 @@ Blocked in the current local shell:
 
 | Phase | Current state | Evidence | Remaining gap |
 | --- | --- | --- | --- |
-| Phase 8 backend | verified locally | Migration `000013_phase8_privacy_export_delete.sql`; `exports-create`, `account-delete`, and `media-retention-cleanup`; OpenAPI Phase 0-8 contracts; Phase 8 smoke | Staging deployment, scheduled cleanup, production data-retention review |
+| Phase 8 backend | verified locally | Migration `000013_phase8_privacy_export_delete.sql`; `exports-create`, `account-delete`, and `media-retention-cleanup`; OpenAPI Phase 0-8 contracts; privacy smoke | Staging deployment, scheduled cleanup, production data-retention review |
 | Phase 8 mobile | source-level only | Privacy routes/screens under `features/privacy`, Settings entry point, AI/media toggles through `settings-patch`, export request UI, delete-account and clear-local flows | Flutter analyze/tests/build, iOS/Android manual acceptance, signed URL download UX validation |
 | Phase 9 observability | source-level docs/gates | `docs/11-operations/beta-observability.md`, Phase 8 CI smoke gate, rate-limit helper RPC | Real dashboards, alerts, synthetic staging failure tests, crash reporting provider decision/config |
 | Phase 10 release candidate | documented gate | Release checklist and phase status now identify privacy/export/delete and observability blockers | Store/TestFlight/Internal Testing artifacts, prod deploy, staged rollout monitoring |

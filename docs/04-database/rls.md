@@ -42,7 +42,7 @@ All user-owned tables must enforce tenant isolation with Supabase RLS.
 
 ## Test Coverage
 
-The RLS harness lives at `services/backend/supabase/tests/rls_isolation.mjs`.
+The RLS harness lives at `services/backend/supabase/tests/security/rls_isolation.mjs`.
 
 It creates two auth users and checks:
 
@@ -53,6 +53,6 @@ It creates two auth users and checks:
 - Phase 3 meal, item, template, custom-food, rollup, and correction-event isolation is checked.
 - Phase 4 meal asset, analysis job, revision, candidate, and model invocation isolation is checked.
 - Phase 5/6/7 function-facing paths are covered by dedicated smoke checks where direct RLS isolation is not the authoritative write path.
-- Phase 8 export/delete/storage cleanup behavior is covered by `phase8_privacy_smoke.mjs`.
+- Privacy export/delete/storage cleanup behavior is covered by `services/backend/supabase/tests/integration/privacy/privacy_export_delete_smoke.mjs`.
 
 Run it after `supabase db reset` with local Supabase env variables loaded.

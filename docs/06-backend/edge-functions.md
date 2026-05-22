@@ -23,7 +23,7 @@ Edge Functions are the current callable backend API surface. Deploy names intent
 - `account-delete`: authenticated destructive account deletion with explicit confirmation.
 - `media-retention-cleanup`: service-role cleanup for expired exports and retained meal media.
 
-## Phase 8 Privacy Functions
+## Privacy Functions
 
 ### `exports-create`
 

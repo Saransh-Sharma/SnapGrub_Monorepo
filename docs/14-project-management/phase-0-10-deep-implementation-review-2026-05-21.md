@@ -53,14 +53,14 @@ Commands run during this audit:
 | `supabase db reset` from `services/backend/supabase` | pass | Applied migrations `000001` through `000013`; reset completed on branch `phase8Bootstrap`. |
 | Backend smoke wrapper from monorepo root | operator error, superseded | Initial wrapper attempted `supabase status` from the wrong project context and failed with missing container `supabase_db_SnapGrub_monorepo`. |
 | Backend smoke wrapper with Supabase status resolved from `services/backend/supabase` | pass | All backend smoke scripts below passed with `NODE_OPTIONS=--experimental-websocket` and `AI_PROVIDER=mock`. |
-| `npm run backend:test:phase1` | pass | Bootstrap/settings/events smoke passed. |
+| `npm run backend:test:auth-profile` | pass | Bootstrap/settings/events smoke passed. |
 | `npm run backend:test:rls` | pass | RLS isolation checks passed. |
 | `npm run backend:test:meal-core` | pass | Meal core smoke checks passed. |
-| `npm run backend:test:phase4` | pass | Photo analysis smoke passed with mock provider. |
-| `npm run backend:test:phase5` | pass | Multimodal smoke checks passed. |
-| `npm run backend:test:phase6` | pass | Sync readiness smoke checks passed. |
-| `npm run backend:test:phase7` | pass | Insights/defaults smoke checks passed. |
-| `npm run backend:test:phase8` | pass | Privacy/export/delete smoke checks passed. |
+| `npm run backend:test:photo-analysis` | pass | Photo analysis smoke passed with mock provider. |
+| `npm run backend:test:multimodal` | pass | Multimodal smoke checks passed. |
+| `npm run backend:test:offline-sync` | pass | Sync readiness smoke checks passed. |
+| `npm run backend:test:insights` | pass | Insights/defaults smoke checks passed. |
+| `npm run backend:test:privacy` | pass | Privacy/export/delete smoke checks passed. |
 
 Supabase status reported stopped `imgproxy` and `pooler` containers. The smoke suite did not require those services, but staging/release acceptance should validate any production dependencies explicitly.
 
@@ -142,7 +142,7 @@ Source evidence reviewed:
 
 3. Mobile integration coverage is thin beyond Phase 1.
    - Impact: Feature modules can regress together across routing, repository, outbox, and Supabase wiring without an end-to-end mobile test catching it.
-   - Evidence: `apps/mobile/integration_test/phase1_smoke_test.dart` exists; unit tests cover important isolated pieces, but later phase integration tests are not present.
+   - Evidence: `apps/mobile/integration_test/auth/onboarding_smoke_test.dart` exists; unit tests cover important isolated pieces, but later phase integration tests are not present.
    - Recommendation: Add a small set of integration tests for meal save, photo draft handoff, sync conflict display, and privacy/export navigation.
 
 ### Low

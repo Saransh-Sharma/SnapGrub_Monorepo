@@ -19,7 +19,7 @@ This checklist is historical foundation readiness. Phase 2 SnapStrip shell work 
 - `flutter build apk --debug --flavor dev --dart-define=SNAPGRUB_ENV=dev` passes.
 - Manual Phase 0/1 smoke passes.
 
-Current Phase 3 acceptance is tracked in [../10-quality/phase-3-acceptance.md](../10-quality/phase-3-acceptance.md).
+Current Phase 3 acceptance is tracked in [../10-quality/meal-logging-acceptance.md](../10-quality/meal-logging-acceptance.md).
 
 ## Manual Smoke
 

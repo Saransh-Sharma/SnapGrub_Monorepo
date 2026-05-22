@@ -5,7 +5,7 @@ Existing runbooks remain under `docs/runbooks`:
 - [../runbooks/supabase-incident.md](../runbooks/supabase-incident.md)
 - [../runbooks/storage-cleanup.md](../runbooks/storage-cleanup.md)
 
-## Phase 8 Operational Playbooks
+## Privacy Operational Playbooks
 
 ### Export Failure
 
@@ -20,7 +20,7 @@ Checks:
 Mitigation:
 
 - For transient storage errors, rerun export from the app or staging tool.
-- For malformed data, reproduce with `npm run backend:test:phase8` locally and patch export serialization.
+- For malformed data, reproduce with `npm run backend:test:privacy` locally and patch export serialization.
 - For expired signed URLs, poll `GET /exports-create/{export_request_id}` to refresh the URL.
 
 ### Account Delete Failure
