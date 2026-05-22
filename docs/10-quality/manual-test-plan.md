@@ -2,7 +2,7 @@
 
 The current manual QA checklist is maintained here for numbered docs. Legacy checklist notes remain in [../qa/manual-test-plan.md](../qa/manual-test-plan.md).
 
-## Phase 0/1 Foundation Smoke
+## Foundation Smoke
 
 - Fresh install opens Auth.
 - Authenticated user without profile enters Onboarding.
@@ -12,7 +12,7 @@ The current manual QA checklist is maintained here for numbered docs. Legacy che
 - Second signed-in user does not see first user's cached profile/goal.
 - Settings goal edit persists through the same settings path.
 
-## Phase 2/3 Manual Smoke
+## Home And Meal Logging Smoke
 
 - Home shows SnapStrip shell and disabled controls when feature flags are off.
 - Create a manual meal with one item while offline; Journal updates immediately.
@@ -25,7 +25,7 @@ The current manual QA checklist is maintained here for numbered docs. Legacy che
 - Create a custom food and insert it into a meal draft.
 - Sign in as a second user and verify no first-user local data appears.
 
-## Phase 4/5 Manual Smoke
+## Capture And Multimodal Smoke
 
 - Camera permission denied/granted states are clear and recoverable.
 - Backgrounding Home pauses preview; foregrounding resumes preview when permission exists.
@@ -35,16 +35,16 @@ The current manual QA checklist is maintained here for numbered docs. Legacy che
 - Text meal entry maps parser output into Meal Editor.
 - Voice permission denial is handled without losing the typed/manual fallback.
 
-## Phase 6/7 Manual Smoke
+## Offline Sync And Insights Smoke
 
 - Offline meal save appears immediately and syncs after reconnect.
 - Failed or conflict sync state is visible from Home and opens the Sync status screen.
 - Pending commands are linked to recoverable user action where possible.
-- `export.create` can queue locally, but Phase 8 artifact generation occurs only after it drains through `exports-create` online.
+- `export.create` can queue locally, but privacy artifact generation occurs only after it drains through `exports-create` online.
 - Weekly insight widgets stay hidden while `weekly_insights.enabled` is disabled.
 - Enabling `weekly_insights.enabled` shows cached/generated insight/default surfaces without breaking Progress.
 
-## Phase 8 Manual Smoke
+## Privacy Manual Smoke
 
 - Open Settings and verify Privacy is visible.
 - Toggle AI improvement consent online and offline; confirm profile state persists and syncs.
@@ -56,7 +56,7 @@ The current manual QA checklist is maintained here for numbered docs. Legacy che
 - Delete a test account with `DELETE`; confirm user is signed out and relaunch lands on Auth.
 - Clear local data on a separate test account; confirm signing in again restores cloud data rather than deleting the account.
 
-## Phase 9 Beta Hardening Smoke
+## Beta Hardening Smoke
 
 - Confirm crash reporting initializes in staging/beta build once provider is configured.
 - Confirm analytics events appear for onboarding, capture, analysis, meal save, sync, export, delete, and insight interactions.
@@ -66,7 +66,7 @@ The current manual QA checklist is maintained here for numbered docs. Legacy che
 - Force export failure and confirm user-visible error plus retry.
 - Force sync conflict and confirm recovery entry point remains visible.
 
-## Phase 10 Release Candidate Smoke
+## Release Candidate Smoke
 
 - Fresh install, sign in, complete onboarding in under 2 minutes.
 - Capture photo, receive draft, edit portion, save meal, verify Journal/Progress.

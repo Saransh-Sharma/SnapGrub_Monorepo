@@ -1,8 +1,8 @@
-# Phase 6 Sync Acceptance
+# Offline Sync Acceptance
 
 ## Automated
 
-- `npm run backend:test:phase6`
+- `npm run backend:test:offline-sync`
 - `flutter analyze`
 - `flutter test`
 
@@ -14,4 +14,4 @@
 - Open the Sync status screen from Home and verify the conflicting/pending command is visible.
 - Uploading the same queued photo asset does not create duplicate upload state.
 - `analytics.batch`, `body_measurement.create`, `template.*`, `custom_food.*`, and `export.create` remain idempotent when replayed.
-- `export.create` drains as a create request only; Phase 8 backend acceptance covers artifact generation, signed URL polling, expiry, and cleanup.
+- `export.create` drains as a create request only; privacy backend acceptance covers artifact generation, signed URL polling, expiry, and cleanup.

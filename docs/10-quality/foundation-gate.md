@@ -1,8 +1,8 @@
-# Phase 0/1 Gate
+# Foundation Gate
 
-Canonical gate commands are maintained in [../qa/phase-0-1-gate.md](../qa/phase-0-1-gate.md).
+Canonical gate commands are maintained in [../qa/foundation-gate.md](../qa/foundation-gate.md).
 
-Before Phase 2:
+Before camera and meal logging work:
 
 - Native Flutter Android/iOS platform projects must be committed.
 - Full toolchain must be installed: Flutter, Dart, Supabase CLI, Deno, Node 20, and a JDK for Android builds.

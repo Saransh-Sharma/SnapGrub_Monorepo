@@ -1,6 +1,6 @@
-# Phase 3 Acceptance
+# Meal Logging Acceptance
 
-Use this checklist before starting Phase 4 AI/photo/barcode/OCR/voice work.
+Use this checklist before starting AI/photo/barcode/OCR/voice work.
 
 ## Automated
 

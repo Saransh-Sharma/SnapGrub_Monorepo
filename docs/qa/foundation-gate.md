@@ -1,4 +1,4 @@
-# Phase 0/1 Gate Before Phase 2
+# Foundation Gate Before Camera Work
 
 Run these checks before starting SnapStrip/camera work.
 

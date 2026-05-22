@@ -1,6 +1,6 @@
-# Phase 8 Privacy Acceptance
+# Privacy Export Delete Acceptance
 
-Phase 8 is accepted only when backend smoke, mobile manual acceptance, and staging operations gates all pass.
+Privacy export/delete is accepted only when backend smoke, mobile manual acceptance, and staging operations gates all pass.
 
 ## Backend Automated Gate
 
@@ -8,7 +8,7 @@ Run after `supabase db reset` with local Supabase env values loaded:
 
 ```sh
 export NODE_OPTIONS=--experimental-websocket
-npm run backend:test:phase8
+npm run backend:test:privacy
 ```
 
 The smoke verifies:
@@ -39,7 +39,7 @@ Run on at least one iOS simulator/device and one Android emulator/device:
 
 ## Backend Manual/Staging Gate
 
-- Deploy Phase 8 migration and functions to staging.
+- Deploy privacy migrations and functions to staging.
 - Configure `media-retention-cleanup` scheduled invocation.
 - Configure `weekly-insights-generate` scheduled invocation in batch mode.
 - Generate exports for users with no meals, manual meals, photo meals, custom foods, templates, correction events, and weekly insights.

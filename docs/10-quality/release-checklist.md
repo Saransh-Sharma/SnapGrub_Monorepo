@@ -1,6 +1,6 @@
 # Release Checklist
 
-The legacy compatibility checklist remains in [../qa/release-checklist.md](../qa/release-checklist.md). This numbered checklist is canonical for current Phase 8-10 readiness.
+The legacy compatibility checklist remains in [../qa/release-checklist.md](../qa/release-checklist.md). This numbered checklist is canonical for current privacy, beta, and release-candidate readiness.
 
 ## Backend Gates
 
@@ -8,15 +8,15 @@ The legacy compatibility checklist remains in [../qa/release-checklist.md](../qa
 - `npm run backend:typecheck` passes.
 - `npm run backend:lint:migrations` passes.
 - `supabase db reset` applies all migrations cleanly.
-- Backend smokes pass through Phase 8:
-  - `npm run backend:test:phase1`
+- Backend smokes pass by feature and scope:
+  - `npm run backend:test:auth-profile`
   - `npm run backend:test:rls`
   - `npm run backend:test:meal-core`
-  - `npm run backend:test:phase4`
-  - `npm run backend:test:phase5`
-  - `npm run backend:test:phase6`
-  - `npm run backend:test:phase7`
-  - `npm run backend:test:phase8`
+  - `npm run backend:test:photo-analysis`
+  - `npm run backend:test:multimodal`
+  - `npm run backend:test:offline-sync`
+  - `npm run backend:test:insights`
+  - `npm run backend:test:privacy`
 - Staging Supabase migrations/functions are deployed.
 - Real AI provider secrets are configured server-side only.
 - Weekly insights and media cleanup schedules are active and observed in staging.

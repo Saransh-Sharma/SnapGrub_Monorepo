@@ -1,8 +1,8 @@
-# Phase 7 Insights Acceptance
+# Insights Acceptance
 
 ## Automated
 
-- `npm run backend:test:phase7`
+- `npm run backend:test:insights`
 - `flutter analyze`
 - `flutter test`
 

@@ -1,12 +1,12 @@
 # Manual QA Plan
 
-Phase 0:
+Foundation:
 
 - Run OpenAPI validation.
 - Run Supabase migrations locally.
 - Launch mobile dev flavor after Flutter platform bootstrap.
 
-Phase 1:
+Auth And Onboarding:
 
 - Fresh install opens Auth.
 - Authenticated user without onboarding lands on Onboarding.
@@ -15,7 +15,7 @@ Phase 1:
 - Reconnect syncs the outbox command.
 - Settings can edit profile and active goal.
 
-Phase 2:
+Home And Capture Shell:
 
 - Home shows SnapStrip, daily progress, macro summary, recent meals, and quick actions.
 - SnapStrip follows `snapstrip.enabled`.
@@ -23,7 +23,7 @@ Phase 2:
 - Capture tap does not upload an image.
 - SnapStrip analytics events are accepted by `events-ingest`.
 
-Phase 3:
+Meal Logging:
 
 - Manual meal can be created with one or more items.
 - Saved meal appears immediately in Today journal and progress totals.
