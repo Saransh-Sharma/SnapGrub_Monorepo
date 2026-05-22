@@ -15,7 +15,7 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-const email = `phase5-${crypto.randomUUID()}@snapgrub.test`;
+const email = `multimodal-${crypto.randomUUID()}@snapgrub.test`;
 const password = `Pass-${crypto.randomUUID()}`;
 let userId;
 
@@ -30,7 +30,7 @@ try {
 
   const { error: profileError } = await admin.from('profiles').insert({
     id: userId,
-    display_name: 'Phase 5',
+    display_name: 'Multimodal',
     timezone: 'Asia/Kolkata',
     unit_system: 'metric',
   });
@@ -100,7 +100,7 @@ try {
   if (voiceJobError) throw voiceJobError;
   assert(voiceJob.analysis_mode === 'voice', 'analysis_jobs should allow voice mode');
 
-  console.log('Phase 5 multimodal smoke checks passed.');
+  console.log('Multimodal entry smoke checks passed.');
 } finally {
   if (userId) {
     await admin.auth.admin.deleteUser(userId);

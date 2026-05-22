@@ -35,7 +35,7 @@ const onePixelJpeg = Uint8Array.from([
   0xd9,
 ]);
 
-const email = `phase4-${crypto.randomUUID()}@snapgrub.test`;
+const email = `photo-analysis-${crypto.randomUUID()}@snapgrub.test`;
 const password = `Pass-${crypto.randomUUID()}`;
 let userId;
 
@@ -50,7 +50,7 @@ try {
 
   const { error: profileError } = await admin.from('profiles').insert({
     id: userId,
-    display_name: 'Phase 4',
+    display_name: 'Photo Analysis',
     timezone: 'Asia/Kolkata',
     unit_system: 'metric',
     locale: 'en-IN',
@@ -75,7 +75,7 @@ try {
       client_request_id: clientRequestId,
       storage_bucket: 'meal-originals-private',
       storage_path: storagePath,
-      asset_sha256: 'phase4-smoke-sha',
+      asset_sha256: 'photo-analysis-smoke-sha',
       mime_type: 'image/jpeg',
       width: 1,
       height: 1,
@@ -118,7 +118,7 @@ try {
   });
   assert(rejectError || rejected?.error?.code === 'INVALID_INPUT', 'cross-user storage path should be rejected');
 
-  console.log('Phase 4 photo analysis smoke checks passed.');
+  console.log('Photo analysis smoke checks passed.');
 } finally {
   if (userId) {
     await admin.auth.admin.deleteUser(userId);

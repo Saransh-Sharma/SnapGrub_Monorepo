@@ -31,7 +31,7 @@ async function invokeOrThrow(client, functionName, options) {
   return data;
 }
 
-const email = `phase1-${crypto.randomUUID()}@snapgrub.test`;
+const email = `auth-profile-${crypto.randomUUID()}@snapgrub.test`;
 const password = `Pass-${crypto.randomUUID()}`;
 let userId;
 
@@ -68,7 +68,7 @@ try {
     body: {
       client_request_id: requestId,
       profile_patch: {
-        display_name: 'Phase 1',
+        display_name: 'Auth Profile',
         unit_system: 'metric',
         cuisine_preferences: ['Indian'],
       },
@@ -85,7 +85,7 @@ try {
       },
     },
   });
-  assert(settings.profile.display_name === 'Phase 1', 'settings-patch should update profile fields');
+  assert(settings.profile.display_name === 'Auth Profile', 'settings-patch should update profile fields');
   assert(settings.active_goal.calories_kcal === 1900, 'settings-patch should create/update active goal');
   assert(settings.body_measurement.weight_kg === 82, 'settings-patch should persist body measurement');
 
@@ -96,8 +96,8 @@ try {
       client_request_id: eventsRequestId,
       events: [
         {
-          event_name: 'phase1_smoke_event',
-          properties: { source: 'phase1_bootstrap_smoke' },
+          event_name: 'auth_profile_smoke_event',
+          properties: { source: 'profile_settings_events_smoke' },
           occurred_at: new Date().toISOString(),
         },
       ],
@@ -109,11 +109,11 @@ try {
     .from('analytics_events')
     .select('event_name, user_id')
     .eq('user_id', userId)
-    .eq('event_name', 'phase1_smoke_event');
+    .eq('event_name', 'auth_profile_smoke_event');
   if (eventReadError) throw eventReadError;
   assert(rows.length === 1, 'events-ingest should insert the analytics event');
 
-  console.log('Phase 1 bootstrap/settings/events smoke checks passed.');
+  console.log('Auth/profile/settings/events smoke checks passed.');
 } finally {
   if (userId) {
     await admin.auth.admin.deleteUser(userId);

@@ -18,7 +18,7 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-const email = `phase6-${crypto.randomUUID()}@snapgrub.test`;
+const email = `offline-sync-${crypto.randomUUID()}@snapgrub.test`;
 const password = `Pass-${crypto.randomUUID()}`;
 let userId;
 
@@ -33,7 +33,7 @@ try {
 
   const { error: profileError } = await admin.from('profiles').insert({
     id: userId,
-    display_name: 'Phase 6',
+    display_name: 'Offline Sync',
     timezone: 'Asia/Kolkata',
     unit_system: 'metric',
   });
@@ -57,7 +57,7 @@ try {
   const expiredKey = crypto.randomUUID();
   const { error: idemInsertError } = await admin.from('api_idempotency').insert({
     user_id: userId,
-    endpoint: 'phase6-smoke',
+    endpoint: 'offline-sync-smoke',
     key: expiredKey,
     request_hash: 'abc',
     response_status: 200,
@@ -73,7 +73,7 @@ try {
   const { error: uploadError } = await admin.from('pending_uploads').insert({
     user_id: userId,
     storage_bucket: 'meal-originals-private',
-    storage_path: `${userId}/phase6.jpg`,
+    storage_path: `${userId}/offline-sync.jpg`,
     sha256: crypto.randomUUID().replaceAll('-', ''),
   });
   if (uploadError) throw uploadError;
@@ -85,10 +85,9 @@ try {
   });
   if (exportError) throw exportError;
 
-  console.log('Phase 6 sync readiness smoke checks passed.');
+  console.log('Offline sync readiness smoke checks passed.');
 } finally {
   if (userId) {
     await admin.auth.admin.deleteUser(userId);
   }
 }
-

@@ -60,7 +60,7 @@ let exportUserId;
 let deleteUserId;
 
 try {
-  const exportUser = await createSignedInUser('phase8-export');
+  const exportUser = await createSignedInUser('privacy-export');
   exportUserId = exportUser.id;
 
   const { error: goalError } = await admin.from('nutrition_goals').insert({
@@ -78,7 +78,7 @@ try {
     id: mealId,
     user_id: exportUserId,
     client_id: crypto.randomUUID(),
-    title: 'Phase 8 meal',
+    title: 'Privacy export meal',
     meal_type: 'lunch',
     source: 'manual',
     logged_at: new Date().toISOString(),
@@ -128,9 +128,9 @@ try {
     .download(exported.export_request.result_storage_path);
   if (downloadError) throw downloadError;
   const artifactText = await artifact.text();
-  assert(artifactText.includes('Phase 8 meal'), 'export artifact should contain meal data');
+  assert(artifactText.includes('Privacy export meal'), 'export artifact should contain meal data');
 
-  const deleteUser = await createSignedInUser('phase8-delete');
+  const deleteUser = await createSignedInUser('privacy-delete');
   deleteUserId = deleteUser.id;
   const storagePath = `${deleteUserId}/${crypto.randomUUID()}.json`;
   const { error: uploadError } = await admin.storage
@@ -160,7 +160,7 @@ try {
   });
   assert(typeof cleanup.export_cleanup.expired_requests === 'number', 'cleanup should return export counts');
 
-  console.log('Phase 8 privacy/export/delete smoke checks passed.');
+  console.log('Privacy/export/delete smoke checks passed.');
 } finally {
   if (exportUserId) await admin.auth.admin.deleteUser(exportUserId);
   if (deleteUserId) await admin.auth.admin.deleteUser(deleteUserId);

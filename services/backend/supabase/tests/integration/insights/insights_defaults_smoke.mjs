@@ -18,7 +18,7 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-const email = `phase7-${crypto.randomUUID()}@snapgrub.test`;
+const email = `insights-${crypto.randomUUID()}@snapgrub.test`;
 const password = `Pass-${crypto.randomUUID()}`;
 let userId;
 
@@ -36,7 +36,7 @@ try {
 
   const { error: profileError } = await admin.from('profiles').insert({
     id: userId,
-    display_name: 'Phase 7',
+    display_name: 'Insights',
     timezone: 'Asia/Kolkata',
     unit_system: 'metric',
   });
@@ -117,7 +117,7 @@ try {
   if (flagError) throw flagError;
   assert(flag.enabled === false, 'weekly insights should start cohort-gated');
 
-  console.log('Phase 7 insights/defaults smoke checks passed.');
+  console.log('Insights/defaults smoke checks passed.');
 } finally {
   if (userId) {
     await admin.auth.admin.deleteUser(userId);
