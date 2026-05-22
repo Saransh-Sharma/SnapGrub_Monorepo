@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:snapgrub/data/db/drift/app_database.dart';
 
 void main() {
-  test('drift schema opens with phase 7 local tables', () async {
+  test('drift schema opens with current local tables', () async {
     final db = AppDatabase(NativeDatabase.memory());
     addTearDown(db.close);
 
