@@ -118,6 +118,19 @@ try {
   });
   assert(rejectError || rejected?.error?.code === 'INVALID_INPUT', 'cross-user storage path should be rejected');
 
+  const { data: badThumb, error: badThumbError } = await anon.functions.invoke('analysis-photo-create', {
+    body: {
+      client_request_id: crypto.randomUUID(),
+      storage_bucket: 'meal-originals-private',
+      storage_path: storagePath,
+      thumb_storage_path: `${crypto.randomUUID()}/not-owned-thumb.jpg`,
+      mime_type: 'image/jpeg',
+      locale: 'en-IN',
+      timezone: 'Asia/Kolkata',
+    },
+  });
+  assert(badThumbError || badThumb?.error?.code === 'INVALID_INPUT', 'cross-user thumbnail path should be rejected');
+
   console.log('Photo analysis smoke checks passed.');
 } finally {
   if (userId) {

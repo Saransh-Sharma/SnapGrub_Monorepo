@@ -87,7 +87,7 @@ try {
     });
     if (deviceError) throw deviceError;
 
-    const { data: meal, error: mealError } = await user.client.from('meals').insert({
+    const { data: meal, error: mealError } = await admin.from('meals').insert({
       user_id: user.id,
       client_id: `${user.id}-meal`,
       title: 'Manual lunch',
@@ -102,7 +102,7 @@ try {
     }).select('*').single();
     if (mealError) throw mealError;
 
-    const { error: mealItemError } = await user.client.from('meal_items').insert({
+    const { error: mealItemError } = await admin.from('meal_items').insert({
       meal_id: meal.id,
       user_id: user.id,
       client_id: `${user.id}-item`,
@@ -149,7 +149,7 @@ try {
     });
     if (rollupError) throw rollupError;
 
-    const { error: correctionError } = await user.client.from('correction_events').insert({
+    const { error: correctionError } = await admin.from('correction_events').insert({
       user_id: user.id,
       meal_id: meal.id,
       event_type: 'meal_created',
@@ -157,7 +157,7 @@ try {
     });
     if (correctionError) throw correctionError;
 
-    const { data: asset, error: assetError } = await user.client.from('meal_assets').insert({
+    const { data: asset, error: assetError } = await admin.from('meal_assets').insert({
       user_id: user.id,
       storage_bucket: 'meal-originals-private',
       storage_path: `${user.id}/rls-test.jpg`,
@@ -287,6 +287,17 @@ try {
   const { data: ownMeals } = await userA.client.from('meals').select('*').eq('user_id', userA.id);
   assert(ownMeals.length === 1, 'User A should read own meals.');
 
+  const { data: directMealWrite, error: directMealWriteError } = await userA.client.from('meals').insert({
+    user_id: userA.id,
+    client_id: `${userA.id}-direct-denied`,
+    title: 'Direct denied',
+    meal_type: 'snack',
+    source: 'manual',
+    logged_at: new Date().toISOString(),
+    timezone: 'UTC',
+  }).select('*');
+  assert(directMealWriteError || directMealWrite.length === 0, 'User A must not insert meals directly.');
+
   const { data: otherMeals } = await userA.client.from('meals').select('*').eq('user_id', userB.id);
   assert(otherMeals.length === 0, 'User A must not read User B meals.');
 
@@ -305,8 +316,23 @@ try {
   const { data: otherCorrections } = await userA.client.from('correction_events').select('*').eq('user_id', userB.id);
   assert(otherCorrections.length === 0, 'User A must not read User B correction events.');
 
+  const { data: directCorrectionWrite, error: directCorrectionWriteError } = await userA.client
+    .from('correction_events')
+    .insert({ user_id: userA.id, event_type: 'direct_denied', after_value: {} })
+    .select('*');
+  assert(directCorrectionWriteError || directCorrectionWrite.length === 0, 'User A must not insert correction events directly.');
+
   const { data: ownAssets } = await userA.client.from('meal_assets').select('*').eq('user_id', userA.id);
   assert(ownAssets.length === 1, 'User A should read own meal assets.');
+
+  const { data: directAssetWrite, error: directAssetWriteError } = await userA.client.from('meal_assets').insert({
+    user_id: userA.id,
+    storage_bucket: 'meal-originals-private',
+    storage_path: `${userA.id}/direct-denied.jpg`,
+    sha256: crypto.randomUUID().replaceAll('-', ''),
+    mime_type: 'image/jpeg',
+  }).select('*');
+  assert(directAssetWriteError || directAssetWrite.length === 0, 'User A must not insert meal assets directly.');
 
   const { data: otherAssets } = await userA.client.from('meal_assets').select('*').eq('user_id', userB.id);
   assert(otherAssets.length === 0, 'User A must not read User B meal assets.');
@@ -319,6 +345,9 @@ try {
 
   const { data: otherRevisions } = await userA.client.from('analysis_revisions').select('*').eq('user_id', userB.id);
   assert(otherRevisions.length === 0, 'User A must not read User B analysis revisions.');
+
+  const { data: ownInvocations, error: ownInvocationsError } = await userA.client.from('model_invocations').select('*').eq('user_id', userA.id);
+  assert(ownInvocationsError || ownInvocations.length === 0, 'Users must not read model invocation internals directly.');
 
   const { data: otherInvocations } = await userA.client.from('model_invocations').select('*').eq('user_id', userB.id);
   assert(otherInvocations.length === 0, 'User A must not read User B model invocations.');

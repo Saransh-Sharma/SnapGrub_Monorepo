@@ -123,6 +123,15 @@ try {
   });
   assert(recovered.export_request.id === exported.export_request.id, 'export polling should return the same export');
 
+  const replayed = await invokeOrThrow(exportUser.client, 'exports-create', {
+    headers: { 'Idempotency-Key': clientRequestId },
+    body: {
+      client_request_id: clientRequestId,
+      export_type: 'nutrition_json',
+    },
+  });
+  assert(replayed.export_request.id === exported.export_request.id, 'export idempotency should replay completed response');
+
   const { data: artifact, error: downloadError } = await admin.storage
     .from('exports-private')
     .download(exported.export_request.result_storage_path);
@@ -133,6 +142,7 @@ try {
   const deleteUser = await createSignedInUser('privacy-delete');
   deleteUserId = deleteUser.id;
   const storagePath = `${deleteUserId}/${crypto.randomUUID()}.json`;
+  const nestedStoragePath = `${deleteUserId}/nested/${crypto.randomUUID()}.json`;
   const { error: uploadError } = await admin.storage
     .from('exports-private')
     .upload(storagePath, new Blob(['{}'], { type: 'application/json' }), {
@@ -140,6 +150,23 @@ try {
       upsert: true,
     });
   if (uploadError) throw uploadError;
+  const { error: nestedUploadError } = await admin.storage
+    .from('exports-private')
+    .upload(nestedStoragePath, new Blob(['{}'], { type: 'application/json' }), {
+      contentType: 'application/json',
+      upsert: true,
+    });
+  if (nestedUploadError) throw nestedUploadError;
+
+  let invalidDeleteFailed = false;
+  try {
+    await invokeOrThrow(deleteUser.client, 'account-delete', {
+      body: { confirmation: 'WRONG' },
+    });
+  } catch (_) {
+    invalidDeleteFailed = true;
+  }
+  assert(invalidDeleteFailed, 'account deletion should reject invalid confirmation');
 
   const deletion = await invokeOrThrow(deleteUser.client, 'account-delete', {
     body: { confirmation: 'DELETE' },
@@ -154,6 +181,11 @@ try {
     .maybeSingle();
   if (profileReadError) throw profileReadError;
   assert(deletedProfile == null, 'account deletion should remove profile rows');
+
+  const { data: nestedArtifact } = await admin.storage
+    .from('exports-private')
+    .download(nestedStoragePath);
+  assert(nestedArtifact == null, 'account deletion should recursively remove nested user storage objects');
 
   const cleanup = await invokeOrThrow(admin, 'media-retention-cleanup', {
     body: { limit: 10 },
