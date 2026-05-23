@@ -64,12 +64,17 @@ type AnalysisInput = {
 };
 
 export async function analyzePhoto(input: AnalysisInput): Promise<ProviderResult> {
-  const provider = (Deno.env.get("AI_PROVIDER") ?? "gemini").toLowerCase();
-  if (provider === "mock" || (!Deno.env.get("GEMINI_API_KEY") && !Deno.env.get("OPENAI_API_KEY"))) {
+  const provider = (Deno.env.get("AI_PROVIDER") ?? defaultProvider()).toLowerCase();
+  if (provider === "mock") {
     return mockAnalysis(input);
   }
   if (provider === "openai") return analyzeWithOpenAI(input);
-  return analyzeWithGemini(input);
+  if (provider === "gemini") return analyzeWithGemini(input);
+  throw new ApiError("UNKNOWN", "AI provider is not configured correctly", 500, true, { provider });
+}
+
+function defaultProvider() {
+  return "mock";
 }
 
 async function analyzeWithGemini(input: AnalysisInput): Promise<ProviderResult> {
@@ -98,7 +103,7 @@ async function analyzeWithGemini(input: AnalysisInput): Promise<ProviderResult> 
     },
   };
 
-  const response = await fetch(
+  const response = await fetchWithTimeout(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
     {
       method: "POST",
@@ -140,7 +145,7 @@ async function analyzeWithOpenAI(input: AnalysisInput): Promise<ProviderResult> 
     ],
     text: { format: { type: "json_object" } },
   };
-  const response = await fetch("https://api.openai.com/v1/responses", {
+  const response = await fetchWithTimeout("https://api.openai.com/v1/responses", {
     method: "POST",
     headers: {
       "content-type": "application/json",
@@ -162,6 +167,21 @@ async function analyzeWithOpenAI(input: AnalysisInput): Promise<ProviderResult> 
     inputTokens: numberOrNull(raw?.usage?.input_tokens),
     outputTokens: numberOrNull(raw?.usage?.output_tokens),
   };
+}
+
+async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs = 12_000) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new ApiError("UNKNOWN", "Photo analysis provider timed out", 504, true);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 function promptFor(input: AnalysisInput) {

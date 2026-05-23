@@ -30,13 +30,31 @@ export function errorBody(error: unknown, requestId: string) {
     };
   }
 
-  const message = error instanceof Error ? error.message : "Unknown error";
   return {
     code: "UNKNOWN",
-    message,
+    message: "Unexpected server error",
     user_message: "Something went wrong. Please try again.",
     retryable: true,
     request_id: requestId,
     details: {},
   };
+}
+
+export function errorStatus(error: unknown) {
+  return error instanceof ApiError ? error.status : 500;
+}
+
+export function logError(scope: string, requestId: string, error: unknown, details: Record<string, unknown> = {}) {
+  const message = error instanceof Error ? error.message : String(error);
+  const stack = error instanceof Error ? error.stack : undefined;
+  const code = error instanceof ApiError ? error.code : "UNKNOWN";
+  console.error(JSON.stringify({
+    level: "error",
+    scope,
+    request_id: requestId,
+    code,
+    message,
+    stack,
+    ...details,
+  }));
 }
