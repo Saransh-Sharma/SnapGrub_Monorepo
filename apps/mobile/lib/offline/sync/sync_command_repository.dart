@@ -264,14 +264,21 @@ class SyncCommandRepository {
   }
 
   Future<void> _pullMealsAndRollups(String userId) async {
-    final meals = await _client
-        .from('meals')
-        .select('*, meal_items(*)')
-        .eq('user_id', userId)
-        .order('logged_at', ascending: false)
-        .limit(100);
-    for (final raw in List<Map<String, dynamic>>.from(meals as List)) {
-      await _cacheMealRow(raw);
+    const pageSize = 100;
+    var offset = 0;
+    while (true) {
+      final meals = await _client
+          .from('meals')
+          .select('*, meal_items(*)')
+          .eq('user_id', userId)
+          .order('logged_at', ascending: false)
+          .range(offset, offset + pageSize - 1);
+      final rows = List<Map<String, dynamic>>.from(meals as List);
+      for (final raw in rows) {
+        await _cacheMealRow(raw);
+      }
+      if (rows.length < pageSize) break;
+      offset += pageSize;
     }
 
     final rollups =

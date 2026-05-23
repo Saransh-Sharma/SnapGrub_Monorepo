@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:snapgrub/app/env/app_config_provider.dart';
 import 'package:snapgrub/features/auth/application/auth_controller.dart';
 import 'package:snapgrub/features/auth/domain/auth_state.dart';
 import 'package:snapgrub/features/custom_foods/data/custom_food_repository.dart';
@@ -41,6 +42,15 @@ class SyncController extends AsyncNotifier<SyncStatus> {
     final auth = await ref.read(authControllerProvider.future);
     final userId = auth.userId;
     if (auth.status != AuthStatus.signedIn || userId == null) return;
+
+    if (ref.read(appConfigProvider).isE2eMock) {
+      state = const AsyncData(SyncStatus.syncing);
+      await ref
+          .read(outboxRepositoryProvider)
+          .markAllUserCommandsSynced(userId);
+      state = const AsyncData(SyncStatus.synced);
+      return;
+    }
 
     final connectivity = await Connectivity().checkConnectivity();
     if (!_hasNetwork(connectivity)) {
