@@ -1,5 +1,6 @@
 import { jsonResponse, optionsResponse } from "../_shared/cors.ts";
 import { ApiError, errorBody } from "../_shared/errors.ts";
+import { consumeRateLimit } from "../_shared/rate_limit.ts";
 import { requireUser, serviceClient } from "../_shared/supabase.ts";
 import { requireString } from "../_shared/validation.ts";
 
@@ -90,12 +91,14 @@ async function deleteUserStorage(client: ReturnType<typeof serviceClient>, userI
 
   for (const bucket of STORAGE_BUCKETS) {
     const paths = new Set<string>(known.get(bucket) ?? []);
-    for (const listed of await listUserPrefix(client, bucket, userId)) paths.add(listed);
+    for (const listed of await listUserPrefixRecursive(client, bucket, userId)) paths.add(listed);
     if (paths.size === 0) continue;
 
-    const { data, error } = await client.storage.from(bucket).remove([...paths]);
-    if (error) throw error;
-    deleted += data?.length ?? paths.size;
+    for (const batch of chunks([...paths], 100)) {
+      const { data, error } = await client.storage.from(bucket).remove(batch);
+      if (error) throw error;
+      deleted += data?.length ?? batch.length;
+    }
   }
 
   return deleted;
@@ -130,32 +133,47 @@ async function knownStoragePaths(client: ReturnType<typeof serviceClient>, userI
   return byBucket;
 }
 
-async function listUserPrefix(client: ReturnType<typeof serviceClient>, bucket: string, userId: string) {
+async function listUserPrefixRecursive(
+  client: ReturnType<typeof serviceClient>,
+  bucket: string,
+  userId: string,
+) {
   const paths: string[] = [];
-  const { data, error } = await client.storage.from(bucket).list(userId, { limit: 1000 });
-  if (error) return paths;
-  for (const item of data ?? []) {
-    if (!item.name) continue;
-    paths.push(`${userId}/${item.name}`);
-  }
+  await listPrefixPage(client, bucket, userId, paths);
   return paths;
 }
 
-async function consumeRateLimit(
+async function listPrefixPage(
   client: ReturnType<typeof serviceClient>,
-  userId: string,
-  action: string,
-  windowSeconds: number,
-  maxCount: number,
+  bucket: string,
+  prefix: string,
+  paths: string[],
 ) {
-  const { data, error } = await client.rpc("consume_api_rate_limit", {
-    p_user_id: userId,
-    p_action: action,
-    p_window_seconds: windowSeconds,
-    p_max_count: maxCount,
-  });
-  if (error) throw error;
-  if (data !== true) {
-    throw new ApiError("CONFLICT", "Too many requests. Please try again later.", 429, true);
+  const pageSize = 1000;
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await client.storage.from(bucket).list(prefix, {
+      limit: pageSize,
+      offset,
+    });
+    if (error) return;
+    const items = data ?? [];
+    for (const item of items) {
+      if (!item.name) continue;
+      const path = `${prefix}/${item.name}`;
+      if (item.id == null) {
+        await listPrefixPage(client, bucket, path, paths);
+      } else {
+        paths.push(path);
+      }
+    }
+    if (items.length < pageSize) break;
   }
+}
+
+function chunks<T>(values: T[], size: number): T[][] {
+  const batches: T[][] = [];
+  for (let index = 0; index < values.length; index += size) {
+    batches.push(values.slice(index, index + size));
+  }
+  return batches;
 }

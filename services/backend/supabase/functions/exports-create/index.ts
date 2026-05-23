@@ -1,12 +1,16 @@
 import { jsonResponse, optionsResponse } from "../_shared/cors.ts";
 import { ApiError, errorBody } from "../_shared/errors.ts";
-import { maybeReplayIdempotency, storeIdempotency } from "../_shared/idempotency.ts";
+import { failIdempotency, maybeReplayIdempotency, storeIdempotency } from "../_shared/idempotency.ts";
+import { consumeRateLimit } from "../_shared/rate_limit.ts";
 import { requireUser, serviceClient } from "../_shared/supabase.ts";
+import { isRecord, parseJsonBody } from "../_shared/request.ts";
 import { requireString } from "../_shared/validation.ts";
 
 const EXPORT_BUCKET = "exports-private";
 const EXPORT_TTL_SECONDS = 7 * 24 * 60 * 60;
 const SIGNED_URL_TTL_SECONDS = 60 * 60;
+const EXPORT_PAGE_SIZE = 1000;
+const MAX_EXPORT_ROWS_PER_TABLE = 100_000;
 
 Deno.serve(async (req) => {
   const requestId = crypto.randomUUID();
@@ -30,20 +34,19 @@ Deno.serve(async (req) => {
       throw new ApiError("INVALID_INPUT", "Method not allowed", 405);
     }
 
-    const bodyText = await req.text();
-    const body = parseJsonBody(bodyText);
+    const { body, bodyText } = await parseJsonBody(req);
     const clientRequestId = requireString(body.client_request_id, "client_request_id");
     const idempotencyKey = req.headers.get("idempotency-key") ?? clientRequestId;
     const endpoint = "exports:create";
+    const exportType = normalizeExportType(body.export_type);
     const replay = await maybeReplayIdempotency(client, user.id, endpoint, idempotencyKey, bodyText);
     if (replay) return jsonResponse(replay.response_body, replay.response_status ?? 202);
     await consumeRateLimit(client, user.id, "exports:create", 60 * 60, 5);
 
-    const exportType = normalizeExportType(body.export_type);
     const exportRequest = await createQueuedRequest(client, user.id, clientRequestId, exportType, body.filters);
 
     try {
-      const artifact = await buildArtifact(client, user.id, exportType);
+      const artifact = await buildArtifact(client, user.id, exportType, body.filters);
       const storagePath = `${user.id}/${exportRequest.id}/${artifact.fileName}`;
       const { error: uploadError } = await client.storage
         .from(EXPORT_BUCKET)
@@ -79,30 +82,19 @@ Deno.serve(async (req) => {
         status: "failed",
         error_code: error instanceof ApiError ? error.code : "UNKNOWN",
       });
-      return jsonResponse({
+      const responseBody = {
         export_request: failed,
         server_time: new Date().toISOString(),
         request_id: requestId,
-      }, 500);
+      };
+      await failIdempotency(client, user.id, endpoint, idempotencyKey, bodyText, 500, responseBody);
+      return jsonResponse(responseBody, 500);
     }
   } catch (error) {
     const status = error instanceof ApiError ? error.status : 500;
     return jsonResponse(errorBody(error, requestId), status);
   }
 });
-
-function parseJsonBody(bodyText: string): Record<string, unknown> {
-  if (!bodyText) return {};
-  try {
-    return JSON.parse(bodyText);
-  } catch (_) {
-    throw new ApiError("INVALID_INPUT", "Request body must be valid JSON", 400, false);
-  }
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
 
 function normalizeExportType(value: unknown) {
   const type = value == null ? "journal_csv" : String(value);
@@ -197,8 +189,8 @@ async function signedUrl(client: ReturnType<typeof serviceClient>, storagePath: 
   };
 }
 
-async function buildArtifact(client: ReturnType<typeof serviceClient>, userId: string, exportType: string) {
-  const data = await readExportData(client, userId);
+async function buildArtifact(client: ReturnType<typeof serviceClient>, userId: string, exportType: string, filters: unknown) {
+  const data = await readExportData(client, userId, exportFilters(filters));
   if (exportType === "journal_csv") {
     return {
       fileName: "journal.csv",
@@ -226,7 +218,7 @@ async function buildArtifact(client: ReturnType<typeof serviceClient>, userId: s
   };
 }
 
-async function readExportData(client: ReturnType<typeof serviceClient>, userId: string) {
+async function readExportData(client: ReturnType<typeof serviceClient>, userId: string, filters: ExportFilters) {
   const [
     profile,
     nutritionGoals,
@@ -240,8 +232,8 @@ async function readExportData(client: ReturnType<typeof serviceClient>, userId: 
   ] = await Promise.all([
     selectMaybeSingle(client, "profiles", userId),
     selectRows(client, "nutrition_goals", userId),
-    selectRows(client, "body_measurements", userId),
-    selectRows(client, "meals", userId),
+    selectRows(client, "body_measurements", userId, filters, "measured_at"),
+    selectRows(client, "meals", userId, filters, "logged_at"),
     selectRows(client, "meal_items", userId),
     selectRows(client, "custom_foods", userId),
     selectRows(client, "meal_templates", userId),
@@ -269,10 +261,49 @@ async function selectMaybeSingle(client: ReturnType<typeof serviceClient>, table
   return data;
 }
 
-async function selectRows(client: ReturnType<typeof serviceClient>, table: string, userId: string) {
-  const { data, error } = await client.from(table).select("*").eq("user_id", userId);
-  if (error) throw error;
-  return data ?? [];
+type ExportFilters = {
+  from: string | null;
+  to: string | null;
+};
+
+function exportFilters(filters: unknown): ExportFilters {
+  if (!isRecord(filters)) return { from: null, to: null };
+  return {
+    from: isoOrNull(filters.logged_at_from ?? filters.from),
+    to: isoOrNull(filters.logged_at_to ?? filters.to),
+  };
+}
+
+function isoOrNull(value: unknown) {
+  if (typeof value !== "string" || Number.isNaN(Date.parse(value))) return null;
+  return new Date(value).toISOString();
+}
+
+async function selectRows(
+  client: ReturnType<typeof serviceClient>,
+  table: string,
+  userId: string,
+  filters: ExportFilters = { from: null, to: null },
+  timestampColumn: string | null = null,
+) {
+  const rows: Array<Record<string, unknown>> = [];
+  for (let from = 0; from < MAX_EXPORT_ROWS_PER_TABLE; from += EXPORT_PAGE_SIZE) {
+    let query = client
+      .from(table)
+      .select("*")
+      .eq("user_id", userId)
+      .range(from, from + EXPORT_PAGE_SIZE - 1);
+    if (timestampColumn && filters.from) query = query.gte(timestampColumn, filters.from);
+    if (timestampColumn && filters.to) query = query.lt(timestampColumn, filters.to);
+    const { data, error } = await query;
+    if (error) throw error;
+    rows.push(...(data ?? []));
+    if ((data ?? []).length < EXPORT_PAGE_SIZE) return rows;
+  }
+  throw new ApiError("CONFLICT", `${table} export is too large for synchronous generation`, 413, false, {
+    table,
+    max_rows: MAX_EXPORT_ROWS_PER_TABLE,
+  });
 }
 
 function rowCounts(data: Record<string, unknown>) {
@@ -322,23 +353,4 @@ function mapPostgresError(error: { message?: string; code?: string }) {
     return new ApiError("INVALID_INPUT", error.message ?? "Invalid export request", 400, false);
   }
   return error;
-}
-
-async function consumeRateLimit(
-  client: ReturnType<typeof serviceClient>,
-  userId: string,
-  action: string,
-  windowSeconds: number,
-  maxCount: number,
-) {
-  const { data, error } = await client.rpc("consume_api_rate_limit", {
-    p_user_id: userId,
-    p_action: action,
-    p_window_seconds: windowSeconds,
-    p_max_count: maxCount,
-  });
-  if (error) throw error;
-  if (data !== true) {
-    throw new ApiError("CONFLICT", "Too many requests. Please try again later.", 429, true);
-  }
 }
