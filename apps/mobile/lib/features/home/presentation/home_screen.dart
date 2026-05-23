@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:snapgrub/app/e2e/e2e_ids.dart';
 import 'package:snapgrub/core/widgets/app_scaffold.dart';
 import 'package:snapgrub/features/capture/application/capture_controller.dart';
 import 'package:snapgrub/features/home/application/home_controller.dart';
@@ -59,15 +60,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     return AppScaffold(
       title: 'Today',
       actions: [
-        IconButton(
-          tooltip: 'Sync',
-          onPressed: () => ref.read(syncControllerProvider.notifier).syncNow(),
-          icon: const Icon(Icons.sync),
+        E2eId(
+          id: 'home.sync',
+          child: IconButton(
+            tooltip: 'Sync',
+            onPressed: () =>
+                ref.read(syncControllerProvider.notifier).syncNow(),
+            icon: const Icon(Icons.sync),
+          ),
         ),
-        IconButton(
-          tooltip: 'Settings',
-          onPressed: () => context.go('/settings'),
-          icon: const Icon(Icons.settings_outlined),
+        E2eId(
+          id: 'home.settings',
+          child: IconButton(
+            tooltip: 'Settings',
+            onPressed: () => context.go('/settings'),
+            icon: const Icon(Icons.settings_outlined),
+          ),
         ),
       ],
       child: userContext.when(

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:snapgrub/app/e2e/e2e_ids.dart';
+import 'package:snapgrub/app/env/app_config_provider.dart';
 import 'package:snapgrub/offline/sync/sync_controller.dart';
 
 class AppScaffold extends ConsumerWidget {
@@ -19,23 +21,43 @@ class AppScaffold extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final syncStatus =
         ref.watch(syncControllerProvider).valueOrNull ?? SyncStatus.idle;
-    return Scaffold(
-      appBar: AppBar(title: Text(title), actions: actions),
-      body: SafeArea(
-        child: Column(
-          children: [
-            if (syncStatus == SyncStatus.pending ||
-                syncStatus == SyncStatus.syncing ||
-                syncStatus == SyncStatus.failed ||
-                syncStatus == SyncStatus.conflict)
-              _SyncBanner(status: syncStatus),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: child,
+    final showE2eHome = ref.watch(appConfigProvider).isE2e &&
+        title != 'Today' &&
+        title != 'SnapGrub' &&
+        title != 'Setup';
+    return E2eId(
+      id: 'scaffold.${title.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_')}',
+      child: Scaffold(
+        appBar: AppBar(
+          leading: showE2eHome
+              ? E2eId(
+                  id: 'nav.home',
+                  child: IconButton(
+                    tooltip: 'Home',
+                    onPressed: () => context.go('/home'),
+                    icon: const Icon(Icons.home_outlined),
+                  ),
+                )
+              : null,
+          title: Text(title),
+          actions: actions,
+        ),
+        body: SafeArea(
+          child: Column(
+            children: [
+              if (syncStatus == SyncStatus.pending ||
+                  syncStatus == SyncStatus.syncing ||
+                  syncStatus == SyncStatus.failed ||
+                  syncStatus == SyncStatus.conflict)
+                _SyncBanner(status: syncStatus),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: child,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -65,19 +87,22 @@ class _SyncBanner extends StatelessWidget {
     final color = status == SyncStatus.conflict || status == SyncStatus.failed
         ? Theme.of(context).colorScheme.errorContainer
         : Theme.of(context).colorScheme.secondaryContainer;
-    return Material(
-      color: color,
-      child: InkWell(
-        onTap: () => context.go('/sync'),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            children: [
-              Icon(icon, size: 18),
-              const SizedBox(width: 8),
-              Expanded(child: Text(label)),
-              const Icon(Icons.chevron_right),
-            ],
+    return E2eId(
+      id: 'sync.banner.${status.name}',
+      child: Material(
+        color: color,
+        child: InkWell(
+          onTap: () => context.go('/sync'),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                Icon(icon, size: 18),
+                const SizedBox(width: 8),
+                Expanded(child: Text(label)),
+                const Icon(Icons.chevron_right),
+              ],
+            ),
           ),
         ),
       ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:snapgrub/app/e2e/e2e_ids.dart';
 import 'package:snapgrub/features/onboarding/application/onboarding_controller.dart';
 
 class OnboardingCuisineScreen extends ConsumerStatefulWidget {
@@ -40,18 +41,24 @@ class _OnboardingCuisineScreenState
         const SizedBox(height: 12),
         const Text('Add cuisines separated by commas.'),
         const SizedBox(height: 24),
-        TextField(
-          controller: _cuisineController,
-          onChanged:
-              ref.read(onboardingControllerProvider.notifier).updateCuisines,
-          decoration: const InputDecoration(labelText: 'Cuisines'),
+        E2eId(
+          id: 'onboarding.cuisines',
+          child: TextField(
+            controller: _cuisineController,
+            onChanged:
+                ref.read(onboardingControllerProvider.notifier).updateCuisines,
+            decoration: const InputDecoration(labelText: 'Cuisines'),
+          ),
         ),
         const SizedBox(height: 12),
-        TextField(
-          controller: _timezoneController,
-          onChanged:
-              ref.read(onboardingControllerProvider.notifier).updateTimezone,
-          decoration: const InputDecoration(labelText: 'Timezone'),
+        E2eId(
+          id: 'onboarding.timezone',
+          child: TextField(
+            controller: _timezoneController,
+            onChanged:
+                ref.read(onboardingControllerProvider.notifier).updateTimezone,
+            decoration: const InputDecoration(labelText: 'Timezone'),
+          ),
         ),
       ],
     );

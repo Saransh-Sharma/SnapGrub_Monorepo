@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:snapgrub/app/e2e/e2e_ids.dart';
 
 class QuickActionsRow extends StatelessWidget {
   const QuickActionsRow({super.key});
@@ -11,18 +12,24 @@ class QuickActionsRow extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: FilledButton.icon(
-                onPressed: () => context.go('/meal-editor'),
-                icon: const Icon(Icons.edit_outlined),
-                label: const Text('Manual'),
+              child: E2eId(
+                id: 'home.manual',
+                child: FilledButton.icon(
+                  onPressed: () => context.go('/meal-editor'),
+                  icon: const Icon(Icons.edit_outlined),
+                  label: const Text('Manual'),
+                ),
               ),
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () => context.go('/journal'),
-                icon: const Icon(Icons.list_alt),
-                label: const Text('Journal'),
+              child: E2eId(
+                id: 'home.journal',
+                child: OutlinedButton.icon(
+                  onPressed: () => context.go('/journal'),
+                  icon: const Icon(Icons.list_alt),
+                  label: const Text('Journal'),
+                ),
               ),
             ),
           ],
@@ -31,26 +38,35 @@ class QuickActionsRow extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () => context.go('/templates'),
-                icon: const Icon(Icons.bookmark_border),
-                label: const Text('Templates'),
+              child: E2eId(
+                id: 'home.templates',
+                child: OutlinedButton.icon(
+                  onPressed: () => context.go('/templates'),
+                  icon: const Icon(Icons.bookmark_border),
+                  label: const Text('Templates'),
+                ),
               ),
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () => context.go('/custom-foods'),
-                icon: const Icon(Icons.fastfood_outlined),
-                label: const Text('Foods'),
+              child: E2eId(
+                id: 'home.foods',
+                child: OutlinedButton.icon(
+                  onPressed: () => context.go('/custom-foods'),
+                  icon: const Icon(Icons.fastfood_outlined),
+                  label: const Text('Foods'),
+                ),
               ),
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () => context.go('/progress'),
-                icon: const Icon(Icons.insights_outlined),
-                label: const Text('Progress'),
+              child: E2eId(
+                id: 'home.progress',
+                child: OutlinedButton.icon(
+                  onPressed: () => context.go('/progress'),
+                  icon: const Icon(Icons.insights_outlined),
+                  label: const Text('Progress'),
+                ),
               ),
             ),
           ],

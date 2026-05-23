@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:snapgrub/app/e2e/e2e_ids.dart';
 import 'package:snapgrub/core/widgets/app_scaffold.dart';
 import 'package:snapgrub/features/home/application/home_controller.dart';
 import 'package:snapgrub/features/meal_editor/data/meal_repository.dart';
@@ -15,10 +16,13 @@ class JournalScreen extends ConsumerWidget {
     return AppScaffold(
       title: 'Journal',
       actions: [
-        IconButton(
-          tooltip: 'Add meal',
-          onPressed: () => context.go('/meal-editor'),
-          icon: const Icon(Icons.add),
+        E2eId(
+          id: 'journal.add_meal',
+          child: IconButton(
+            tooltip: 'Add meal',
+            onPressed: () => context.go('/meal-editor'),
+            icon: const Icon(Icons.add),
+          ),
         ),
       ],
       child: meals.when(
@@ -42,6 +46,14 @@ class _MealCard extends ConsumerWidget {
 
   final Meal meal;
 
+  static String _titleId(String title) {
+    final slug = title
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
+        .replaceAll(RegExp(r'^_|_$'), '');
+    return 'journal.meal.${slug.isEmpty ? 'untitled' : slug}';
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Card(
@@ -53,8 +65,11 @@ class _MealCard extends ConsumerWidget {
             Row(
               children: [
                 Expanded(
-                  child: Text(meal.title,
-                      style: Theme.of(context).textTheme.titleMedium),
+                  child: E2eId(
+                    id: _titleId(meal.title),
+                    child: Text(meal.title,
+                        style: Theme.of(context).textTheme.titleMedium),
+                  ),
                 ),
                 Chip(label: Text(meal.syncStatus.name)),
               ],
@@ -66,24 +81,35 @@ class _MealCard extends ConsumerWidget {
             Wrap(
               spacing: 8,
               children: [
-                TextButton.icon(
-                  onPressed: () => context.go('/meal-editor?id=${meal.id}'),
-                  icon: const Icon(Icons.edit_outlined),
-                  label: const Text('Edit'),
+                E2eId(
+                  id: 'journal.edit',
+                  child: TextButton.icon(
+                    onPressed: () => context.go('/meal-editor?id=${meal.id}'),
+                    icon: const Icon(Icons.edit_outlined),
+                    label: const Text('Edit'),
+                  ),
                 ),
-                TextButton.icon(
-                  onPressed: () async {
-                    await ref.read(mealRepositoryProvider).duplicateMeal(meal);
-                  },
-                  icon: const Icon(Icons.copy),
-                  label: const Text('Duplicate'),
+                E2eId(
+                  id: 'journal.duplicate',
+                  child: TextButton.icon(
+                    onPressed: () async {
+                      await ref
+                          .read(mealRepositoryProvider)
+                          .duplicateMeal(meal);
+                    },
+                    icon: const Icon(Icons.copy),
+                    label: const Text('Duplicate'),
+                  ),
                 ),
-                TextButton.icon(
-                  onPressed: () async {
-                    await ref.read(mealRepositoryProvider).deleteMeal(meal);
-                  },
-                  icon: const Icon(Icons.delete_outline),
-                  label: const Text('Delete'),
+                E2eId(
+                  id: 'journal.delete',
+                  child: TextButton.icon(
+                    onPressed: () async {
+                      await ref.read(mealRepositoryProvider).deleteMeal(meal);
+                    },
+                    icon: const Icon(Icons.delete_outline),
+                    label: const Text('Delete'),
+                  ),
                 ),
               ],
             ),

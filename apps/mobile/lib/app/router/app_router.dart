@@ -23,11 +23,15 @@ import 'package:snapgrub/features/voice_entry/presentation/voice_entry_screen.da
 import 'package:snapgrub/offline/sync/sync_status_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
-  final auth = ref.watch(authControllerProvider);
-  final profile = ref.watch(profileControllerProvider);
+  final refresh = _RouterRefreshNotifier();
+  ref
+    ..onDispose(refresh.dispose)
+    ..listen(authControllerProvider, (_, __) => refresh.notify())
+    ..listen(profileControllerProvider, (_, __) => refresh.notify());
 
   return GoRouter(
     initialLocation: '/splash',
+    refreshListenable: refresh,
     routes: [
       GoRoute(
         path: '/splash',
@@ -124,6 +128,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     ],
     redirect: (context, state) {
       final location = state.matchedLocation;
+      final auth = ref.read(authControllerProvider);
+      final profile = ref.read(profileControllerProvider);
       final authState = auth.valueOrNull;
       if (auth.isLoading || authState == null || profile.isLoading) {
         return location == '/splash' ? null : '/splash';
@@ -149,6 +155,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     },
   );
 });
+
+class _RouterRefreshNotifier extends ChangeNotifier {
+  void notify() => notifyListeners();
+}
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});

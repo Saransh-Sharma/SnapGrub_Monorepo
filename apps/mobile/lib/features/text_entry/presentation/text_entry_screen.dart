@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:snapgrub/app/e2e/e2e_ids.dart';
 import 'package:snapgrub/core/widgets/app_scaffold.dart';
 import 'package:snapgrub/features/multimodal/data/multimodal_remote_service.dart';
 import 'package:snapgrub/features/profile/application/profile_controller.dart';
@@ -29,16 +30,19 @@ class _TextEntryScreenState extends ConsumerState<TextEntryScreen> {
       title: 'Text meal',
       child: ListView(
         children: [
-          TextField(
-            controller: _controller,
-            autofocus: true,
-            minLines: 3,
-            maxLines: 5,
-            textInputAction: TextInputAction.newline,
-            decoration: const InputDecoration(
-              labelText: 'Meal',
-              hintText: '2 rotis and dal',
-              border: OutlineInputBorder(),
+          E2eId(
+            id: 'text_entry.meal',
+            child: TextField(
+              controller: _controller,
+              autofocus: true,
+              minLines: 3,
+              maxLines: 5,
+              textInputAction: TextInputAction.newline,
+              decoration: const InputDecoration(
+                labelText: 'Meal',
+                hintText: '2 rotis and dal',
+                border: OutlineInputBorder(),
+              ),
             ),
           ),
           const SizedBox(height: 16),
@@ -46,14 +50,17 @@ class _TextEntryScreenState extends ConsumerState<TextEntryScreen> {
             Text(_error!,
                 style: TextStyle(color: Theme.of(context).colorScheme.error)),
           const SizedBox(height: 8),
-          FilledButton.icon(
-            onPressed: _loading ? null : _parse,
-            icon: _loading
-                ? const SizedBox.square(
-                    dimension: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2))
-                : const Icon(Icons.arrow_forward),
-            label: const Text('Review'),
+          E2eId(
+            id: 'text_entry.review',
+            child: FilledButton.icon(
+              onPressed: _loading ? null : _parse,
+              icon: _loading
+                  ? const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Icon(Icons.arrow_forward),
+              label: const Text('Review'),
+            ),
           ),
         ],
       ),

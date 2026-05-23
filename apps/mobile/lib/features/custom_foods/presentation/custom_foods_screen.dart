@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:snapgrub/app/e2e/e2e_ids.dart';
 import 'package:snapgrub/core/widgets/app_scaffold.dart';
 import 'package:snapgrub/features/custom_foods/data/custom_food_repository.dart';
 import 'package:snapgrub/features/custom_foods/domain/custom_food.dart';
@@ -15,14 +16,18 @@ class CustomFoodsScreen extends ConsumerWidget {
     return AppScaffold(
       title: 'Custom foods',
       actions: [
-        IconButton(
-          tooltip: 'Add custom food',
-          onPressed: () async {
-            final data = contextData.valueOrNull;
-            if (data == null) return;
-            await _showFoodEditor(context, ref, data.userId, CustomFoodDraft());
-          },
-          icon: const Icon(Icons.add),
+        E2eId(
+          id: 'custom_foods.add',
+          child: IconButton(
+            tooltip: 'Add custom food',
+            onPressed: () async {
+              final data = contextData.valueOrNull;
+              if (data == null) return;
+              await _showFoodEditor(
+                  context, ref, data.userId, CustomFoodDraft());
+            },
+            icon: const Icon(Icons.add),
+          ),
         ),
       ],
       child: contextData.when(
@@ -57,40 +62,43 @@ class _CustomFoodTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Card(
-      child: ListTile(
-        title: Text(food.name),
-        subtitle: Text(
-            '${food.caloriesKcal.round()} kcal · P ${food.proteinG.round()}g · C ${food.carbsG.round()}g · F ${food.fatG.round()}g'),
-        trailing: PopupMenuButton<String>(
-          onSelected: (value) async {
-            if (value == 'edit') {
-              await _showFoodEditor(
-                context,
-                ref,
-                food.userId,
-                CustomFoodDraft(
-                  id: food.id,
-                  clientId: food.clientId,
-                  name: food.name,
-                  brand: food.brand,
-                  servingQuantity: food.servingQuantity,
-                  servingUnit: food.servingUnit,
-                  servingGrams: food.servingGrams,
-                  caloriesKcal: food.caloriesKcal,
-                  proteinG: food.proteinG,
-                  carbsG: food.carbsG,
-                  fatG: food.fatG,
-                ),
-              );
-            } else if (value == 'delete') {
-              await ref.read(customFoodRepositoryProvider).delete(food);
-            }
-          },
-          itemBuilder: (context) => const [
-            PopupMenuItem(value: 'edit', child: Text('Edit')),
-            PopupMenuItem(value: 'delete', child: Text('Delete')),
-          ],
+    return E2eId(
+      id: 'custom_foods.item',
+      child: Card(
+        child: ListTile(
+          title: Text(food.name),
+          subtitle: Text(
+              '${food.caloriesKcal.round()} kcal · P ${food.proteinG.round()}g · C ${food.carbsG.round()}g · F ${food.fatG.round()}g'),
+          trailing: PopupMenuButton<String>(
+            onSelected: (value) async {
+              if (value == 'edit') {
+                await _showFoodEditor(
+                  context,
+                  ref,
+                  food.userId,
+                  CustomFoodDraft(
+                    id: food.id,
+                    clientId: food.clientId,
+                    name: food.name,
+                    brand: food.brand,
+                    servingQuantity: food.servingQuantity,
+                    servingUnit: food.servingUnit,
+                    servingGrams: food.servingGrams,
+                    caloriesKcal: food.caloriesKcal,
+                    proteinG: food.proteinG,
+                    carbsG: food.carbsG,
+                    fatG: food.fatG,
+                  ),
+                );
+              } else if (value == 'delete') {
+                await ref.read(customFoodRepositoryProvider).delete(food);
+              }
+            },
+            itemBuilder: (context) => const [
+              PopupMenuItem(value: 'edit', child: Text('Edit')),
+              PopupMenuItem(value: 'delete', child: Text('Delete')),
+            ],
+          ),
         ),
       ),
     );
@@ -115,10 +123,13 @@ Future<void> _showFoodEditor(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(
-                decoration: const InputDecoration(labelText: 'Food name'),
-                controller: TextEditingController(text: draft.name),
-                onChanged: (value) => draft.name = value,
+              E2eId(
+                id: 'custom_foods.name',
+                child: TextField(
+                  decoration: const InputDecoration(labelText: 'Food name'),
+                  controller: TextEditingController(text: draft.name),
+                  onChanged: (value) => draft.name = value,
+                ),
               ),
               const SizedBox(height: 8),
               TextField(
@@ -193,19 +204,22 @@ Future<void> _showFoodEditor(
                         style: TextStyle(
                             color: Theme.of(context).colorScheme.error)),
               ),
-              FilledButton.icon(
-                onPressed: () async {
-                  try {
-                    await ref
-                        .read(customFoodRepositoryProvider)
-                        .save(userId, draft);
-                    if (context.mounted) Navigator.of(context).pop();
-                  } catch (e) {
-                    error.value = e.toString();
-                  }
-                },
-                icon: const Icon(Icons.check),
-                label: const Text('Save'),
+              E2eId(
+                id: 'custom_foods.save',
+                child: FilledButton.icon(
+                  onPressed: () async {
+                    try {
+                      await ref
+                          .read(customFoodRepositoryProvider)
+                          .save(userId, draft);
+                      if (context.mounted) Navigator.of(context).pop();
+                    } catch (e) {
+                      error.value = e.toString();
+                    }
+                  },
+                  icon: const Icon(Icons.check),
+                  label: const Text('Save'),
+                ),
               ),
             ],
           ),
