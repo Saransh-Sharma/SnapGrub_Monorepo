@@ -8,7 +8,7 @@ This is the canonical current-state review for the Phase 8 implementation pass a
 - `verified locally`: automated local checks passed in this environment.
 - `source-level only`: source exists but still needs mobile/device/manual acceptance.
 - `staging required`: cannot be completed without staging secrets, deployed schedules, dashboards, or release infrastructure.
-- `blocked`: local environment lacks a required tool.
+- `blocked`: required staging, device, release, or operational evidence is unavailable.
 
 ## Verification Snapshot
 
@@ -26,18 +26,20 @@ Passed on 2026-05-21 after applying Phase 8 source:
 - `npm run backend:test:offline-sync`
 - `npm run backend:test:insights`
 - `npm run backend:test:privacy`
+- `npm run backend:test:remediation`
+- `npm run backend:test:remediation-unit`
 
-Blocked in the current local shell:
+Still outside the current local shell:
 
-- `flutter analyze`, `flutter test`, and mobile builds because `flutter` and `dart` are not on `PATH`.
+- Mobile release/debug build artifact evidence after CI cleanup.
 - Device manual acceptance because it requires an iOS simulator/device and Android emulator/device.
 
 ## Phase Review
 
 | Phase | Current state | Evidence | Remaining gap |
 | --- | --- | --- | --- |
-| Phase 8 backend | verified locally | Migration `000013_phase8_privacy_export_delete.sql`; `exports-create`, `account-delete`, and `media-retention-cleanup`; OpenAPI Phase 0-8 contracts; privacy smoke | Staging deployment, scheduled cleanup, production data-retention review |
-| Phase 8 mobile | source-level only | Privacy routes/screens under `features/privacy`, Settings entry point, AI/media toggles through `settings-patch`, export request UI, delete-account and clear-local flows | Flutter analyze/tests/build, iOS/Android manual acceptance, signed URL download UX validation |
+| Phase 8 backend | verified locally | Migrations through `000018_backend_hardening_followups.sql`; `exports-create`, `account-delete`, and `media-retention-cleanup`; OpenAPI Phase 0-8 contracts; privacy and remediation smokes | Staging deployment, scheduled cleanup observation, production data-retention review |
+| Phase 8 mobile | source-level plus local analyze/tests | Privacy routes/screens under `features/privacy`, Settings entry point, AI/media toggles through `settings-patch`, export open/copy/refresh UI, delete-account and clear-local flows | Mobile build evidence, iOS/Android manual acceptance, signed URL download UX validation |
 | Phase 9 observability | source-level docs/gates | `docs/11-operations/beta-observability.md`, Phase 8 CI smoke gate, rate-limit helper RPC | Real dashboards, alerts, synthetic staging failure tests, crash reporting provider decision/config |
 | Phase 10 release candidate | documented gate | Release checklist and phase status now identify privacy/export/delete and observability blockers | Store/TestFlight/Internal Testing artifacts, prod deploy, staged rollout monitoring |
 
@@ -53,12 +55,13 @@ Blocked in the current local shell:
 - `media-retention-cleanup` is a service-role endpoint for expired export artifacts and expired retained meal media.
 - `weekly-insights-generate` can run for one user or batch users due for a week, enabling scheduled staging/prod invocation.
 - `api_rate_limits` and `consume_api_rate_limit` protect expensive/destructive export and deletion paths.
+- Follow-up hardening adds thumbnail path ownership validation, analysis rate limits, model invocation privacy tightening, recursive account storage cleanup, safer export cleanup marking, barcode miss caching, and custom-food ownership enforcement.
 
 ## Remaining External Gates
 
-1. Put Flutter/Dart on `PATH`, regenerate if needed, then run mobile analyze/tests/build.
+1. Keep Flutter/Dart bootstrap healthy, regenerate if needed, then run mobile analyze/tests/build in CI.
 2. Run iOS/Android manual acceptance for privacy toggles, export, delete account, clear local data, and existing Phase 0-7 flows.
 3. Deploy staging Supabase migrations/functions and configure real Gemini/OpenAI secrets server-side only.
-4. Configure staging schedules for weekly insights and media-retention cleanup, then observe successful runs.
+4. Configure staging schedules for weekly insights and media-retention cleanup from `infra/supabase/scheduled-jobs.example.sql`, then observe successful runs.
 5. Configure dashboards/alerts and run synthetic beta observability tests.
 6. Produce release-candidate mobile builds only after Phase 8 device QA and Phase 9 staging observability pass.

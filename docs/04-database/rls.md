@@ -24,7 +24,8 @@ All user-owned tables must enforce tenant isolation with Supabase RLS.
 | `analysis_jobs` | authenticated user can select own jobs; service-role functions create/update jobs |
 | `analysis_revisions` | authenticated user can select own revisions; service-role functions insert immutable revisions |
 | `analysis_candidates` | authenticated user can select candidates through owned analysis revisions |
-| `model_invocations` | authenticated user can select own invocation summaries; service-role functions insert rows |
+| `model_invocations` | no direct client access; service-role functions insert backend-only provider diagnostics |
+| `barcode_lookup_misses` | no direct client access; service-role barcode resolver owns negative-cache rows |
 | `pending_uploads` | authenticated user can select own upload state; service-role functions own writes |
 | `export_requests` | authenticated user can select own export requests and poll status; creation/artifact generation goes through `exports-create` |
 | `account_deletion_requests` | authenticated user can select own deletion audit rows; inserts/updates go through `account-delete` |
@@ -51,7 +52,7 @@ It creates two auth users and checks:
 - Feature flag overrides and analytics reads are blocked.
 - Global feature flags are readable.
 - Phase 3 meal, item, template, custom-food, rollup, and correction-event isolation is checked.
-- Phase 4 meal asset, analysis job, revision, candidate, and model invocation isolation is checked.
+- Phase 4 meal asset, analysis job, revision, candidate, and model invocation privacy is checked.
 - Phase 5/6/7 function-facing paths are covered by dedicated smoke checks where direct RLS isolation is not the authoritative write path.
 - Privacy export/delete/storage cleanup behavior is covered by `services/backend/supabase/tests/integration/privacy/privacy_export_delete_smoke.mjs`.
 

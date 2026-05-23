@@ -46,6 +46,8 @@ Configure schedules only in staging first:
 - `weekly-insights-generate`: service-role POST with no `user_id`, optional `week_start`, and a bounded `limit`.
 - `media-retention-cleanup`: service-role POST with bounded `limit`.
 
+Use `infra/supabase/scheduled-jobs.example.sql` as the checked-in pg_cron/pg_net template. Configure the required Vault secrets in staging first, then promote the same schedule shape to production after the staging acceptance checks pass.
+
 Staging acceptance:
 
 - Job executes on schedule.

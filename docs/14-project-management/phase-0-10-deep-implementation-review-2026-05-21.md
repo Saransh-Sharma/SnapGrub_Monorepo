@@ -14,28 +14,28 @@ This standalone audit reviews the current SnapGrub MVP implementation against:
 - `implemented/source-level`: source exists and appears wired, but local automated or device acceptance is incomplete.
 - `documentation/gate only`: documented as a required gate, but no deployed/runtime evidence exists in repo.
 - `staging required`: cannot be accepted without deployed staging secrets, schedules, dashboards, or synthetic traffic.
-- `blocked`: required local tool/runtime is unavailable.
+- `blocked`: required runtime, staging, device, or operational evidence is unavailable.
 
 ## Executive Summary
 
-Overall verdict: Phase 0-8 backend/source implementation is in good shape for a pre-beta codebase, but the MVP is not release-candidate ready. The backend contract, migration, typecheck, and Phase 1/RLS/meal-core/Phase 4/5/6/7/8 smoke checks passed locally after a fresh Supabase database reset. Mobile remains blocked for local verification because `flutter` and `dart` are not on `PATH` in this shell. Phase 9 and Phase 10 remain operational gates, not implemented runtime capabilities.
+Overall verdict: Phase 0-8 backend/source implementation is in good shape for a pre-beta codebase, but the MVP is not release-candidate ready. The backend contract, migration, typecheck, and Phase 1/RLS/meal-core/Phase 4/5/6/7/8 smoke checks passed locally after a fresh Supabase database reset. Follow-up backend hardening migrations now extend the chain through `000018` with runtime grants, media retention backfill, day-listing RPCs, remediation checks, barcode miss caching, stricter invocation privacy, storage cleanup safety, and custom-food ownership enforcement. Flutter/Dart are now available locally; the remaining local mobile blocker was ignored iOS SwiftPM ephemeral state interfering with `flutter test`, now addressed with `scripts/clean-flutter-ephemeral.sh`. Phase 9 and Phase 10 remain operational gates, not implemented runtime capabilities.
 
 Readiness by area:
 
 | Area | Verdict |
 | --- | --- |
-| Backend schema/functions/contracts | `verified locally` through Phase 8 |
+| Backend schema/functions/contracts | `verified locally` through Phase 8 plus backend hardening through migration `000018` |
 | Backend smoke coverage | `verified locally` for Phase 1, RLS, meal core, Phase 4, Phase 5, Phase 6, Phase 7, Phase 8 |
 | Mobile source | `implemented/source-level` for Phase 1-8 surfaces |
-| Mobile local verification | `blocked` because Flutter/Dart are unavailable in this shell |
+| Mobile local verification | `partial`; Flutter analyze and unit tests pass after cleaning ignored iOS ephemeral state; build/device acceptance still requires CI and simulator/device confirmation |
 | Real AI provider validation | `staging required` |
 | Scheduled weekly insight/media cleanup jobs | `staging required` |
 | Observability dashboards/alerts/crash reporting | `documentation/gate only` |
-| Release candidate builds/distribution | `documentation/gate only` and `blocked` by mobile verification |
+| Release candidate builds/distribution | `documentation/gate only` and `blocked` by mobile build/device/release evidence |
 
 The most important blockers are:
 
-1. Mobile analyze/test/build and device acceptance have not been rerun in this environment.
+1. Mobile build and device acceptance still need clean CI/simulator/device evidence after the local ephemeral-state fix.
 2. Photo-analysis validation is still mock-provider/local; real Gemini/OpenAI staging validation is outstanding.
 3. Weekly insight and media cleanup scheduling is implemented as callable backend behavior, but not observed as staging schedules.
 4. Phase 9 observability and Phase 10 release-candidate artifacts are documented requirements, not completed runtime gates.
@@ -49,8 +49,10 @@ Commands run during this audit:
 | `npm run check:contracts` | pass | OpenAPI lint passed and generated clients were fresh. |
 | `npm run backend:typecheck` | pass | Deno checked all Supabase Edge Function entrypoints. |
 | `npm run backend:lint:migrations` | pass | Migration lint script completed without findings. |
-| `command -v flutter; command -v dart` | blocked | Neither command was available on `PATH`; mobile checks were not run. |
-| `supabase db reset` from `services/backend/supabase` | pass | Applied migrations `000001` through `000013`; reset completed on branch `phase8Bootstrap`. |
+| `command -v flutter; command -v dart` | pass | Flutter and Dart are available locally. |
+| `bash scripts/clean-flutter-ephemeral.sh && cd apps/mobile && flutter analyze` | pass | iOS SwiftPM ephemeral state is cleaned before analysis. |
+| `bash scripts/clean-flutter-ephemeral.sh && cd apps/mobile && flutter test` | pass | Mobile unit/widget tests now run locally after ephemeral cleanup. |
+| `supabase db reset` from `services/backend/supabase` | pass | Applied migrations `000001` through `000018` after backend hardening follow-ups. |
 | Backend smoke wrapper from monorepo root | operator error, superseded | Initial wrapper attempted `supabase status` from the wrong project context and failed with missing container `supabase_db_SnapGrub_monorepo`. |
 | Backend smoke wrapper with Supabase status resolved from `services/backend/supabase` | pass | All backend smoke scripts below passed with `NODE_OPTIONS=--experimental-websocket` and `AI_PROVIDER=mock`. |
 | `npm run backend:test:auth-profile` | pass | Bootstrap/settings/events smoke passed. |
@@ -61,6 +63,8 @@ Commands run during this audit:
 | `npm run backend:test:offline-sync` | pass | Sync readiness smoke checks passed. |
 | `npm run backend:test:insights` | pass | Insights/defaults smoke checks passed. |
 | `npm run backend:test:privacy` | pass | Privacy/export/delete smoke checks passed. |
+| `npm run backend:test:remediation` | pass | Backend remediation smoke checks cover service-role spoof rejection, install ID takeover rejection, soft-delete reads, custom-food ownership, and invalid idempotent retries. |
+| `npm run backend:test:remediation-unit` | pass | Backend remediation unit checks cover provider-key behavior and unsigned service-role JWT rejection. |
 
 Supabase status reported stopped `imgproxy` and `pooler` containers. The smoke suite did not require those services, but staging/release acceptance should validate any production dependencies explicitly.
 
@@ -68,11 +72,11 @@ Supabase status reported stopped `imgproxy` and `pooler` containers. The smoke s
 
 Source evidence reviewed:
 
-- Migrations: `services/backend/supabase/migrations/000001_extensions_and_helpers.sql` through `000013_phase8_privacy_export_delete.sql`.
+- Migrations: `services/backend/supabase/migrations/000001_extensions_and_helpers.sql` through `000018_backend_hardening_followups.sql`.
 - Edge Functions: profile bootstrap, settings patch, events ingest, meals, templates, custom foods, body measurements, photo analysis, analysis get, barcode, foods search, text/label/voice parsing, weekly insights, exports, account deletion, and media cleanup.
 - Backend tests: Phase 1, RLS, meal core, Phase 4, Phase 5, Phase 6, Phase 7, Phase 8 smoke scripts.
 - API contracts: `packages/api-contracts/openapi.yaml` includes Phase 0-8 endpoint coverage.
-- CI: `.github/workflows/ci.yml` has contracts/backend and mobile jobs, including Phase 8 backend smoke and Flutter APK build gates.
+- CI: `.github/workflows/ci.yml` has contracts/backend and mobile jobs, including Phase 8 backend smoke, backend remediation checks, and Flutter APK build gates.
 - Mobile routes/features: `apps/mobile/lib/app/router/app_router.dart`, Home/SnapStrip, capture controller, meal editor, journal, progress, barcode, text, voice, photo analysis, privacy/export/delete, sync status.
 - Operations/release docs: `docs/11-operations/beta-observability.md`, `docs/10-quality/release-checklist.md`, manual acceptance checklists, runbooks.
 
@@ -80,7 +84,7 @@ Source evidence reviewed:
 
 | Phase | Current status | Evidence | Remaining gaps |
 | --- | --- | --- | --- |
-| Phase 0 - Repo, contracts, environments | `verified locally` for backend/contracts; mobile toolchain `blocked` | Contract check passed; migrations reset cleanly; native Android/iOS files and Drift generated source exist; CI defines backend and mobile jobs. | Flutter/Dart unavailable locally; Android/iOS builds and device acceptance still need a working mobile toolchain. |
+| Phase 0 - Repo, contracts, environments | `verified locally` for backend/contracts; mobile automated checks `verified locally` | Contract check passed; migrations reset cleanly; native Android/iOS files and Drift generated source exist; CI defines backend and mobile jobs. | Android/iOS builds and device acceptance still need CI/simulator/device evidence. |
 | Phase 1 - Auth, onboarding, profile, goals | Backend `verified locally`; mobile `implemented/source-level` | Phase 1 smoke passed; profile bootstrap/settings/events functions exist; onboarding/profile repository tests exist; router gates auth/onboarding/home. | Manual sign-in and onboarding acceptance on iOS/Android remains required. |
 | Phase 2 - Home + SnapStrip camera shell | `implemented/source-level` | Home screen wires SnapStrip, sync attention, progress, recent meals, lifecycle pause/resume; capture controller handles permission, preview, analytics, feature gates. | Camera permission, denied/granted, lifecycle, and capture behavior need device validation. |
 | Phase 3 - Meal domain, local journal, editor | Backend `verified locally`; mobile `implemented/source-level` | Meal core smoke passed; routes and modules exist for Meal Editor, Journal, Progress, templates, custom foods; outbox tests cover meal save/delete. | Offline meal save/reconnect sync and editor UX need device/manual acceptance. |
@@ -88,9 +92,9 @@ Source evidence reviewed:
 | Phase 5 - Barcode, OCR, text, voice | Backend `verified locally`; mobile `implemented/source-level` | Phase 5 smoke passed; barcode, foods search, label/text/voice functions exist; mobile barcode/text/voice routes and draft mapping exist. | Scanner/OCR/voice permission and real-device flows remain unvalidated. |
 | Phase 6 - Offline sync/idempotency/conflict | Backend `verified locally`; mobile `implemented/source-level` | Phase 6 smoke passed; sync controller drains early commands, settings, custom foods, templates, meals, deferred commands, then pulls authoritative state; Home links conflict/failed states to Sync. | Conflict recovery and reconnect behavior need manual device testing; long-running outbox behavior is not proven by local mobile checks. |
 | Phase 7 - Insights, retention, delight | Backend `verified locally`; mobile `implemented/source-level`; schedules `staging required` | Phase 7 smoke passed; weekly insights function supports single-user and batch generation; Progress has insight/frequent-food surfaces; feature flag gating is documented. | Scheduled weekly insight generation and feature flag behavior need staging observation and device acceptance. |
-| Phase 8 - Privacy, export, delete | Backend `verified locally`; mobile `implemented/source-level` | Phase 8 smoke passed; export artifact generation, signed URL polling, account deletion, media cleanup, rate limit helper, privacy routes/screens, toggles, export and delete UI exist. | Mobile privacy/export/delete UX needs Flutter checks and device acceptance; production data-retention review and staging cleanup schedule remain open. |
+| Phase 8 - Privacy, export, delete | Backend `verified locally`; mobile `implemented/source-level` plus local analyze/tests | Phase 8 smoke passed; export artifact generation, signed URL polling, account deletion, media cleanup, rate limit helper, privacy routes/screens, toggles, export and delete UI exist. | Mobile privacy/export/delete UX needs build/device acceptance; production data-retention review and staging cleanup schedule remain open. |
 | Phase 9 - Observability, QA, beta hardening | `documentation/gate only`; `staging required` | Beta observability doc lists metrics, dashboards, alerts, staging synthetic tests, schedules, and blockers. | No repo evidence of deployed dashboards, alert policies, crash reporting provider config, or completed synthetic staging tests. |
-| Phase 10 - MVP release candidate | `documentation/gate only`; mobile `blocked` | Release checklist defines backend, mobile, privacy, observability, and release-candidate gates. | No signed Android/iOS release artifacts, TestFlight/Internal Testing distribution, production deploy evidence, staged rollout monitoring, or RC smoke evidence. |
+| Phase 10 - MVP release candidate | `documentation/gate only`; release evidence `blocked` | Release checklist defines backend, mobile, privacy, observability, and release-candidate gates. | No signed Android/iOS release artifacts, TestFlight/Internal Testing distribution, production deploy evidence, staged rollout monitoring, or RC smoke evidence. |
 
 ## Findings by Severity
 
@@ -101,10 +105,10 @@ Source evidence reviewed:
    - Evidence: `docs/11-operations/beta-observability.md` and `docs/10-quality/release-checklist.md` define gates, but no deployed/runtime evidence is in repo.
    - Recommendation: Treat Phase 9/10 as entry criteria for beta/RC, not completed work. Require screenshots/links/config exports or CI artifacts for observability, crash reporting, and release builds.
 
-2. Mobile acceptance is blocked in this environment.
-   - Impact: Phase 2-8 mobile surfaces are source-level only; camera, barcode, OCR, voice, offline sync, privacy, export, delete, and clear-local-data cannot be accepted without Flutter checks and device testing.
-   - Evidence: `flutter` and `dart` are not on `PATH`; mobile routes and source exist, but `flutter analyze`, `flutter test`, and mobile builds were not run.
-   - Recommendation: Install/configure Flutter and Dart locally or rely on a green CI mobile job, then run the full mobile gate and manual iOS/Android acceptance.
+2. Mobile acceptance still lacks device/runtime evidence.
+   - Impact: Phase 2-8 mobile surfaces cannot be fully accepted until camera, barcode, OCR, voice, offline sync, privacy, export, delete, and clear-local-data are proven through build artifacts and device testing.
+   - Evidence: `flutter analyze` and `flutter test` pass locally after `scripts/clean-flutter-ephemeral.sh`, but camera/scanner/microphone/download/offline flows still require simulator/device runs and mobile build artifacts.
+   - Recommendation: Keep the cleanup step in CI, require green mobile build jobs, then run the full manual iOS/Android acceptance plan.
 
 3. Staging validation for real AI and scheduled jobs is missing.
    - Impact: Core MVP trust and retention paths are only locally/mock verified. Real provider latency, failure modes, costs, weekly insight schedules, and cleanup schedules remain unknown.
@@ -120,20 +124,20 @@ Source evidence reviewed:
 
 2. Device-only UX remains the largest unverified surface.
    - Impact: Camera lifecycle, permission-denied paths, scanner hardware, microphone permission, OS download/link handling, and local cache clearing can fail even when source-level code looks correct.
-   - Evidence: Home, capture, barcode, text, voice, privacy, and sync routes exist, but local Flutter/device checks were blocked.
+   - Evidence: Home, capture, barcode, text, voice, privacy, and sync routes exist, and local Flutter analyze/tests pass; device acceptance is still unrun.
    - Recommendation: Run the manual test plan on at least one iOS simulator/device and one Android emulator/device after mobile checks pass.
 
-3. Export mobile UI exposes a signed URL but does not prove the complete download flow.
-   - Impact: Users may receive a copyable URL without an in-app open/share/download path, and signed URL refresh behavior is not exercised by the visible UI path.
-   - Evidence: `PrivacyRemoteService.getExport` exists, but `ExportDataScreen` stores the create response and `_ExportStatusCard` copies the signed URL.
-   - Recommendation: Validate this UX on device and decide whether MVP requires open/share/download plus refresh polling before RC.
+3. Export mobile UI now has open/copy/refresh controls, but still needs device validation.
+   - Impact: OS-level URL handling, signed URL refresh, and download affordances can still fail on target devices even when the UI path exists.
+   - Evidence: `ExportDataScreen` now refreshes export status and `_ExportStatusCard` exposes open, copy, and refresh actions.
+   - Recommendation: Validate open/share/download behavior on iOS and Android before RC.
 
 ### Medium
 
-1. CI contains the intended gates, but local mobile parity is absent.
-   - Impact: Developers cannot reproduce the full mobile gate from this shell, increasing dependency on CI-only feedback.
-   - Evidence: `.github/workflows/ci.yml` defines Flutter pub get, build runner, format, analyze, test, and debug APK build; local `flutter`/`dart` are unavailable.
-   - Recommendation: Document local Flutter installation expectations or provide a bootstrap script that verifies and reports missing mobile prerequisites.
+1. CI contains the intended gates, but build/device parity still depends on external runners.
+   - Impact: Local analysis and tests are reproducible, but APK/IPA build and device behavior still depend on CI and manual acceptance.
+   - Evidence: `.github/workflows/ci.yml` defines Flutter pub get, build runner, format, analyze, test, and debug APK build, and now runs ephemeral cleanup before mobile checks.
+   - Recommendation: Keep local Flutter prerequisites documented and require CI dirty-worktree checks after pub get/codegen.
 
 2. Operations docs are thorough but not connected to concrete artifacts.
    - Impact: The team can know what to monitor, but cannot prove the monitor exists or fired.
@@ -171,7 +175,7 @@ Source evidence reviewed:
 
 Immediate gates before Phase 9 beta hardening:
 
-1. Put Flutter/Dart on `PATH`, run `flutter pub get`, build runner, format check, `flutter analyze`, `flutter test`, and Android dev APK build.
+1. Keep Flutter/Dart bootstrap healthy, run `flutter pub get`, build runner, format check, `flutter analyze`, `flutter test`, and Android dev APK build in CI.
 2. Run iOS/Android manual acceptance for auth, onboarding, capture, barcode, OCR, voice, meal save, offline reconnect, conflict recovery, insights flag behavior, privacy toggles, export, delete account, and clear local data.
 3. Deploy staging Supabase migrations/functions and rerun backend smoke tests against staging.
 4. Configure real AI provider secrets server-side only and run mock, real-provider, and forced-failure photo-analysis tests.

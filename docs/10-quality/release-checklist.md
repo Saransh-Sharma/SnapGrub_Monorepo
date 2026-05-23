@@ -8,7 +8,9 @@ The legacy compatibility checklist remains in [../qa/release-checklist.md](../qa
 - `npm run backend:typecheck` passes.
 - `npm run backend:lint:migrations` passes.
 - `supabase db reset` applies all migrations cleanly.
-- Backend smokes pass by feature and scope:
+- Broad backend API E2E gate passes:
+  `npm run backend:test:e2e:api:local`
+- Focused backend smokes and security diagnostics pass:
   - `npm run backend:test:auth-profile`
   - `npm run backend:test:rls`
   - `npm run backend:test:meal-core`
@@ -17,6 +19,7 @@ The legacy compatibility checklist remains in [../qa/release-checklist.md](../qa
   - `npm run backend:test:offline-sync`
   - `npm run backend:test:insights`
   - `npm run backend:test:privacy`
+  - `npm run backend:test:remediation`
 - Staging Supabase migrations/functions are deployed.
 - Real AI provider secrets are configured server-side only.
 - Weekly insights and media cleanup schedules are active and observed in staging.

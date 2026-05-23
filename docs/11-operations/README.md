@@ -8,3 +8,7 @@ Start with:
 - [ci-cd.md](ci-cd.md)
 - [runbooks.md](runbooks.md)
 - [beta-observability.md](beta-observability.md)
+
+Scheduled job setup:
+
+- [scheduled-jobs.example.sql](../../infra/supabase/scheduled-jobs.example.sql)

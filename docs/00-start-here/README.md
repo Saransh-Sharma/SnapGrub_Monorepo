@@ -9,6 +9,7 @@ The current canonical implementation addendum is [../14-project-management/phase
 ## First Stops
 
 - Product scope: [../01-product/README.md](../01-product/README.md)
+- App feature walkthrough: [../01-product/feature-walkthrough.md](../01-product/feature-walkthrough.md)
 - System architecture: [../02-architecture/README.md](../02-architecture/README.md)
 - API contracts: [../03-api-contracts/README.md](../03-api-contracts/README.md)
 - Database and RLS: [../04-database/README.md](../04-database/README.md)
