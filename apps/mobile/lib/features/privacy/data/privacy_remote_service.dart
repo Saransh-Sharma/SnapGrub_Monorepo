@@ -1,24 +1,31 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:snapgrub/data/services/supabase_client_provider.dart';
+import 'package:snapgrub/app/env/app_config_provider.dart';
+import 'package:snapgrub/data/services/supabase_function_client.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 final privacyRemoteServiceProvider = Provider<PrivacyRemoteService>((ref) {
-  return PrivacyRemoteService(ref.watch(supabaseClientProvider));
+  return PrivacyRemoteService(
+    ref.watch(supabaseFunctionClientProvider),
+    e2eMock: ref.watch(appConfigProvider).isE2eMock,
+  );
 });
 
 class PrivacyRemoteService {
-  const PrivacyRemoteService(this._client);
+  const PrivacyRemoteService(this._functions, {this.e2eMock = false});
 
-  final dynamic _client;
+  final SnapGrubFunctionClient _functions;
+  final bool e2eMock;
 
-  bool get isConfigured => _client != null;
+  bool get isConfigured => _functions.isConfigured;
 
   Future<Map<String, dynamic>> createExport({
     required String clientRequestId,
     required String exportType,
   }) async {
-    if (_client == null) throw StateError('Supabase is not configured.');
-    final response = await _client.functions.invoke(
+    if (e2eMock) {
+      return _e2eExport(clientRequestId, exportType);
+    }
+    return _functions.invokeJson(
       'exports-create',
       method: HttpMethod.post,
       headers: {'Idempotency-Key': clientRequestId},
@@ -27,25 +34,41 @@ class PrivacyRemoteService {
         'export_type': exportType,
       },
     );
-    return Map<String, dynamic>.from(response.data as Map);
   }
 
   Future<Map<String, dynamic>> getExport(String exportRequestId) async {
-    if (_client == null) throw StateError('Supabase is not configured.');
-    final response = await _client.functions.invoke(
+    if (e2eMock) {
+      return _e2eExport(exportRequestId, 'nutrition_json');
+    }
+    return _functions.invokeJson(
       'exports-create/$exportRequestId',
       method: HttpMethod.get,
     );
-    return Map<String, dynamic>.from(response.data as Map);
   }
 
   Future<Map<String, dynamic>> deleteAccount() async {
-    if (_client == null) throw StateError('Supabase is not configured.');
-    final response = await _client.functions.invoke(
+    if (e2eMock) {
+      return {'status': 'deleted'};
+    }
+    return _functions.invokeJson(
       'account-delete',
       method: HttpMethod.post,
       body: {'confirmation': 'DELETE'},
     );
-    return Map<String, dynamic>.from(response.data as Map);
+  }
+
+  Map<String, dynamic> _e2eExport(String id, String exportType) {
+    return {
+      'export_request': {
+        'id': id,
+        'status': 'completed',
+        'export_type': exportType,
+        'signed_url': 'https://example.invalid/snapgrub-e2e-export',
+        'expires_at': DateTime.now()
+            .toUtc()
+            .add(const Duration(minutes: 15))
+            .toIso8601String(),
+      },
+    };
   }
 }
