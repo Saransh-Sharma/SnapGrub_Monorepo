@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:snapgrub/app/e2e/e2e_data.dart';
+import 'package:snapgrub/app/env/app_config_provider.dart';
 import 'package:snapgrub/features/capture/data/capture_asset_repository.dart';
 import 'package:snapgrub/features/capture/domain/capture_asset.dart';
 import 'package:snapgrub/features/meal_editor/data/meal_draft_mapper.dart';
@@ -13,6 +15,7 @@ final photoAnalysisRepositoryProvider =
   return PhotoAnalysisRepository(
     remote: ref.watch(photoAnalysisRemoteServiceProvider),
     assets: ref.watch(captureAssetRepositoryProvider),
+    e2eMock: ref.watch(appConfigProvider).isE2eMock,
   );
 });
 
@@ -20,11 +23,13 @@ class PhotoAnalysisRepository {
   const PhotoAnalysisRepository({
     required PhotoAnalysisRemoteService remote,
     required CaptureAssetRepository assets,
+    this.e2eMock = false,
   })  : _remote = remote,
         _assets = assets;
 
   final PhotoAnalysisRemoteService _remote;
   final CaptureAssetRepository _assets;
+  final bool e2eMock;
 
   Future<MealDraft> analyzeAsset({
     required CaptureAsset asset,
@@ -32,6 +37,15 @@ class PhotoAnalysisRepository {
     String? mealTypeHint,
     String? userHintText,
   }) async {
+    if (e2eMock) {
+      return E2eData.mockDraft(
+        userId: asset.userId,
+        timezone: profile.timezone,
+        source: MealSource.photo,
+        title: 'E2E photo meal',
+        provenanceType: 'ai_photo',
+      );
+    }
     if (!_remote.isConfigured) {
       throw StateError('Supabase is not configured.');
     }

@@ -1,4 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:snapgrub/app/e2e/e2e_data.dart';
+import 'package:snapgrub/app/env/app_config_provider.dart';
+import 'package:snapgrub/data/db/drift/database_provider.dart';
 import 'package:snapgrub/data/repositories/profile_repository.dart';
 import 'package:snapgrub/features/auth/application/auth_controller.dart';
 import 'package:snapgrub/features/auth/domain/auth_state.dart';
@@ -16,6 +19,11 @@ class ProfileController extends AsyncNotifier<ProfileState> {
     final auth = await ref.watch(authControllerProvider.future);
     if (auth.status != AuthStatus.signedIn) return const ProfileState.empty();
 
+    final config = ref.watch(appConfigProvider);
+    if (config.isE2eMock) {
+      await E2eData.ensureFeatureFlags(ref.read(appDatabaseProvider));
+    }
+
     final repo = ref.watch(profileRepositoryProvider);
     try {
       return await repo.bootstrap(auth.userId!);
@@ -28,6 +36,10 @@ class ProfileController extends AsyncNotifier<ProfileState> {
     state = const AsyncLoading();
     final repo = ref.read(profileRepositoryProvider);
     await repo.saveOnboarding(userId, draft);
+    final config = ref.read(appConfigProvider);
+    if (config.isE2eMock) {
+      await E2eData.ensureFeatureFlags(ref.read(appDatabaseProvider));
+    }
     state = AsyncData(await repo.loadLocal(userId));
   }
 
