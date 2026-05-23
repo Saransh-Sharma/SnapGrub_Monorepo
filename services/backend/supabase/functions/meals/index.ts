@@ -1,6 +1,8 @@
 import { jsonResponse, optionsResponse } from "../_shared/cors.ts";
 import { ApiError, errorBody } from "../_shared/errors.ts";
+import { maybeReplayIdempotency, storeIdempotency } from "../_shared/idempotency.ts";
 import { requireUser, serviceClient } from "../_shared/supabase.ts";
+import { isRecord, parseJsonBody } from "../_shared/request.ts";
 import { requireString } from "../_shared/validation.ts";
 
 Deno.serve(async (req) => {
@@ -15,7 +17,43 @@ Deno.serve(async (req) => {
 
     if (req.method === "GET" && mealId == null) {
       const day = url.searchParams.get("day");
-      const limit = Math.min(Math.max(Number(url.searchParams.get("limit") ?? 50), 1), 100);
+      const limit = Math.min(
+        Math.max(Number(url.searchParams.get("limit") ?? 50), 1),
+        100,
+      );
+      if (day) {
+        if (!isDateString(day)) {
+          throw new ApiError(
+            "INVALID_INPUT",
+            "day must be a valid date",
+            400,
+            false,
+          );
+        }
+        const { data: mealsForDay, error: dayError } = await client.rpc(
+          "list_user_meals_for_day",
+          {
+            p_user_id: user.id,
+            p_day: day,
+            p_limit: limit,
+          },
+        );
+        if (dayError) throw dayError;
+        const { data: dailyRollups, error: rollupError } = await client
+          .from("daily_rollups")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("day", day);
+        if (rollupError) throw rollupError;
+
+        return jsonResponse({
+          meals: Array.isArray(mealsForDay) ? mealsForDay : [],
+          daily_rollups: dailyRollups ?? [],
+          server_time: new Date().toISOString(),
+          request_id: requestId,
+        });
+      }
+
       let query = client
         .from("meals")
         .select("*, meal_items(*)")
@@ -24,20 +62,16 @@ Deno.serve(async (req) => {
         .order("logged_at", { ascending: false })
         .limit(day ? 500 : limit);
 
-      if (day) {
-        if (!isDateString(day)) {
-          throw new ApiError("INVALID_INPUT", "day must be a valid date", 400, false);
-        }
-      }
-
       const { data: meals, error } = await query;
       if (error) throw error;
       const normalizedMeals = (meals ?? [])
         .map(normalizeMealRow)
-        .filter((meal) => day == null || mealDay(meal) === day)
         .slice(0, limit);
 
-      const rollupQuery = client.from("daily_rollups").select("*").eq("user_id", user.id);
+      const rollupQuery = client.from("daily_rollups").select("*").eq(
+        "user_id",
+        user.id,
+      );
       if (day) rollupQuery.eq("day", day);
       const { data: dailyRollups, error: rollupError } = await rollupQuery;
       if (rollupError) throw rollupError;
@@ -62,18 +96,33 @@ Deno.serve(async (req) => {
     }
 
     if (req.method === "POST" || req.method === "PATCH") {
-      const bodyText = await req.text();
-      const body = parseJsonBody(bodyText);
-      const clientRequestId = requireString(body.client_request_id, "client_request_id");
-      const idempotencyKey = req.headers.get("idempotency-key") ?? clientRequestId;
-      const endpoint = req.method === "POST" ? "meals:create" : `meals:update:${mealId}`;
-      const replay = await maybeReplayIdempotency(client, user.id, endpoint, idempotencyKey, bodyText);
-      if (replay) return jsonResponse(replay.response_body, replay.response_status ?? 200);
-
+      const { body, bodyText } = await parseJsonBody(req);
+      const clientRequestId = requireString(
+        body.client_request_id,
+        "client_request_id",
+      );
+      const idempotencyKey = req.headers.get("idempotency-key") ??
+        clientRequestId;
+      const endpoint = req.method === "POST"
+        ? "meals:create"
+        : `meals:update:${mealId}`;
       if (req.method === "PATCH" && mealId == null) {
         throw new ApiError("INVALID_INPUT", "meal_id is required", 400, false);
       }
       validateMealWrite(body);
+      const replay = await maybeReplayIdempotency(
+        client,
+        user.id,
+        endpoint,
+        idempotencyKey,
+        bodyText,
+      );
+      if (replay) {
+        return jsonResponse(
+          replay.response_body,
+          replay.response_status ?? 200,
+        );
+      }
 
       const { data, error } = await client.rpc("upsert_user_meal", {
         p_user_id: user.id,
@@ -95,19 +144,43 @@ Deno.serve(async (req) => {
         server_time: new Date().toISOString(),
         request_id: requestId,
       };
-      await storeIdempotency(client, user.id, endpoint, idempotencyKey, bodyText, 200, responseBody);
+      await storeIdempotency(
+        client,
+        user.id,
+        endpoint,
+        idempotencyKey,
+        bodyText,
+        200,
+        responseBody,
+      );
       return jsonResponse(responseBody);
     }
 
     if (req.method === "DELETE") {
-      if (mealId == null) throw new ApiError("INVALID_INPUT", "meal_id is required", 400, false);
-      const bodyText = await req.text();
-      const body = parseJsonBody(bodyText || "{}");
-      const clientRequestId = requireString(body.client_request_id, "client_request_id");
-      const idempotencyKey = req.headers.get("idempotency-key") ?? clientRequestId;
+      if (mealId == null) {
+        throw new ApiError("INVALID_INPUT", "meal_id is required", 400, false);
+      }
+      const { body, bodyText } = await parseJsonBody(req);
+      const clientRequestId = requireString(
+        body.client_request_id,
+        "client_request_id",
+      );
+      const idempotencyKey = req.headers.get("idempotency-key") ??
+        clientRequestId;
       const endpoint = `meals:delete:${mealId}`;
-      const replay = await maybeReplayIdempotency(client, user.id, endpoint, idempotencyKey, bodyText);
-      if (replay) return jsonResponse(replay.response_body, replay.response_status ?? 200);
+      const replay = await maybeReplayIdempotency(
+        client,
+        user.id,
+        endpoint,
+        idempotencyKey,
+        bodyText,
+      );
+      if (replay) {
+        return jsonResponse(
+          replay.response_body,
+          replay.response_status ?? 200,
+        );
+      }
 
       const { data, error } = await client.rpc("delete_user_meal", {
         p_user_id: user.id,
@@ -123,7 +196,15 @@ Deno.serve(async (req) => {
         server_time: new Date().toISOString(),
         request_id: requestId,
       };
-      await storeIdempotency(client, user.id, endpoint, idempotencyKey, bodyText, 200, responseBody);
+      await storeIdempotency(
+        client,
+        user.id,
+        endpoint,
+        idempotencyKey,
+        bodyText,
+        200,
+        responseBody,
+      );
       return jsonResponse(responseBody);
     }
 
@@ -141,15 +222,6 @@ function mealIdFromPath(pathname: string) {
   return parts[mealsIndex + 1];
 }
 
-function parseJsonBody(bodyText: string): Record<string, unknown> {
-  if (!bodyText) return {};
-  try {
-    return JSON.parse(bodyText);
-  } catch (_) {
-    throw new ApiError("INVALID_INPUT", "Request body must be valid JSON", 400, false);
-  }
-}
-
 function validateMealWrite(body: Record<string, unknown>) {
   requireString(body.client_id, "client_id");
   requireString(body.title, "title");
@@ -158,10 +230,17 @@ function validateMealWrite(body: Record<string, unknown>) {
   requireString(body.logged_at, "logged_at");
   requireString(body.timezone, "timezone");
   if (!Array.isArray(body.items) || body.items.length === 0) {
-    throw new ApiError("INVALID_INPUT", "items must contain at least one item", 400, false);
+    throw new ApiError(
+      "INVALID_INPUT",
+      "items must contain at least one item",
+      400,
+      false,
+    );
   }
   for (const item of body.items) {
-    if (!isRecord(item)) throw new ApiError("INVALID_INPUT", "items must be objects", 400, false);
+    if (!isRecord(item)) {
+      throw new ApiError("INVALID_INPUT", "items must be objects", 400, false);
+    }
     requireString(item.client_id, "items.client_id");
     requireString(item.name, "items.name");
     requireString(item.unit, "items.unit");
@@ -174,28 +253,36 @@ function validateMealWrite(body: Record<string, unknown>) {
 }
 
 function requireNumber(value: unknown, field: string, positive = false) {
-  if (typeof value !== "number" || Number.isNaN(value) || (positive ? value <= 0 : value < 0)) {
+  if (
+    typeof value !== "number" || Number.isNaN(value) ||
+    (positive ? value <= 0 : value < 0)
+  ) {
     throw new ApiError("INVALID_INPUT", `${field} is invalid`, 400, false);
   }
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-async function readMeal(client: ReturnType<typeof serviceClient>, userId: string, mealId: string) {
+async function readMeal(
+  client: ReturnType<typeof serviceClient>,
+  userId: string,
+  mealId: string,
+) {
   const { data, error } = await client
     .from("meals")
     .select("*, meal_items(*)")
     .eq("user_id", userId)
     .eq("id", mealId)
+    .is("deleted_at", null)
     .maybeSingle();
   if (error) throw error;
   if (!data) throw new ApiError("NOT_FOUND", "Meal not found", 404, false);
   return normalizeMealRow(data);
 }
 
-async function readRollupForMeal(client: ReturnType<typeof serviceClient>, userId: string, meal: Record<string, unknown>) {
+async function readRollupForMeal(
+  client: ReturnType<typeof serviceClient>,
+  userId: string,
+  meal: Record<string, unknown>,
+) {
   const day = mealDay(meal);
   const { data, error } = await client
     .from("daily_rollups")
@@ -207,7 +294,11 @@ async function readRollupForMeal(client: ReturnType<typeof serviceClient>, userI
   return data;
 }
 
-async function readCorrectionEvents(client: ReturnType<typeof serviceClient>, userId: string, mealId: string) {
+async function readCorrectionEvents(
+  client: ReturnType<typeof serviceClient>,
+  userId: string,
+  mealId: string,
+) {
   const { data, error } = await client
     .from("correction_events")
     .select("*")
@@ -232,13 +323,16 @@ function normalizeMealRow(row: Record<string, unknown>) {
 }
 
 function isDateString(value: string) {
-  return /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(new Date(`${value}T00:00:00.000Z`).getTime());
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) &&
+    !Number.isNaN(new Date(`${value}T00:00:00.000Z`).getTime());
 }
 
 function mealDay(meal: Record<string, unknown>) {
   const loggedAt = new Date(meal.logged_at as string);
   if (Number.isNaN(loggedAt.getTime())) return "";
-  const timezone = typeof meal.timezone === "string" && meal.timezone.trim() ? meal.timezone : "UTC";
+  const timezone = typeof meal.timezone === "string" && meal.timezone.trim()
+    ? meal.timezone
+    : "UTC";
   try {
     const parts = new Intl.DateTimeFormat("en-CA", {
       timeZone: timezone,
@@ -256,64 +350,30 @@ function mealDay(meal: Record<string, unknown>) {
   return loggedAt.toISOString().slice(0, 10);
 }
 
-async function maybeReplayIdempotency(
-  client: ReturnType<typeof serviceClient>,
-  userId: string,
-  endpoint: string,
-  key: string,
-  bodyText: string,
-) {
-  const requestHash = await sha256Hex(bodyText);
-  const { data: previous, error } = await client
-    .from("api_idempotency")
-    .select("request_hash, response_status, response_body")
-    .eq("user_id", userId)
-    .eq("endpoint", endpoint)
-    .eq("key", key)
-    .maybeSingle();
-  if (error) throw error;
-  if (!previous) return null;
-  if (previous.request_hash !== requestHash) {
-    throw new ApiError("IDEMPOTENCY_CONFLICT", "Idempotency key was reused with a different request body", 409, false);
-  }
-  return previous;
-}
-
-async function storeIdempotency(
-  client: ReturnType<typeof serviceClient>,
-  userId: string,
-  endpoint: string,
-  key: string,
-  bodyText: string,
-  responseStatus: number,
-  responseBody: Record<string, unknown>,
-) {
-  const { error } = await client.from("api_idempotency").insert({
-    user_id: userId,
-    endpoint,
-    key,
-    request_hash: await sha256Hex(bodyText),
-    response_status: responseStatus,
-    response_body: responseBody,
-  });
-  if (error) throw error;
-}
-
-async function sha256Hex(value: string) {
-  const bytes = new TextEncoder().encode(value);
-  const digest = await crypto.subtle.digest("SHA-256", bytes);
-  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
-}
-
 function mapPostgresError(error: { message?: string; code?: string }) {
   if (error.code === "22023") {
-    return new ApiError("INVALID_INPUT", error.message ?? "Invalid input", 400, false);
+    return new ApiError(
+      "INVALID_INPUT",
+      error.message ?? "Invalid input",
+      400,
+      false,
+    );
   }
-  if (error.code === "40001") {
-    return new ApiError("CONFLICT", error.message ?? "Revision conflict", 409, false);
+  if (error.code === "40001" || error.code === "P0001") {
+    return new ApiError(
+      "CONFLICT",
+      error.message ?? "Revision conflict",
+      409,
+      false,
+    );
   }
   if (error.code === "02000") {
-    return new ApiError("NOT_FOUND", error.message ?? "Meal not found", 404, false);
+    return new ApiError(
+      "NOT_FOUND",
+      error.message ?? "Meal not found",
+      404,
+      false,
+    );
   }
   return error;
 }

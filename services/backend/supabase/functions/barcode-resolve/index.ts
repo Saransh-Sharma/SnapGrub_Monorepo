@@ -1,5 +1,6 @@
 import { jsonResponse, optionsResponse } from "../_shared/cors.ts";
 import { ApiError, errorBody } from "../_shared/errors.ts";
+import { consumeRateLimit } from "../_shared/rate_limit.ts";
 import { requireUser, serviceClient } from "../_shared/supabase.ts";
 import { brandedProductToFoodResult, draftFromFoodResult } from "../_shared/multimodal.ts";
 
@@ -9,7 +10,7 @@ Deno.serve(async (req) => {
 
   try {
     if (req.method !== "POST") throw new ApiError("INVALID_INPUT", "Method not allowed", 405);
-    await requireUser(req);
+    const user = await requireUser(req);
     const body = await req.json().catch(() => {
       throw new ApiError("INVALID_INPUT", "Request body must be valid JSON", 400, false);
     }) as Record<string, unknown>;
@@ -17,9 +18,11 @@ Deno.serve(async (req) => {
     if (barcode.length < 6) throw new ApiError("INVALID_INPUT", "barcode is required", 400, false);
     const timezone = typeof body.timezone === "string" && body.timezone.trim() ? body.timezone.trim() : "UTC";
     const client = serviceClient();
+    await consumeRateLimit(client, user.id, "barcode:resolve", 60, 30);
 
     const local = await readLocalProduct(client, barcode);
     if (local) {
+      await clearBarcodeMiss(client, barcode);
       const product = brandedProductToFoodResult(local);
       return jsonResponse({
         barcode,
@@ -32,8 +35,17 @@ Deno.serve(async (req) => {
       });
     }
 
-    const off = await fetchOpenFoodFacts(barcode);
+    const cachedMiss = await readBarcodeMiss(client, barcode);
+    if (cachedMiss) {
+      return notFoundResponse(barcode, requestId, missReason(cachedMiss.reason));
+    }
+
+    const off = await fetchOpenFoodFacts(barcode).catch(async () => {
+      await cacheBarcodeMiss(client, barcode, "provider_unavailable", 5 * 60);
+      return null;
+    });
     if (off) {
+      await clearBarcodeMiss(client, barcode);
       const cached = await cacheOpenFoodFactsProduct(client, barcode, off);
       const product = brandedProductToFoodResult(cached);
       return jsonResponse({
@@ -47,20 +59,25 @@ Deno.serve(async (req) => {
       });
     }
 
-    return jsonResponse({
-      barcode,
-      status: "not_found",
-      product: null,
-      draft: null,
-      fallback_reason: "Barcode was not found. Add the product manually or use label OCR.",
-      server_time: new Date().toISOString(),
-      request_id: requestId,
-    });
+    await cacheBarcodeMiss(client, barcode, "not_found", 24 * 60 * 60);
+    return notFoundResponse(barcode, requestId, "Barcode was not found. Add the product manually or use label OCR.");
   } catch (error) {
     const status = error instanceof ApiError ? error.status : 500;
     return jsonResponse(errorBody(error, requestId), status);
   }
 });
+
+function notFoundResponse(barcode: string, requestId: string, fallbackReason: string) {
+  return jsonResponse({
+    barcode,
+    status: "not_found",
+    product: null,
+    draft: null,
+    fallback_reason: fallbackReason,
+    server_time: new Date().toISOString(),
+    request_id: requestId,
+  });
+}
 
 async function readLocalProduct(client: ReturnType<typeof serviceClient>, barcode: string) {
   const { data, error } = await client
@@ -75,14 +92,65 @@ async function readLocalProduct(client: ReturnType<typeof serviceClient>, barcod
 }
 
 async function fetchOpenFoodFacts(barcode: string) {
-  const response = await fetch(
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5_000);
+  let response: Response;
+  try {
+    response = await fetch(
     `https://world.openfoodfacts.org/api/v2/product/${barcode}.json?fields=code,product_name,brands,serving_quantity,serving_size,nutriments,ingredients_text`,
-    { headers: { "user-agent": "SnapGrub MVP - contact@snapgrub.app" } },
-  );
+      { headers: { "user-agent": "SnapGrub MVP - contact@snapgrub.app" }, signal: controller.signal },
+    );
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") return null;
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
   if (!response.ok) return null;
   const raw = await response.json().catch(() => null) as Record<string, unknown> | null;
   if (!raw || raw.status !== 1 || !raw.product) return null;
   return raw.product as Record<string, unknown>;
+}
+
+async function readBarcodeMiss(client: ReturnType<typeof serviceClient>, barcode: string) {
+  const { data, error } = await client
+    .from("barcode_lookup_misses")
+    .select("reason, expires_at")
+    .eq("barcode", barcode)
+    .gt("expires_at", new Date().toISOString())
+    .maybeSingle();
+  if (error) throw error;
+  return data as { reason: string; expires_at: string } | null;
+}
+
+async function cacheBarcodeMiss(
+  client: ReturnType<typeof serviceClient>,
+  barcode: string,
+  reason: "not_found" | "provider_unavailable",
+  ttlSeconds: number,
+) {
+  const { error } = await client
+    .from("barcode_lookup_misses")
+    .upsert({
+      barcode,
+      provider: "open_food_facts",
+      reason,
+      checked_at: new Date().toISOString(),
+      expires_at: new Date(Date.now() + ttlSeconds * 1000).toISOString(),
+    }, { onConflict: "barcode" });
+  if (error) throw error;
+}
+
+async function clearBarcodeMiss(client: ReturnType<typeof serviceClient>, barcode: string) {
+  const { error } = await client.from("barcode_lookup_misses").delete().eq("barcode", barcode);
+  if (error) throw error;
+}
+
+function missReason(reason: string) {
+  if (reason === "provider_unavailable") {
+    return "Barcode lookup provider is temporarily unavailable. Add the product manually or use label OCR.";
+  }
+  return "Barcode was not found. Add the product manually or use label OCR.";
 }
 
 async function cacheOpenFoodFactsProduct(

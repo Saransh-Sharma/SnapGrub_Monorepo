@@ -1,9 +1,10 @@
 import { jsonResponse, optionsResponse } from "../_shared/cors.ts";
 import { ApiError, errorBody } from "../_shared/errors.ts";
+import { analysisResponseForJob, persistRuleAnalysis, readExistingAnalysisJob } from "../_shared/analysis_repository.ts";
+import { consumeRateLimit } from "../_shared/rate_limit.ts";
 import { requireUser, serviceClient } from "../_shared/supabase.ts";
 import { optionalString, requireString } from "../_shared/validation.ts";
 import { buildDraftFromText } from "../_shared/multimodal.ts";
-import type { EditableMealDraft } from "../_shared/multimodal.ts";
 
 Deno.serve(async (req) => {
   const requestId = crypto.randomUUID();
@@ -20,9 +21,11 @@ Deno.serve(async (req) => {
     const locale = requireString(body.locale, "locale");
     const timezone = requireString(body.timezone, "timezone");
     const client = serviceClient();
-    const existing = await readExistingJob(client, user.id, clientRequestId);
-    if (existing) return jsonResponse(await responseForJob(client, existing, requestId));
+    const existing = await readExistingAnalysisJob(client, user.id, clientRequestId);
+    if (existing) return jsonResponse(await analysisResponseForJob(client, existing, requestId));
+    await consumeRateLimit(client, user.id, "analysis:voice", 60 * 60, 120);
 
+    const startedAt = performance.now();
     const result = buildDraftFromText({
       text: transcript,
       source: "voice",
@@ -32,85 +35,18 @@ Deno.serve(async (req) => {
       cuisineHints: Array.isArray(body.cuisine_hints) ? body.cuisine_hints.map(String) : [],
       transcriptConfidence: typeof body.transcript_confidence === "number" ? body.transcript_confidence : null,
     });
-    const job = await persistAnalysis(client, user.id, clientRequestId, "voice", body, result);
-    return jsonResponse(await responseForJob(client, job, requestId));
+    const job = await persistRuleAnalysis(client, {
+      userId: user.id,
+      clientRequestId,
+      mode: "voice",
+      inputPayload: body,
+      result,
+      modelName: "phase5-voice-parser",
+      latencyMs: Math.round(performance.now() - startedAt),
+    });
+    return jsonResponse(await analysisResponseForJob(client, job, requestId));
   } catch (error) {
     const status = error instanceof ApiError ? error.status : 500;
     return jsonResponse(errorBody(error, requestId), status);
   }
 });
-
-async function readExistingJob(client: ReturnType<typeof serviceClient>, userId: string, clientRequestId: string) {
-  const { data, error } = await client
-    .from("analysis_jobs")
-    .select("*")
-    .eq("user_id", userId)
-    .eq("client_request_id", clientRequestId)
-    .maybeSingle();
-  if (error) throw error;
-  return data;
-}
-
-async function persistAnalysis(
-  client: ReturnType<typeof serviceClient>,
-  userId: string,
-  clientRequestId: string,
-  mode: string,
-  inputPayload: Record<string, unknown>,
-  result: EditableMealDraft,
-) {
-  const { data: job, error: jobError } = await client
-    .from("analysis_jobs")
-    .insert({
-      user_id: userId,
-      client_request_id: clientRequestId,
-      analysis_mode: mode,
-      status: "completed",
-      input_payload: inputPayload,
-      provider: "snapgrub",
-      model_name: "phase5-voice-parser",
-      completed_at: new Date().toISOString(),
-    })
-    .select("*")
-    .single();
-  if (jobError) throw jobError;
-  const resultPayload = { ...result, provenance: { ...result.provenance, analysis_id: job.id } };
-  const { error: revisionError } = await client.from("analysis_revisions").insert({
-    analysis_job_id: job.id,
-    user_id: userId,
-    revision_no: 1,
-    title: result.title,
-    meal_type: result.meal_type,
-    calories_kcal: result.total.calories_kcal,
-    protein_g: result.total.protein_g,
-    carbs_g: result.total.carbs_g,
-    fat_g: result.total.fat_g,
-    confidence_overall: result.confidence.overall,
-    confidence_breakdown: result.confidence,
-    warnings: result.confidence.warnings.map((warning) => warning.message),
-    provenance: resultPayload.provenance,
-    result_payload: resultPayload,
-  });
-  if (revisionError) throw revisionError;
-  return job;
-}
-
-async function responseForJob(client: ReturnType<typeof serviceClient>, job: Record<string, unknown>, requestId: string) {
-  const { data: revision, error } = await client
-    .from("analysis_revisions")
-    .select("result_payload")
-    .eq("analysis_job_id", job.id as string)
-    .order("revision_no", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (error) throw error;
-  return {
-    analysis_id: job.id,
-    status: job.status,
-    result: revision?.result_payload ?? null,
-    error_code: job.error_code ?? null,
-    retryable: false,
-    server_time: new Date().toISOString(),
-    request_id: requestId,
-  };
-}
