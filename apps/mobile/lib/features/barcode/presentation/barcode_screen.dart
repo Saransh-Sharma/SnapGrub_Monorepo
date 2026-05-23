@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:snapgrub/features/barcode/data/label_text_recognizer.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:snapgrub/app/e2e/e2e_ids.dart';
+import 'package:snapgrub/app/env/app_config_provider.dart';
 import 'package:snapgrub/core/widgets/app_scaffold.dart';
 import 'package:snapgrub/features/meal_editor/domain/meal.dart';
 import 'package:snapgrub/features/multimodal/data/multimodal_remote_service.dart';
@@ -41,11 +43,23 @@ class _BarcodeScreenState extends ConsumerState<BarcodeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isE2e = ref.watch(appConfigProvider).isE2e;
     return AppScaffold(
       title: 'Barcode',
       child: ListView(
         children: [
-          if (!_notFound) ...[
+          if (isE2e && !_notFound) ...[
+            E2eId(
+              id: 'barcode.e2e_unknown',
+              child: OutlinedButton.icon(
+                onPressed: _useE2eUnknownBarcode,
+                icon: const Icon(Icons.qr_code_2),
+                label: const Text('E2E unknown barcode'),
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+          if (!_notFound && !isE2e) ...[
             AspectRatio(
               aspectRatio: 1,
               child: ClipRRect(
@@ -58,14 +72,19 @@ class _BarcodeScreenState extends ConsumerState<BarcodeScreen> {
             ),
             const SizedBox(height: 16),
             if (_handling) const LinearProgressIndicator(),
+          ] else if (!_notFound && isE2e) ...[
+            if (_handling) const LinearProgressIndicator(),
           ] else ...[
             Text('Barcode ${_barcode ?? ''}',
                 style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 12),
-            TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                  labelText: 'Product name', border: OutlineInputBorder()),
+            E2eId(
+              id: 'barcode.product_name',
+              child: TextField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                    labelText: 'Product name', border: OutlineInputBorder()),
+              ),
             ),
             const SizedBox(height: 12),
             Row(
@@ -84,16 +103,23 @@ class _BarcodeScreenState extends ConsumerState<BarcodeScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: () => _openManualDraft(),
-              icon: const Icon(Icons.edit),
-              label: const Text('Review custom product'),
+            E2eId(
+              id: 'barcode.review_custom_product',
+              child: FilledButton.icon(
+                onPressed: () => _openManualDraft(),
+                icon: const Icon(Icons.edit),
+                label: const Text('Review custom product'),
+              ),
             ),
             const SizedBox(height: 8),
-            OutlinedButton.icon(
-              onPressed: _handling ? null : _runLabelOcr,
-              icon: const Icon(Icons.document_scanner),
-              label: const Text('Use label OCR'),
+            E2eId(
+              id: 'barcode.use_label_ocr',
+              child: OutlinedButton.icon(
+                onPressed:
+                    _handling ? null : (isE2e ? _runE2eLabelOcr : _runLabelOcr),
+                icon: const Icon(Icons.document_scanner),
+                label: const Text('Use label OCR'),
+              ),
             ),
             TextButton(
               onPressed: _resetScanner,
@@ -111,12 +137,23 @@ class _BarcodeScreenState extends ConsumerState<BarcodeScreen> {
   }
 
   Widget _numberField(TextEditingController controller, String label) {
-    return TextField(
-      controller: controller,
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      decoration:
-          InputDecoration(labelText: label, border: const OutlineInputBorder()),
+    return E2eId(
+      id: 'barcode.${label.toLowerCase()}',
+      child: TextField(
+        controller: controller,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        decoration: InputDecoration(
+            labelText: label, border: const OutlineInputBorder()),
+      ),
     );
+  }
+
+  void _useE2eUnknownBarcode() {
+    setState(() {
+      _barcode = '0000000000000';
+      _notFound = true;
+      _error = 'E2E barcode was not found.';
+    });
   }
 
   Future<void> _onDetect(BarcodeCapture capture) async {
@@ -170,10 +207,7 @@ class _BarcodeScreenState extends ConsumerState<BarcodeScreen> {
     try {
       final image = await ImagePicker().pickImage(source: ImageSource.camera);
       if (image == null) return;
-      final recognizer = TextRecognizer(script: TextRecognitionScript.latin);
-      final recognized =
-          await recognizer.processImage(InputImage.fromFilePath(image.path));
-      await recognizer.close();
+      final ocrText = await recognizeLabelText(image.path);
       final state = await ref.read(profileControllerProvider.future);
       final profile = state.profile;
       if (profile == null) throw StateError('Profile is not available.');
@@ -181,10 +215,37 @@ class _BarcodeScreenState extends ConsumerState<BarcodeScreen> {
           await ref.read(multimodalRemoteServiceProvider).parseLabelText(
                 userId: profile.id,
                 profile: profile,
-                ocrText: recognized.text,
+                ocrText: ocrText,
                 barcode: _barcode,
                 productNameHint: _nameController.text.trim().isEmpty
                     ? null
+                    : _nameController.text.trim(),
+              );
+      if (mounted) context.go('/meal-editor', extra: draft);
+    } catch (error) {
+      if (mounted) setState(() => _error = error.toString());
+    } finally {
+      if (mounted) setState(() => _handling = false);
+    }
+  }
+
+  Future<void> _runE2eLabelOcr() async {
+    setState(() {
+      _handling = true;
+      _error = null;
+    });
+    try {
+      final state = await ref.read(profileControllerProvider.future);
+      final profile = state.profile;
+      if (profile == null) throw StateError('Profile is not available.');
+      final draft =
+          await ref.read(multimodalRemoteServiceProvider).parseLabelText(
+                userId: profile.id,
+                profile: profile,
+                ocrText: 'E2E label 420 calories 24g protein',
+                barcode: _barcode,
+                productNameHint: _nameController.text.trim().isEmpty
+                    ? 'E2E label product'
                     : _nameController.text.trim(),
               );
       if (mounted) context.go('/meal-editor', extra: draft);
