@@ -1,0 +1,48 @@
+appId: ${APP_ID}
+---
+- tapOn:
+    id: "home.manual"
+- extendedWaitUntil:
+    visible:
+      id: "scaffold.meal_editor"
+    timeout: 10000
+- tapOn:
+    id: "meal.title"
+- inputText: "${E2E_MANUAL_MEAL_TITLE}"
+- tapOn:
+    id: "meal.item.food"
+- inputText: "Paneer bowl"
+- pressKey: "enter"
+- tapOn:
+    id: "meal.item.kcal"
+- eraseText: 100
+- inputText: "520"
+- pressKey: "enter"
+- tapOn:
+    id: "meal.item.protein"
+- eraseText: 100
+- inputText: "32"
+- pressKey: "enter"
+- tapOn:
+    id: "meal.item.carbs"
+- eraseText: 100
+- inputText: "45"
+- pressKey: "enter"
+- tapOn:
+    id: "meal.item.fat"
+- eraseText: 100
+- inputText: "18"
+- pressKey: "enter"
+- scrollUntilVisible:
+    element:
+      id: "meal.save"
+    direction: DOWN
+    visibilityPercentage: 50
+- tapOn:
+    id: "meal.save"
+- extendedWaitUntil:
+    visible:
+      id: "scaffold.journal"
+    timeout: 10000
+- assertVisible:
+    id: "${E2E_MANUAL_MEAL_ID}"

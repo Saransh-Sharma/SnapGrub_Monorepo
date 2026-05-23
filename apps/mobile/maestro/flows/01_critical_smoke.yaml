@@ -1,0 +1,264 @@
+appId: ${APP_ID}
+name: 01_critical_smoke
+tags:
+  - e2e
+  - critical
+---
+- clearKeychain
+- clearState
+- launchApp
+- runFlow: ../common/auth_onboarding.yaml
+- runFlow: ../common/create_manual_meal.yaml
+- tapOn:
+    id: "journal.duplicate"
+- assertVisible:
+    id: "${E2E_MANUAL_MEAL_COPY_ID}"
+- tapOn:
+    id: "journal.edit"
+- extendedWaitUntil:
+    visible:
+      id: "scaffold.meal_editor"
+    timeout: 10000
+- tapOn:
+    id: "meal.title"
+- eraseText: 100
+- inputText: "${E2E_EDITED_MEAL_TITLE}"
+- pressKey: "enter"
+- scrollUntilVisible:
+    element:
+      id: "meal.save"
+    direction: DOWN
+    visibilityPercentage: 50
+- tapOn:
+    id: "meal.save"
+- extendedWaitUntil:
+    visible:
+      id: "scaffold.journal"
+    timeout: 10000
+- assertVisible:
+    id: "${E2E_EDITED_MEAL_ID}"
+- tapOn:
+    id: "journal.edit"
+- tapOn:
+    id: "meal.save_template"
+- tapOn:
+    id: "nav.home"
+- scrollUntilVisible:
+    element:
+      id: "home.foods"
+    direction: DOWN
+    visibilityPercentage: 50
+- tapOn:
+    id: "home.foods"
+- extendedWaitUntil:
+    visible:
+      id: "scaffold.custom_foods"
+    timeout: 10000
+- tapOn:
+    id: "custom_foods.add"
+- tapOn:
+    id: "custom_foods.name"
+- inputText: "${E2E_CUSTOM_FOOD_NAME}"
+- tapOn:
+    id: "custom_foods.save"
+- assertVisible:
+    id: "custom_foods.item"
+- tapOn:
+    id: "nav.home"
+- tapOn:
+    id: "snapstrip.text"
+- extendedWaitUntil:
+    visible:
+      id: "scaffold.text_meal"
+    timeout: 10000
+- tapOn:
+    id: "text_entry.meal"
+- eraseText: 100
+- inputText: "${E2E_TEXT_MEAL_INPUT}"
+- tapOn:
+    id: "text_entry.review"
+- extendedWaitUntil:
+    visible:
+      id: "scaffold.meal_editor"
+    timeout: 10000
+- tapOn:
+    id: "meal.title"
+- eraseText: 100
+- inputText: "${E2E_TEXT_MEAL_TITLE}"
+- pressKey: "enter"
+- scrollUntilVisible:
+    element:
+      id: "meal.save"
+    direction: DOWN
+    visibilityPercentage: 50
+- tapOn:
+    id: "meal.save"
+- extendedWaitUntil:
+    visible:
+      id: "scaffold.journal"
+    timeout: 10000
+- assertVisible:
+    id: "${E2E_TEXT_MEAL_ID}"
+- tapOn:
+    id: "nav.home"
+- tapOn:
+    id: "snapstrip.voice"
+- extendedWaitUntil:
+    visible:
+      id: "scaffold.voice_meal"
+    timeout: 10000
+- tapOn:
+    id: "voice_entry.transcript"
+- eraseText: 100
+- inputText: "${E2E_VOICE_MEAL_INPUT}"
+- tapOn:
+    id: "voice_entry.review"
+- extendedWaitUntil:
+    visible:
+      id: "scaffold.meal_editor"
+    timeout: 10000
+- tapOn:
+    id: "meal.title"
+- eraseText: 100
+- inputText: "${E2E_VOICE_MEAL_TITLE}"
+- pressKey: "enter"
+- scrollUntilVisible:
+    element:
+      id: "meal.save"
+    direction: DOWN
+    visibilityPercentage: 50
+- tapOn:
+    id: "meal.save"
+- extendedWaitUntil:
+    visible:
+      id: "scaffold.journal"
+    timeout: 10000
+- assertVisible:
+    id: "${E2E_VOICE_MEAL_ID}"
+- tapOn:
+    id: "nav.home"
+- tapOn:
+    id: "snapstrip.barcode"
+- extendedWaitUntil:
+    visible:
+      id: "scaffold.barcode"
+    timeout: 10000
+- tapOn:
+    id: "barcode.e2e_unknown"
+- tapOn:
+    id: "barcode.product_name"
+- inputText: "${E2E_UNKNOWN_BAR_TITLE}"
+- tapOn:
+    id: "barcode.calories"
+- inputText: "350"
+- tapOn:
+    id: "barcode.review_custom_product"
+- extendedWaitUntil:
+    visible:
+      id: "scaffold.meal_editor"
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      id: "meal.save"
+    direction: DOWN
+    visibilityPercentage: 50
+- tapOn:
+    id: "meal.save"
+- extendedWaitUntil:
+    visible:
+      id: "scaffold.journal"
+    timeout: 10000
+- assertVisible:
+    id: "${E2E_UNKNOWN_BAR_ID}"
+- tapOn:
+    id: "nav.home"
+- tapOn:
+    id: "snapstrip.fixture_photo"
+- extendedWaitUntil:
+    visible:
+      id: "scaffold.meal_editor"
+    timeout: 15000
+- assertVisible:
+    id: "meal.title"
+- tapOn:
+    id: "meal.title"
+- eraseText: 100
+- inputText: "${E2E_PHOTO_MEAL_TITLE}"
+- pressKey: "enter"
+- scrollUntilVisible:
+    element:
+      id: "meal.save"
+    direction: DOWN
+    visibilityPercentage: 50
+- tapOn:
+    id: "meal.save"
+- extendedWaitUntil:
+    visible:
+      id: "scaffold.journal"
+    timeout: 10000
+- assertVisible:
+    id: "${E2E_PHOTO_MEAL_ID}"
+- tapOn:
+    id: "nav.home"
+- tapOn:
+    id: "home.sync"
+- assertVisible:
+    id: "scaffold.today"
+- scrollUntilVisible:
+    element:
+      id: "home.progress"
+    direction: DOWN
+    visibilityPercentage: 50
+- tapOn:
+    id: "home.progress"
+- assertVisible:
+    id: "scaffold.progress"
+- tapOn:
+    id: "nav.home"
+- tapOn:
+    id: "home.settings"
+- tapOn:
+    id: "settings.privacy"
+- tapOn:
+    id: "privacy.ai_consent"
+- tapOn:
+    id: "privacy.ai_consent.toggle"
+- tapOn:
+    id: "home.settings"
+- tapOn:
+    id: "settings.privacy"
+- tapOn:
+    id: "privacy.media_retention"
+- tapOn:
+    id: "privacy.media_retention.save_originals"
+- tapOn:
+    id: "home.settings"
+- tapOn:
+    id: "settings.privacy"
+- tapOn:
+    id: "privacy.export"
+- tapOn:
+    id: "privacy.export.create"
+- extendedWaitUntil:
+    visible:
+      id: "privacy.export.status"
+    timeout: 10000
+- tapOn:
+    id: "nav.home"
+- tapOn:
+    id: "home.settings"
+- tapOn:
+    id: "settings.privacy"
+- tapOn:
+    id: "privacy.delete_account"
+- assertNotVisible:
+    id: "screen.auth"
+- tapOn:
+    id: "privacy.delete.confirmation"
+- inputText: "DELETE"
+- tapOn:
+    id: "privacy.delete.submit"
+- extendedWaitUntil:
+    visible:
+      id: "screen.auth"
+    timeout: 10000
