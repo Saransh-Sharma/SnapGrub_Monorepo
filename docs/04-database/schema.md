@@ -1,6 +1,6 @@
 # Database Schema
 
-Migration SQL is the final source of truth. This page summarizes the current Phase 0-8 schema plus backend hardening migrations through `000018` so developers can understand ownership, access patterns, and safe changes.
+Migration SQL is the final source of truth. This page summarizes the current Phase 0-8 schema plus backend hardening migrations through `000019` so developers can understand ownership, access patterns, and safe changes.
 
 ## Identity And Settings
 

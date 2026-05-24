@@ -25,7 +25,7 @@ supabase db reset
 - `daily_rollups` are derived rows refreshed by `public.refresh_daily_rollup`; clients read only.
 - Phase 4 analysis tables are created in `000009_phase4_photo_analysis.sql`.
 - Phase 8 privacy/export/delete tables and helper RPCs are created in `000013_phase8_privacy_export_delete.sql`.
-- Backend hardening for runtime grants, retention backfill, day listing, remediation, barcode miss caching, invocation privacy, custom-food ownership, and safer cleanup is layered through `000014`-`000018`.
+- Backend hardening for runtime grants, retention backfill, day listing, remediation, barcode miss caching, invocation privacy, custom-food ownership, safer cleanup, and atomic rule-analysis persistence is layered through `000014`-`000019`.
 - `source=photo` meal writes are allowed only through `public.upsert_user_meal` after validating completed owned analysis and asset references.
 - `exports-create` writes artifact metadata to `export_requests`; clients should not write these columns directly.
 - `account-delete` writes `account_deletion_requests`; clients should not insert or update deletion audit rows directly.

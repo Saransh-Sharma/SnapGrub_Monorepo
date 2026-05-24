@@ -20,6 +20,7 @@ The legacy compatibility checklist remains in [../qa/release-checklist.md](../qa
   - `npm run backend:test:insights`
   - `npm run backend:test:privacy`
   - `npm run backend:test:remediation`
+  - `npm run backend:test:remediation-unit`
 - Staging Supabase migrations/functions are deployed.
 - Real AI provider secrets are configured server-side only.
 - Weekly insights and media cleanup schedules are active and observed in staging.

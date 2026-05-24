@@ -27,9 +27,10 @@ npm run backend:typecheck
 
 ## Photo Analysis Env
 
-Copy `services/backend/supabase/.env.example` and set backend-only AI values in the Supabase runtime environment:
+Copy `services/backend/supabase/functions/.env.example` to `services/backend/supabase/functions/.env` and set backend-only AI values in the Supabase Edge Function runtime environment:
 
 ```sh
+CORS_ALLOW_ORIGIN=http://localhost:3000
 AI_PROVIDER=mock
 GEMINI_API_KEY=
 GEMINI_PRIMARY_MODEL=gemini-3.1-flash-lite
@@ -39,7 +40,7 @@ AI_INPUT_PRICE_PER_1M=0.25
 AI_OUTPUT_PRICE_PER_1M=1.50
 ```
 
-Use `AI_PROVIDER=mock` for local analysis without external provider keys. Gemini/OpenAI keys must never be added to mobile env files or committed.
+`CORS_ALLOW_ORIGIN` and `AI_PROVIDER` are required by the Edge Functions runtime. Use `AI_PROVIDER=mock` for local analysis without external provider keys. Gemini/OpenAI keys must never be added to mobile env files or committed.
 
 ## Local Supabase
 

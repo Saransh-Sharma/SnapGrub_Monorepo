@@ -22,6 +22,7 @@ Supabase Postgres stores authenticated user data, feature flags, analytics event
 - `000016_list_user_meals_for_day.sql`
 - `000017_backend_remediation.sql`
 - `000018_backend_hardening_followups.sql`
+- `000019_persist_rule_analysis_rpc.sql`
 
 ## Rules
 

@@ -7,7 +7,7 @@
 | R-003 | RLS regression exposes cross-user data | Backend | Medium | Critical | Keep RLS harness in CI and add tests for every user-owned table | Open |
 | R-004 | API contract drift between mobile and backend | Full stack | Medium | High | Use OpenAPI as source of truth and enforce generated client freshness | Open |
 | R-005 | Offline replay creates duplicate or conflicting server state | Full stack | Medium | High | Preserve `client_request_id`, use idempotency/revision checks where available, test replay/conflict cases | Open |
-| R-006 | AI provider cost, outage, schema drift, or secret exposure | AI/backend | Medium | High | Backend-only provider calls, `AI_PROVIDER=mock` local fallback, env-configured models/prices, model invocation logs, and no provider keys in mobile | Open |
+| R-006 | AI provider cost, outage, schema drift, or secret exposure | AI/backend | Medium | High | Backend-only provider calls, explicit `AI_PROVIDER` config, env-configured models/prices, model invocation logs, and no provider keys in mobile | Open |
 | R-007 | Phase 3 template/custom-food direct table sync bypasses server validation | Full stack | Medium | Medium | Keep RLS strict, validate locally, add Edge Function later if cross-table validation becomes necessary | Open |
 | R-008 | `/packages/` ignored by Swift `Packages/` rule hides contracts | Engineering | Medium | High | Keep `/packages/` explicitly unignored and ensure contract checks run in CI | Mitigated |
 | R-009 | Meal timezone rollup day is computed inconsistently | Backend/mobile | Medium | High | Use stored meal timezone, test boundary cases, keep rollup logic centralized | Open |
