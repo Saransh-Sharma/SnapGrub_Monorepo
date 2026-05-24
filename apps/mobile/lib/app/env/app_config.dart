@@ -32,7 +32,10 @@ class AppConfig {
 
   bool get isDev => environment == 'dev';
   bool get isE2e => e2eEnabled;
-  bool get isE2eMock => e2eEnabled && e2eBackend == 'mock';
-  bool get isE2eSupabase => e2eEnabled && e2eBackend == 'supabase';
-  bool get usesE2ePasswordAuth => e2eEnabled && e2eAuth == 'password';
+  String get normalizedE2eBackend => e2eBackend.trim().toLowerCase();
+  String get normalizedE2eAuth => e2eAuth.trim().toLowerCase();
+
+  bool get isE2eMock => e2eEnabled && normalizedE2eBackend == 'mock';
+  bool get isE2eSupabase => e2eEnabled && normalizedE2eBackend == 'supabase';
+  bool get usesE2ePasswordAuth => e2eEnabled && normalizedE2eAuth == 'password';
 }

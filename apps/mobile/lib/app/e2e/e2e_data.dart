@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -23,7 +24,7 @@ class E2eData {
       await db.into(db.featureFlagsLocal).insertOnConflictUpdate(
             FeatureFlagsLocalCompanion.insert(
               key: entry.key,
-              valueJson: entry.value == true ? 'true' : 'false',
+              valueJson: jsonEncode(entry.value),
             ),
           );
     }
@@ -34,7 +35,7 @@ class E2eData {
     final safe = normalized
         .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
         .replaceAll(RegExp(r'^-+|-+$'), '');
-    return 'e2e-$safe';
+    return 'e2e-${safe.isEmpty ? 'user' : safe}';
   }
 
   static MealDraft mockDraft({

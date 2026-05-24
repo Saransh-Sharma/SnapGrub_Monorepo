@@ -45,10 +45,14 @@ class SyncController extends AsyncNotifier<SyncStatus> {
 
     if (ref.read(appConfigProvider).isE2eMock) {
       state = const AsyncData(SyncStatus.syncing);
-      await ref
-          .read(outboxRepositoryProvider)
-          .markAllUserCommandsSynced(userId);
-      state = const AsyncData(SyncStatus.synced);
+      try {
+        await ref
+            .read(outboxRepositoryProvider)
+            .markAllUserCommandsSynced(userId);
+        state = const AsyncData(SyncStatus.synced);
+      } catch (_) {
+        state = const AsyncData(SyncStatus.failed);
+      }
       return;
     }
 

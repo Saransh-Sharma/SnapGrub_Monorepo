@@ -24,7 +24,7 @@ UserDay userDayFor(DateTime instant, String timezone) {
 UserDay userDayWindow(DateTime day, String timezone) {
   final location = _locationOrUtc(timezone);
   final start = tz.TZDateTime(location, day.year, day.month, day.day);
-  final end = start.add(const Duration(days: 1));
+  final end = tz.TZDateTime(location, day.year, day.month, day.day + 1);
   return UserDay(
     day: DateTime(day.year, day.month, day.day),
     startUtc: start.toUtc(),

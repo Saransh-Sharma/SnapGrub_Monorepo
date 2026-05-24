@@ -10,14 +10,14 @@ final profileRemoteServiceProvider = Provider<ProfileRemoteService>((ref) {
 class ProfileRemoteService {
   const ProfileRemoteService(this._functions);
 
-  final SnapGrubFunctionClient? _functions;
+  final SnapGrubFunctionClient _functions;
 
-  bool get isConfigured => _functions?.isConfigured ?? false;
+  bool get isConfigured => _functions.isConfigured;
 
   Future<ProfileBootstrapResponseDto> bootstrap({
     required ProfileBootstrapRequestDto request,
   }) async {
-    final response = await _functions!.invokeJson(
+    final response = await _functions.invokeJson(
       'profile-bootstrap',
       body: request.toJson(),
     );
@@ -28,7 +28,7 @@ class ProfileRemoteService {
     required String clientRequestId,
     required SettingsPatchRequestDto request,
   }) async {
-    final response = await _functions!.invokeJson(
+    final response = await _functions.invokeJson(
       'settings-patch',
       method: HttpMethod.patch,
       headers: {'Idempotency-Key': clientRequestId},
