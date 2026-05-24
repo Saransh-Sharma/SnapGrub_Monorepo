@@ -1,6 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:snapgrub/data/db/drift/app_database.dart';
+import 'package:snapgrub/data/services/supabase_function_client.dart';
 import 'package:snapgrub/features/meal_editor/data/meal_remote_service.dart';
 import 'package:snapgrub/features/meal_editor/data/meal_repository.dart';
 import 'package:snapgrub/features/meal_editor/domain/meal.dart';
@@ -13,7 +14,7 @@ void main() {
 
     final repository = MealRepository(
       db: db,
-      remote: const MealRemoteService(null),
+      remote: const MealRemoteService(SnapGrubFunctionClient(null)),
       outbox: OutboxRepository(db),
     );
 

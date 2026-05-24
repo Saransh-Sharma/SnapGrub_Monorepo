@@ -19,7 +19,8 @@ appId: ${APP_ID}
 - inputText: "${E2E_DISPLAY_NAME}"
 - tapOn:
     id: "onboarding.next"
-- tapOn: "Maintain"
+- tapOn:
+    id: "onboarding.goal.maintain"
 - tapOn:
     id: "onboarding.next"
 - tapOn:

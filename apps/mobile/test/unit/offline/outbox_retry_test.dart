@@ -17,10 +17,16 @@ void main() {
     );
 
     var command = (await db.select(db.outboxCommands).get()).single;
-    for (var i = 0; i < OutboxRepository.maxRetryCount; i++) {
+    for (var i = 0; i < OutboxRepository.maxRetryCount - 1; i++) {
       await outbox.markFailed(command.id, retryable: true, error: 'network');
       command = (await db.select(db.outboxCommands).get()).single;
     }
+
+    expect(command.status, 'pending');
+    expect(command.nextRetryAt, isNotNull);
+
+    await outbox.markFailed(command.id, retryable: true, error: 'network');
+    command = (await db.select(db.outboxCommands).get()).single;
 
     expect(command.status, 'failed');
     expect(command.nextRetryAt, isNull);

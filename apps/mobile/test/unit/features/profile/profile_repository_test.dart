@@ -5,6 +5,7 @@ import 'package:snapgrub/data/db/drift/app_database.dart';
 import 'package:snapgrub/data/repositories/profile_repository.dart';
 import 'package:snapgrub/data/services/device_identity_service.dart';
 import 'package:snapgrub/data/services/profile_remote_service.dart';
+import 'package:snapgrub/data/services/supabase_function_client.dart';
 import 'package:snapgrub/offline/outbox/outbox_repository.dart';
 
 void main() {
@@ -54,7 +55,7 @@ void main() {
 
     final repository = ProfileRepository(
       db: db,
-      remote: const ProfileRemoteService(null),
+      remote: const ProfileRemoteService(SnapGrubFunctionClient(null)),
       outbox: OutboxRepository(db),
       deviceIdentity: const DeviceIdentityService(),
     );

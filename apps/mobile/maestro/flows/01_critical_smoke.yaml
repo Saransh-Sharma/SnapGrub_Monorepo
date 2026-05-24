@@ -10,11 +10,11 @@ tags:
 - runFlow: ../common/auth_onboarding.yaml
 - runFlow: ../common/create_manual_meal.yaml
 - tapOn:
-    id: "journal.duplicate"
+    id: "${E2E_MANUAL_MEAL_ID}.duplicate"
 - assertVisible:
     id: "${E2E_MANUAL_MEAL_COPY_ID}"
 - tapOn:
-    id: "journal.edit"
+    id: "${E2E_MANUAL_MEAL_COPY_ID}.edit"
 - extendedWaitUntil:
     visible:
       id: "scaffold.meal_editor"
@@ -38,7 +38,7 @@ tags:
 - assertVisible:
     id: "${E2E_EDITED_MEAL_ID}"
 - tapOn:
-    id: "journal.edit"
+    id: "${E2E_EDITED_MEAL_ID}.edit"
 - tapOn:
     id: "meal.save_template"
 - tapOn:

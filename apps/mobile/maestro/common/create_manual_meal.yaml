@@ -10,26 +10,26 @@ appId: ${APP_ID}
     id: "meal.title"
 - inputText: "${E2E_MANUAL_MEAL_TITLE}"
 - tapOn:
-    id: "meal.item.food"
+    id: "meal.item.0.food"
 - inputText: "Paneer bowl"
 - pressKey: "enter"
 - tapOn:
-    id: "meal.item.kcal"
+    id: "meal.item.0.kcal"
 - eraseText: 100
 - inputText: "520"
 - pressKey: "enter"
 - tapOn:
-    id: "meal.item.protein"
+    id: "meal.item.0.protein"
 - eraseText: 100
 - inputText: "32"
 - pressKey: "enter"
 - tapOn:
-    id: "meal.item.carbs"
+    id: "meal.item.0.carbs"
 - eraseText: 100
 - inputText: "45"
 - pressKey: "enter"
 - tapOn:
-    id: "meal.item.fat"
+    id: "meal.item.0.fat"
 - eraseText: 100
 - inputText: "18"
 - pressKey: "enter"
