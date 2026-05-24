@@ -38,6 +38,7 @@ class PhotoAnalysisRepository {
     String? userHintText,
   }) async {
     if (e2eMock) {
+      await _assets.markUploaded(asset.id);
       return E2eData.mockDraft(
         userId: asset.userId,
         timezone: profile.timezone,

@@ -297,12 +297,13 @@ class _BarcodeScreenState extends ConsumerState<BarcodeScreen> {
   }
 
   void _resetScanner() {
+    final isE2e = ref.read(appConfigProvider).isE2e;
     setState(() {
       _notFound = false;
       _barcode = null;
       _error = null;
     });
-    _scanner.start();
+    if (!isE2e) _scanner.start();
   }
 
   double _number(String value) => double.tryParse(value.trim()) ?? 0;

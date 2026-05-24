@@ -89,13 +89,22 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   onPressed: !config.hasSupabaseConfig || auth.isLoading
                       ? null
                       : () async {
-                          await ref
-                              .read(authControllerProvider.notifier)
-                              .requestMagicLink(_emailController.text.trim());
-                          setState(() {
-                            _error = null;
-                            _message = 'Check your email for a sign-in link.';
-                          });
+                          try {
+                            await ref
+                                .read(authControllerProvider.notifier)
+                                .requestMagicLink(_emailController.text.trim());
+                            if (!mounted) return;
+                            setState(() {
+                              _error = null;
+                              _message = 'Check your email for a sign-in link.';
+                            });
+                          } catch (error) {
+                            if (!mounted) return;
+                            setState(() {
+                              _message = null;
+                              _error = error.toString();
+                            });
+                          }
                         },
                   child: auth.isLoading
                       ? const SizedBox.square(
@@ -131,11 +140,13 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             email: _emailController.text.trim(),
             password: _passwordController.text,
           );
+      if (!mounted) return;
       setState(() {
         _error = null;
         _message = null;
       });
     } catch (error) {
+      if (!mounted) return;
       setState(() => _error = error.toString());
     }
   }

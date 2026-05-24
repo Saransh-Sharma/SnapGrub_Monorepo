@@ -55,8 +55,13 @@ class AuthController extends AsyncNotifier<AuthState> {
       return;
     }
     state = const AsyncLoading();
-    await client.auth.signInWithOtp(email: email);
-    state = const AsyncData(AuthState.signedOut());
+    try {
+      await client.auth.signInWithOtp(email: email);
+      state = const AsyncData(AuthState.signedOut());
+    } catch (error, stackTrace) {
+      state = AsyncError(error, stackTrace);
+      rethrow;
+    }
   }
 
   Future<void> signInWithPassword({
@@ -69,27 +74,34 @@ class AuthController extends AsyncNotifier<AuthState> {
     }
 
     state = const AsyncLoading();
-    if (config.isE2eMock) {
-      final userId = E2eData.userIdForEmail(email);
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_e2eUserIdKey, userId);
-      state = AsyncData(AuthState.signedIn(userId));
-      return;
-    }
+    try {
+      if (config.isE2eMock) {
+        final userId = E2eData.userIdForEmail(email);
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(_e2eUserIdKey, userId);
+        state = AsyncData(AuthState.signedIn(userId));
+        return;
+      }
 
-    final client = ref.read(supabaseClientProvider);
-    if (client == null) {
-      state = const AsyncData(AuthState.configurationMissing());
-      return;
+      final client = ref.read(supabaseClientProvider);
+      if (client == null) {
+        state = const AsyncData(AuthState.configurationMissing());
+        return;
+      }
+      final response = await client.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
+      final userId = response.user?.id;
+      state = AsyncData(
+        userId == null
+            ? const AuthState.signedOut()
+            : AuthState.signedIn(userId),
+      );
+    } catch (error, stackTrace) {
+      state = AsyncError(error, stackTrace);
+      rethrow;
     }
-    final response = await client.auth.signInWithPassword(
-      email: email,
-      password: password,
-    );
-    final userId = response.user?.id;
-    state = AsyncData(
-      userId == null ? const AuthState.signedOut() : AuthState.signedIn(userId),
-    );
   }
 
   Future<void> signOut() async {

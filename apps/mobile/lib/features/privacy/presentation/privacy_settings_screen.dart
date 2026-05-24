@@ -319,12 +319,13 @@ class _ExportDataScreenState extends ConsumerState<ExportDataScreen> {
     try {
       final response =
           await ref.read(privacyRemoteServiceProvider).getExport(id);
+      if (!mounted) return;
       setState(() {
         _exportRequest =
             Map<String, dynamic>.from(response['export_request'] as Map);
       });
     } catch (error) {
-      setState(() => _error = error.toString());
+      if (mounted) setState(() => _error = error.toString());
     } finally {
       if (mounted) setState(() => _loading = false);
     }

@@ -44,6 +44,7 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
   Future<void> _loadDraft() async {
     if (_draft != null) return;
     if (widget.initialDraft != null) {
+      if (!mounted) return;
       _syncTitleController(widget.initialDraft!);
       setState(() {
         _draft = widget.initialDraft;
@@ -52,12 +53,14 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
       return;
     }
     final contextData = await ref.read(homeUserContextProvider.future);
+    if (!mounted) return;
     if (contextData == null) return;
     final repo = ref.read(mealRepositoryProvider);
     final mealId = widget.mealId;
     if (mealId == null) {
       final draft = repo.newManualDraft(
           userId: contextData.userId, timezone: contextData.timezone);
+      if (!mounted) return;
       _syncTitleController(draft);
       setState(() {
         _draft = draft;
@@ -67,6 +70,7 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
     }
 
     final meal = await repo.getMeal(mealId);
+    if (!mounted) return;
     if (meal == null) {
       setState(() {
         _error = 'Meal not found.';
@@ -113,6 +117,7 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
           )
           .toList(),
     );
+    if (!mounted) return;
     _syncTitleController(draft);
     setState(() {
       _draft = draft;
@@ -243,6 +248,7 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
                     for (var i = 0; i < draft.items.length; i++)
                       _ItemEditor(
                         key: ValueKey(draft.items[i].id),
+                        index: i,
                         item: draft.items[i],
                         onDelete: draft.items.length == 1
                             ? null
@@ -395,11 +401,13 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
 
 class _ItemEditor extends StatefulWidget {
   const _ItemEditor({
+    required this.index,
     required this.item,
     required this.onDelete,
     super.key,
   });
 
+  final int index;
   final MealDraftItem item;
   final VoidCallback? onDelete;
 
@@ -435,7 +443,7 @@ class _ItemEditorState extends State<_ItemEditor> {
               children: [
                 Expanded(
                   child: E2eId(
-                    id: 'meal.item.food',
+                    id: 'meal.item.${widget.index}.food',
                     child: TextFormField(
                       initialValue: item.name,
                       decoration: const InputDecoration(labelText: 'Food'),
@@ -455,14 +463,14 @@ class _ItemEditorState extends State<_ItemEditor> {
               children: [
                 Expanded(
                     child: _NumberField(
-                        id: 'meal.item.qty',
+                        id: 'meal.item.${widget.index}.qty',
                         label: 'Qty',
                         initial: item.quantity,
                         onChanged: (v) => item.quantity = v)),
                 const SizedBox(width: 8),
                 Expanded(
                   child: E2eId(
-                    id: 'meal.item.unit',
+                    id: 'meal.item.${widget.index}.unit',
                     child: TextFormField(
                       initialValue: item.unit,
                       decoration: const InputDecoration(labelText: 'Unit'),
@@ -473,7 +481,7 @@ class _ItemEditorState extends State<_ItemEditor> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: _NumberField(
-                    id: 'meal.item.grams',
+                    id: 'meal.item.${widget.index}.grams',
                     label: 'Grams',
                     initial: item.gramsEstimated,
                     onChanged: (v) => item.gramsEstimated = v,
@@ -487,14 +495,14 @@ class _ItemEditorState extends State<_ItemEditor> {
               children: [
                 Expanded(
                     child: _NumberField(
-                        id: 'meal.item.kcal',
+                        id: 'meal.item.${widget.index}.kcal',
                         label: 'Kcal',
                         initial: item.caloriesKcal,
                         onChanged: (v) => item.caloriesKcal = v)),
                 const SizedBox(width: 8),
                 Expanded(
                     child: _NumberField(
-                        id: 'meal.item.protein',
+                        id: 'meal.item.${widget.index}.protein',
                         label: 'Protein',
                         initial: item.proteinG,
                         onChanged: (v) => item.proteinG = v)),
@@ -505,14 +513,14 @@ class _ItemEditorState extends State<_ItemEditor> {
               children: [
                 Expanded(
                     child: _NumberField(
-                        id: 'meal.item.carbs',
+                        id: 'meal.item.${widget.index}.carbs',
                         label: 'Carbs',
                         initial: item.carbsG,
                         onChanged: (v) => item.carbsG = v)),
                 const SizedBox(width: 8),
                 Expanded(
                     child: _NumberField(
-                        id: 'meal.item.fat',
+                        id: 'meal.item.${widget.index}.fat',
                         label: 'Fat',
                         initial: item.fatG,
                         onChanged: (v) => item.fatG = v)),
@@ -536,7 +544,7 @@ class _ItemEditorState extends State<_ItemEditor> {
             ],
             const SizedBox(height: 8),
             E2eId(
-              id: 'meal.item.notes',
+              id: 'meal.item.${widget.index}.notes',
               child: TextFormField(
                 initialValue: item.notes,
                 decoration: const InputDecoration(labelText: 'Notes'),

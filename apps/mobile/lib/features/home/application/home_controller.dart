@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:snapgrub/core/feature_flags/feature_flags.dart';
 import 'package:snapgrub/core/time/user_day.dart';
@@ -29,7 +31,7 @@ final todayMealsProvider = StreamProvider<List<Meal>>((ref) async* {
     yield const [];
     return;
   }
-  final day = nowInUserDay(context.timezone);
+  final day = ref.watch(userDayTickProvider(context.timezone));
   yield* ref
       .watch(mealRepositoryProvider)
       .watchMealsForDay(context.userId, day, timezone: context.timezone);
@@ -38,8 +40,21 @@ final todayMealsProvider = StreamProvider<List<Meal>>((ref) async* {
 final todayRollupProvider = StreamProvider<DailyRollup>((ref) async* {
   final context = await ref.watch(homeUserContextProvider.future);
   if (context == null) return;
-  final day = nowInUserDay(context.timezone);
+  final day = ref.watch(userDayTickProvider(context.timezone));
   yield* ref.watch(mealRepositoryProvider).watchRollup(context.userId, day);
+});
+
+final userDayTickProvider = Provider.family<DateTime, String>((ref, timezone) {
+  final day = nowInUserDay(timezone);
+  final window = userDayWindow(day, timezone);
+  final now = DateTime.now().toUtc();
+  final delay = window.endUtc.difference(now);
+  final timer = Timer(
+    delay.isNegative ? Duration.zero : delay + const Duration(seconds: 1),
+    ref.invalidateSelf,
+  );
+  ref.onDispose(timer.cancel);
+  return day;
 });
 
 class HomeUserContext {

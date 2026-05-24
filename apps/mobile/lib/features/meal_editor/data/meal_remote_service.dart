@@ -10,12 +10,12 @@ final mealRemoteServiceProvider = Provider<MealRemoteService>((ref) {
 class MealRemoteService {
   const MealRemoteService(this._functions);
 
-  final SnapGrubFunctionClient? _functions;
+  final SnapGrubFunctionClient _functions;
 
-  bool get isConfigured => _functions?.isConfigured ?? false;
+  bool get isConfigured => _functions.isConfigured;
 
   Future<MealListResponseDto> listMeals({String? day}) async {
-    final response = await _functions!.invokeJson(
+    final response = await _functions.invokeJson(
       day == null ? 'meals' : 'meals?day=$day',
       method: HttpMethod.get,
     );
@@ -26,7 +26,7 @@ class MealRemoteService {
     required String clientRequestId,
     required MealWriteRequestDto request,
   }) async {
-    final response = await _functions!.invokeJson(
+    final response = await _functions.invokeJson(
       'meals',
       headers: {'Idempotency-Key': clientRequestId},
       body: request.toJson(),
@@ -39,7 +39,7 @@ class MealRemoteService {
     required String clientRequestId,
     required MealWriteRequestDto request,
   }) async {
-    final response = await _functions!.invokeJson(
+    final response = await _functions.invokeJson(
       'meals/$mealId',
       method: HttpMethod.patch,
       headers: {'Idempotency-Key': clientRequestId},
@@ -53,7 +53,7 @@ class MealRemoteService {
     required String clientRequestId,
     int? expectedRevision,
   }) async {
-    final response = await _functions!.invokeJson(
+    final response = await _functions.invokeJson(
       'meals/$mealId',
       method: HttpMethod.delete,
       headers: {'Idempotency-Key': clientRequestId},

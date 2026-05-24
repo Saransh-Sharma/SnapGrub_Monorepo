@@ -113,6 +113,7 @@ class _OnboardingFlowScreenState extends ConsumerState<OnboardingFlowScreen> {
                                     .completeOnboarding(userId, draft);
                                 if (context.mounted) context.go('/home');
                               } catch (error) {
+                                if (!mounted) return;
                                 setState(() => _error = error
                                     .toString()
                                     .replaceFirst('Invalid argument(s): ', ''));

@@ -46,7 +46,7 @@ class _MealCard extends ConsumerWidget {
 
   final Meal meal;
 
-  static String _titleId(String title) {
+  static String _mealId(String title) {
     final slug = title
         .toLowerCase()
         .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
@@ -66,7 +66,7 @@ class _MealCard extends ConsumerWidget {
               children: [
                 Expanded(
                   child: E2eId(
-                    id: _titleId(meal.title),
+                    id: _mealId(meal.title),
                     child: Text(meal.title,
                         style: Theme.of(context).textTheme.titleMedium),
                   ),
@@ -82,7 +82,7 @@ class _MealCard extends ConsumerWidget {
               spacing: 8,
               children: [
                 E2eId(
-                  id: 'journal.edit',
+                  id: '${_mealId(meal.title)}.edit',
                   child: TextButton.icon(
                     onPressed: () => context.go('/meal-editor?id=${meal.id}'),
                     icon: const Icon(Icons.edit_outlined),
@@ -90,7 +90,7 @@ class _MealCard extends ConsumerWidget {
                   ),
                 ),
                 E2eId(
-                  id: 'journal.duplicate',
+                  id: '${_mealId(meal.title)}.duplicate',
                   child: TextButton.icon(
                     onPressed: () async {
                       await ref
@@ -102,7 +102,7 @@ class _MealCard extends ConsumerWidget {
                   ),
                 ),
                 E2eId(
-                  id: 'journal.delete',
+                  id: '${_mealId(meal.title)}.delete',
                   child: TextButton.icon(
                     onPressed: () async {
                       await ref.read(mealRepositoryProvider).deleteMeal(meal);

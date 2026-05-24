@@ -2,5 +2,4 @@
 /// iOS E2E simulator builds can omit the google_mlkit plugin (no arm64 sim).
 library;
 
-export 'label_text_recognizer_stub.dart'
-    if (dart.library.io) 'label_text_recognizer_mlkit.dart';
+export 'label_text_recognizer_mlkit.dart';
