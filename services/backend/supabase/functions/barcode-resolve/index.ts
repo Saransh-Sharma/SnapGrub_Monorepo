@@ -2,21 +2,35 @@ import { jsonResponse, optionsResponse } from "../_shared/cors.ts";
 import { ApiError, errorBody } from "../_shared/errors.ts";
 import { consumeRateLimit } from "../_shared/rate_limit.ts";
 import { requireUser, serviceClient } from "../_shared/supabase.ts";
-import { brandedProductToFoodResult, draftFromFoodResult } from "../_shared/multimodal.ts";
+import {
+  brandedProductToFoodResult,
+  draftFromFoodResult,
+} from "../_shared/multimodal.ts";
 
 Deno.serve(async (req) => {
   const requestId = crypto.randomUUID();
   if (req.method === "OPTIONS") return optionsResponse();
 
   try {
-    if (req.method !== "POST") throw new ApiError("INVALID_INPUT", "Method not allowed", 405);
+    if (req.method !== "POST") {
+      throw new ApiError("INVALID_INPUT", "Method not allowed", 405);
+    }
     const user = await requireUser(req);
     const body = await req.json().catch(() => {
-      throw new ApiError("INVALID_INPUT", "Request body must be valid JSON", 400, false);
+      throw new ApiError(
+        "INVALID_INPUT",
+        "Request body must be valid JSON",
+        400,
+        false,
+      );
     }) as Record<string, unknown>;
     const barcode = String(body.barcode ?? "").replace(/\D/g, "");
-    if (barcode.length < 6) throw new ApiError("INVALID_INPUT", "barcode is required", 400, false);
-    const timezone = typeof body.timezone === "string" && body.timezone.trim() ? body.timezone.trim() : "UTC";
+    if (barcode.length < 6) {
+      throw new ApiError("INVALID_INPUT", "barcode is required", 400, false);
+    }
+    const timezone = typeof body.timezone === "string" && body.timezone.trim()
+      ? body.timezone.trim()
+      : "UTC";
     const client = serviceClient();
     await consumeRateLimit(client, user.id, "barcode:resolve", 60, 30);
 
@@ -37,13 +51,24 @@ Deno.serve(async (req) => {
 
     const cachedMiss = await readBarcodeMiss(client, barcode);
     if (cachedMiss) {
-      return notFoundResponse(barcode, requestId, missReason(cachedMiss.reason));
+      return notFoundResponse(
+        barcode,
+        requestId,
+        missReason(cachedMiss.reason),
+      );
     }
 
-    const off = await fetchOpenFoodFacts(barcode).catch(async () => {
+    let off: Record<string, unknown> | null;
+    try {
+      off = await fetchOpenFoodFacts(barcode);
+    } catch (_) {
       await cacheBarcodeMiss(client, barcode, "provider_unavailable", 5 * 60);
-      return null;
-    });
+      return notFoundResponse(
+        barcode,
+        requestId,
+        missReason("provider_unavailable"),
+      );
+    }
     if (off) {
       await clearBarcodeMiss(client, barcode);
       const cached = await cacheOpenFoodFactsProduct(client, barcode, off);
@@ -60,14 +85,22 @@ Deno.serve(async (req) => {
     }
 
     await cacheBarcodeMiss(client, barcode, "not_found", 24 * 60 * 60);
-    return notFoundResponse(barcode, requestId, "Barcode was not found. Add the product manually or use label OCR.");
+    return notFoundResponse(
+      barcode,
+      requestId,
+      "Barcode was not found. Add the product manually or use label OCR.",
+    );
   } catch (error) {
     const status = error instanceof ApiError ? error.status : 500;
     return jsonResponse(errorBody(error, requestId), status);
   }
 });
 
-function notFoundResponse(barcode: string, requestId: string, fallbackReason: string) {
+function notFoundResponse(
+  barcode: string,
+  requestId: string,
+  fallbackReason: string,
+) {
   return jsonResponse({
     barcode,
     status: "not_found",
@@ -79,7 +112,10 @@ function notFoundResponse(barcode: string, requestId: string, fallbackReason: st
   });
 }
 
-async function readLocalProduct(client: ReturnType<typeof serviceClient>, barcode: string) {
+async function readLocalProduct(
+  client: ReturnType<typeof serviceClient>,
+  barcode: string,
+) {
   const { data, error } = await client
     .from("product_barcodes")
     .select("branded_products(*)")
@@ -87,7 +123,9 @@ async function readLocalProduct(client: ReturnType<typeof serviceClient>, barcod
     .maybeSingle();
   if (error) throw error;
   const product = data?.branded_products;
-  if (Array.isArray(product)) return product[0] as Record<string, unknown> | undefined;
+  if (Array.isArray(product)) {
+    return product[0] as Record<string, unknown> | undefined;
+  }
   return product == null ? null : product as Record<string, unknown>;
 }
 
@@ -97,22 +135,32 @@ async function fetchOpenFoodFacts(barcode: string) {
   let response: Response;
   try {
     response = await fetch(
-    `https://world.openfoodfacts.org/api/v2/product/${barcode}.json?fields=code,product_name,brands,serving_quantity,serving_size,nutriments,ingredients_text`,
-      { headers: { "user-agent": "SnapGrub MVP - contact@snapgrub.app" }, signal: controller.signal },
+      `https://world.openfoodfacts.org/api/v2/product/${barcode}.json?fields=code,product_name,brands,serving_quantity,serving_size,nutriments,ingredients_text`,
+      {
+        headers: { "user-agent": "SnapGrub MVP - contact@snapgrub.app" },
+        signal: controller.signal,
+      },
     );
   } catch (error) {
-    if (error instanceof DOMException && error.name === "AbortError") return null;
+    if (error instanceof DOMException && error.name === "AbortError") {
+      return null;
+    }
     throw error;
   } finally {
     clearTimeout(timeout);
   }
   if (!response.ok) return null;
-  const raw = await response.json().catch(() => null) as Record<string, unknown> | null;
+  const raw = await response.json().catch(() => null) as
+    | Record<string, unknown>
+    | null;
   if (!raw || raw.status !== 1 || !raw.product) return null;
   return raw.product as Record<string, unknown>;
 }
 
-async function readBarcodeMiss(client: ReturnType<typeof serviceClient>, barcode: string) {
+async function readBarcodeMiss(
+  client: ReturnType<typeof serviceClient>,
+  barcode: string,
+) {
   const { data, error } = await client
     .from("barcode_lookup_misses")
     .select("reason, expires_at")
@@ -141,8 +189,14 @@ async function cacheBarcodeMiss(
   if (error) throw error;
 }
 
-async function clearBarcodeMiss(client: ReturnType<typeof serviceClient>, barcode: string) {
-  const { error } = await client.from("barcode_lookup_misses").delete().eq("barcode", barcode);
+async function clearBarcodeMiss(
+  client: ReturnType<typeof serviceClient>,
+  barcode: string,
+) {
+  const { error } = await client.from("barcode_lookup_misses").delete().eq(
+    "barcode",
+    barcode,
+  );
   if (error) throw error;
 }
 
@@ -159,11 +213,18 @@ async function cacheOpenFoodFactsProduct(
   product: Record<string, unknown>,
 ) {
   const nutriments = (product.nutriments ?? {}) as Record<string, unknown>;
-  const servingGrams = parseServingGrams(product.serving_quantity, product.serving_size);
-  const calories100 = numberOrNull(nutriments["energy-kcal_100g"]) ?? numberOrNull(nutriments["energy-kcal"]);
-  const protein100 = numberOrNull(nutriments.proteins_100g) ?? numberOrNull(nutriments.proteins);
-  const carbs100 = numberOrNull(nutriments.carbohydrates_100g) ?? numberOrNull(nutriments.carbohydrates);
-  const fat100 = numberOrNull(nutriments.fat_100g) ?? numberOrNull(nutriments.fat);
+  const servingGrams = parseServingGrams(
+    product.serving_quantity,
+    product.serving_size,
+  );
+  const calories100 = numberOrNull(nutriments["energy-kcal_100g"]) ??
+    numberOrNull(nutriments["energy-kcal"]);
+  const protein100 = numberOrNull(nutriments.proteins_100g) ??
+    numberOrNull(nutriments.proteins);
+  const carbs100 = numberOrNull(nutriments.carbohydrates_100g) ??
+    numberOrNull(nutriments.carbohydrates);
+  const fat100 = numberOrNull(nutriments.fat_100g) ??
+    numberOrNull(nutriments.fat);
   const name = stringOrNull(product.product_name) ?? `Barcode ${barcode}`;
   const brand = stringOrNull(product.brands);
   const { data, error } = await client
@@ -197,14 +258,20 @@ async function cacheOpenFoodFactsProduct(
 
   const { error: barcodeError } = await client
     .from("product_barcodes")
-    .upsert({ barcode, branded_product_id: data.id, region: null }, { onConflict: "barcode" });
+    .upsert({ barcode, branded_product_id: data.id, region: null }, {
+      onConflict: "barcode",
+    });
   if (barcodeError) throw barcodeError;
   return data as Record<string, unknown>;
 }
 
 function parseServingGrams(quantity: unknown, servingSize: unknown) {
-  const quantityNumber = typeof quantity === "string" ? Number(quantity) : numberOrNull(quantity);
-  if (quantityNumber != null && Number.isFinite(quantityNumber)) return quantityNumber;
+  const quantityNumber = typeof quantity === "string"
+    ? Number(quantity)
+    : numberOrNull(quantity);
+  if (quantityNumber != null && Number.isFinite(quantityNumber)) {
+    return quantityNumber;
+  }
   if (typeof servingSize === "string") {
     const match = servingSize.match(/(\d+(?:\.\d+)?)\s*g/i);
     if (match) return Number(match[1]);

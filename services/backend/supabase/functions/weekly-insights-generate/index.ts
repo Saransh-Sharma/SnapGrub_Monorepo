@@ -1,5 +1,10 @@
 import { jsonResponse, optionsResponse } from "../_shared/cors.ts";
-import { ApiError, errorBody, errorStatus, logError } from "../_shared/errors.ts";
+import {
+  ApiError,
+  errorBody,
+  errorStatus,
+  logError,
+} from "../_shared/errors.ts";
 import { requireMethod, requireServiceRole } from "../_shared/request.ts";
 import { serviceClient } from "../_shared/supabase.ts";
 
@@ -24,56 +29,81 @@ Deno.serve(async (req) => {
     requireServiceRole(req);
 
     const body = await parseBody(req);
-    const weekStart = weekStartDate(optionalString(body.week_start) ?? new Date().toISOString());
+    const weekStart = weekStartDate(
+      optionalString(body.week_start) ?? new Date().toISOString(),
+    );
     const userId = optionalString(body.user_id);
     const limit = boundedLimit(body.limit);
     const client = serviceClient();
-    const jobRun = await startJobRun(client, "weekly-insights-generate", requestId);
+    const jobRun = await startJobRun(
+      client,
+      "weekly-insights-generate",
+      requestId,
+    );
 
     try {
       if (!userId) {
-      const { data: dueUsers, error: dueError } = await client.rpc("users_due_for_weekly_insights", {
-        p_week_start: weekStart,
-        p_limit: limit,
-      });
-      if (dueError) throw dueError;
+        const { data: dueUsers, error: dueError } = await client.rpc(
+          "users_due_for_weekly_insights",
+          {
+            p_week_start: weekStart,
+            p_limit: limit,
+          },
+        );
+        if (dueError) throw dueError;
 
-      const generated = [];
-      const failures: Array<{ user_id: string; error_code: string; message: string }> = [];
-      for (const dueUser of dueUsers ?? []) {
-        const dueUserId = String(dueUser.user_id);
-        try {
-          generated.push(...await generateForUser(client, dueUserId, weekStart));
-        } catch (error) {
-          failures.push({
-            user_id: dueUserId,
-            error_code: error instanceof ApiError ? error.code : "UNKNOWN",
-            message: error instanceof Error ? error.message : "Unknown error",
-          });
-          logError("weekly-insights-generate.user", requestId, error, { user_id: dueUserId });
+        const generated = [];
+        const failures: Array<
+          { user_id: string; error_code: string; message: string }
+        > = [];
+        for (const dueUser of dueUsers ?? []) {
+          const dueUserId = String(dueUser.user_id);
+          try {
+            generated.push(
+              ...await generateForUser(client, dueUserId, weekStart),
+            );
+          } catch (error) {
+            failures.push({
+              user_id: dueUserId,
+              error_code: error instanceof ApiError ? error.code : "UNKNOWN",
+              message: error instanceof Error ? error.message : "Unknown error",
+            });
+            logError("weekly-insights-generate.user", requestId, error, {
+              user_id: dueUserId,
+            });
+          }
         }
-      }
 
-      const responseBody = {
-        weekly_insights: generated,
-        processed_users: dueUsers?.length ?? 0,
-        succeeded_users: (dueUsers?.length ?? 0) - failures.length,
-        failed_users: failures.length,
-        failures,
-        server_time: new Date().toISOString(),
-        request_id: requestId,
-      };
-      await completeJobRun(client, jobRun.id, failures.length === 0 ? "completed" : "failed", {
-        processed_users: responseBody.processed_users,
-        succeeded_users: responseBody.succeeded_users,
-        failed_users: responseBody.failed_users,
-        insight_count: generated.length,
-      }, failures.length === 0 ? {} : { failures });
-      return jsonResponse(responseBody);
+        const responseBody = {
+          weekly_insights: generated,
+          processed_users: dueUsers?.length ?? 0,
+          succeeded_users: (dueUsers?.length ?? 0) - failures.length,
+          failed_users: failures.length,
+          failures,
+          server_time: new Date().toISOString(),
+          request_id: requestId,
+        };
+        await completeJobRun(
+          client,
+          jobRun.id,
+          failures.length === 0 ? "completed" : "failed",
+          {
+            processed_users: responseBody.processed_users,
+            succeeded_users: responseBody.succeeded_users,
+            failed_users: responseBody.failed_users,
+            insight_count: generated.length,
+          },
+          failures.length === 0 ? {} : { failures },
+        );
+        return jsonResponse(responseBody);
       }
 
       const data = await generateForUser(client, userId, weekStart);
-      await completeJobRun(client, jobRun.id, "completed", { processed_users: 1, succeeded_users: 1, insight_count: data.length });
+      await completeJobRun(client, jobRun.id, "completed", {
+        processed_users: 1,
+        succeeded_users: 1,
+        insight_count: data.length,
+      });
 
       return jsonResponse({
         weekly_insights: data,
@@ -81,7 +111,13 @@ Deno.serve(async (req) => {
         request_id: requestId,
       });
     } catch (error) {
-      await completeJobRun(client, jobRun.id, "failed", {}, errorSummary(error));
+      await completeJobRun(
+        client,
+        jobRun.id,
+        "failed",
+        {},
+        errorSummary(error),
+      );
       throw error;
     }
   } catch (error) {
@@ -90,56 +126,79 @@ Deno.serve(async (req) => {
   }
 });
 
-async function generateForUser(client: ReturnType<typeof serviceClient>, userId: string, weekStart: string) {
-    const { data: profile, error: profileError } = await client
-      .from("profiles")
-      .select("id, timezone")
-      .eq("id", userId)
-      .maybeSingle();
-    if (profileError) throw profileError;
-    if (!profile) throw new ApiError("NOT_FOUND", "Profile not found", 404, false);
+async function generateForUser(
+  client: ReturnType<typeof serviceClient>,
+  userId: string,
+  weekStart: string,
+) {
+  const { data: profile, error: profileError } = await client
+    .from("profiles")
+    .select("id, timezone")
+    .eq("id", userId)
+    .maybeSingle();
+  if (profileError) throw profileError;
+  if (!profile) {
+    throw new ApiError("NOT_FOUND", "Profile not found", 404, false);
+  }
 
-    const { data: goal, error: goalError } = await client
-      .from("nutrition_goals")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("is_active", true)
-      .maybeSingle();
-    if (goalError) throw goalError;
+  const { data: goal, error: goalError } = await client
+    .from("nutrition_goals")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("is_active", true)
+    .maybeSingle();
+  if (goalError) throw goalError;
 
-    const meals = await readMeals(client, userId, weekStart, String(profile.timezone ?? "UTC"));
-    const insights = buildInsights({
-      userId,
-      weekStart,
-      meals,
-      calorieGoal: numberOrNull(goal?.calories_kcal),
-      proteinGoal: numberOrNull(goal?.protein_g),
-    });
+  const meals = await readMeals(
+    client,
+    userId,
+    weekStart,
+    String(profile.timezone ?? "UTC"),
+  );
+  const insights = buildInsights({
+    userId,
+    weekStart,
+    meals,
+    calorieGoal: numberOrNull(goal?.calories_kcal),
+    proteinGoal: numberOrNull(goal?.protein_g),
+  });
 
-    const { data, error } = await client
-      .from("weekly_insights")
-      .upsert(insights, { onConflict: "user_id,week_start,insight_type" })
-      .select("*")
-      .order("insight_type", { ascending: true });
-    if (error) throw error;
-    return data ?? [];
+  const { data, error } = await client
+    .from("weekly_insights")
+    .upsert(insights, { onConflict: "user_id,week_start,insight_type" })
+    .select("*")
+    .order("insight_type", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
 }
 
 async function parseBody(req: Request): Promise<Record<string, unknown>> {
   try {
     return await req.json();
   } catch (_) {
-    throw new ApiError("INVALID_INPUT", "Request body must be valid JSON", 400, false);
+    throw new ApiError(
+      "INVALID_INPUT",
+      "Request body must be valid JSON",
+      400,
+      false,
+    );
   }
 }
 
-async function readMeals(client: ReturnType<typeof serviceClient>, userId: string, weekStart: string, timezone: string) {
+async function readMeals(
+  client: ReturnType<typeof serviceClient>,
+  userId: string,
+  weekStart: string,
+  timezone: string,
+) {
   const start = localDateStartUtc(weekStart, timezone);
   const end = localDateStartUtc(addDays(weekStart, 7), timezone);
 
   const { data, error } = await client
     .from("meals")
-    .select("id,title,meal_type,logged_at,calories_kcal,protein_g,carbs_g,fat_g,deleted_at")
+    .select(
+      "id,title,meal_type,logged_at,calories_kcal,protein_g,carbs_g,fat_g,deleted_at",
+    )
     .eq("user_id", userId)
     .is("deleted_at", null)
     .gte("logged_at", start.toISOString())
@@ -167,8 +226,16 @@ function localDateStartUtc(date: string, timezone: string) {
       second: "2-digit",
       hourCycle: "h23",
     }).formatToParts(approximateUtc);
-    const part = (type: string) => Number(localParts.find((item) => item.type === type)?.value ?? 0);
-    const renderedAsUtc = Date.UTC(part("year"), part("month") - 1, part("day"), part("hour"), part("minute"), part("second"));
+    const part = (type: string) =>
+      Number(localParts.find((item) => item.type === type)?.value ?? 0);
+    const renderedAsUtc = Date.UTC(
+      part("year"),
+      part("month") - 1,
+      part("day"),
+      part("hour"),
+      part("minute"),
+      part("second"),
+    );
     const targetAsUtc = Date.UTC(year, month - 1, day, 0, 0, 0);
     return new Date(approximateUtc.getTime() + targetAsUtc - renderedAsUtc);
   } catch (_) {
@@ -193,30 +260,80 @@ function buildInsights(input: {
   const status = input.meals.length >= 3 ? "ready" : "insufficient_data";
   const repeated = mostRepeatedMeal(input.meals);
   const slot = highestVarianceSlot(input.meals);
-  const avgCalories = average(input.meals.map((meal) => Number(meal.calories_kcal ?? 0)));
-  const proteinHitRate = targetHitRate(input.meals, input.proteinGoal, "protein_g");
+  const avgCalories = average(
+    input.meals.map((meal) => Number(meal.calories_kcal ?? 0)),
+  );
+  const proteinHitRate = targetHitRate(
+    input.meals,
+    input.proteinGoal,
+    "protein_g",
+  );
 
   return [
-    insight(input, "protein_target_hit_rate", "Protein consistency", proteinSummary(proteinHitRate, input.proteinGoal), {
-      hit_rate: proteinHitRate,
-      target_g: input.proteinGoal,
-    }, status),
-    insight(input, "most_repeated_meal", "Reliable repeat", repeated.summary, repeated.payload, status),
-    insight(input, "highest_variance_meal_slot", "Most flexible meal slot", slot.summary, slot.payload, status),
-    insight(input, "logging_streak", "Logging rhythm", `${days.size} day${days.size === 1 ? "" : "s"} had meals logged this week.`, {
-      logged_days: days.size,
-      meal_count: input.meals.length,
-    }, status),
-    insight(input, "average_intake_vs_target", "Average intake", calorieSummary(avgCalories, input.calorieGoal), {
-      average_calories_kcal: round(avgCalories),
-      target_calories_kcal: input.calorieGoal,
-    }, status),
-    insight(input, "next_week_suggestion", "Next week", nextWeekSuggestion(proteinHitRate, repeated.title), {
-      based_on: {
-        protein_hit_rate: proteinHitRate,
-        repeated_meal: repeated.title,
+    insight(
+      input,
+      "protein_target_hit_rate",
+      "Protein consistency",
+      proteinSummary(proteinHitRate, input.proteinGoal),
+      {
+        hit_rate: proteinHitRate,
+        target_g: input.proteinGoal,
       },
-    }, status),
+      status,
+    ),
+    insight(
+      input,
+      "most_repeated_meal",
+      "Reliable repeat",
+      repeated.summary,
+      repeated.payload,
+      status,
+    ),
+    insight(
+      input,
+      "highest_variance_meal_slot",
+      "Most flexible meal slot",
+      slot.summary,
+      slot.payload,
+      status,
+    ),
+    insight(
+      input,
+      "logging_streak",
+      "Logging rhythm",
+      `${days.size} day${
+        days.size === 1 ? "" : "s"
+      } had meals logged this week.`,
+      {
+        logged_days: days.size,
+        meal_count: input.meals.length,
+      },
+      status,
+    ),
+    insight(
+      input,
+      "average_intake_vs_target",
+      "Average intake",
+      calorieSummary(avgCalories, input.calorieGoal),
+      {
+        average_calories_kcal: round(avgCalories),
+        target_calories_kcal: input.calorieGoal,
+      },
+      status,
+    ),
+    insight(
+      input,
+      "next_week_suggestion",
+      "Next week",
+      nextWeekSuggestion(proteinHitRate, repeated.title),
+      {
+        based_on: {
+          protein_hit_rate: proteinHitRate,
+          repeated_meal: repeated.title,
+        },
+      },
+      status,
+    ),
   ];
 }
 
@@ -250,10 +367,18 @@ function mostRepeatedMeal(meals: MealRow[]) {
     counts.set(key, current);
   }
   const top = [...counts.values()].sort((a, b) => b.count - a.count)[0];
-  if (!top) return { title: null, summary: "No repeated meal stood out yet.", payload: { title: null, count: 0 } };
+  if (!top) {
+    return {
+      title: null,
+      summary: "No repeated meal stood out yet.",
+      payload: { title: null, count: 0 },
+    };
+  }
   return {
     title: top.title,
-    summary: `${top.title} appeared ${top.count} time${top.count === 1 ? "" : "s"} this week.`,
+    summary: `${top.title} appeared ${top.count} time${
+      top.count === 1 ? "" : "s"
+    } this week.`,
     payload: { title: top.title, count: top.count },
   };
 }
@@ -266,18 +391,36 @@ function highestVarianceSlot(meals: MealRow[]) {
     bySlot.set(meal.meal_type, values);
   }
   const top = [...bySlot.entries()]
-    .map(([slotName, values]) => ({ slotName, variance: variance(values), count: values.length }))
+    .map(([slotName, values]) => ({
+      slotName,
+      variance: variance(values),
+      count: values.length,
+    }))
     .sort((a, b) => b.variance - a.variance)[0];
   if (!top || top.count < 2) {
-    return { summary: "Meal timing is still settling; a pattern will appear with more logs.", payload: { meal_type: null } };
+    return {
+      summary:
+        "Meal timing is still settling; a pattern will appear with more logs.",
+      payload: { meal_type: null },
+    };
   }
   return {
-    summary: `${label(top.slotName)} varied the most this week, which is a good place to review portions first.`,
-    payload: { meal_type: top.slotName, variance: round(top.variance), sample_count: top.count },
+    summary: `${
+      label(top.slotName)
+    } varied the most this week, which is a good place to review portions first.`,
+    payload: {
+      meal_type: top.slotName,
+      variance: round(top.variance),
+      sample_count: top.count,
+    },
   };
 }
 
-function targetHitRate(meals: MealRow[], target: number | null, key: "protein_g") {
+function targetHitRate(
+  meals: MealRow[],
+  target: number | null,
+  key: "protein_g",
+) {
   if (!target || meals.length === 0) return null;
   const daily = new Map<string, number>();
   for (const meal of meals as Array<MealRow & { local_day?: string }>) {
@@ -285,33 +428,53 @@ function targetHitRate(meals: MealRow[], target: number | null, key: "protein_g"
     daily.set(day, (daily.get(day) ?? 0) + Number(meal[key] ?? 0));
   }
   if (daily.size === 0) return null;
-  const hits = [...daily.values()].filter((value) => value >= target * 0.9).length;
+  const hits =
+    [...daily.values()].filter((value) => value >= target * 0.9).length;
   return round(hits / daily.size);
 }
 
 function proteinSummary(hitRate: number | null, target: number | null) {
-  if (!target || hitRate == null) return "Set a protein target to unlock this weekly check.";
+  if (!target || hitRate == null) {
+    return "Set a protein target to unlock this weekly check.";
+  }
   const pct = Math.round(hitRate * 100);
   return `Protein landed near target on ${pct}% of logged days.`;
 }
 
 function calorieSummary(avgCalories: number, target: number | null) {
-  if (!target) return `${round(avgCalories)} kcal average across logged meals this week.`;
+  if (!target) {
+    return `${round(avgCalories)} kcal average across logged meals this week.`;
+  }
   const delta = round(avgCalories - target);
-  if (Math.abs(delta) < 75) return "Average intake stayed close to your target this week.";
-  if (delta > 0) return `Average intake was ${delta} kcal above target on logged days.`;
-  return `Average intake was ${Math.abs(delta)} kcal below target on logged days.`;
+  if (Math.abs(delta) < 75) {
+    return "Average intake stayed close to your target this week.";
+  }
+  if (delta > 0) {
+    return `Average intake was ${delta} kcal above target on logged days.`;
+  }
+  return `Average intake was ${
+    Math.abs(delta)
+  } kcal below target on logged days.`;
 }
 
-function nextWeekSuggestion(hitRate: number | null, repeatedTitle: string | null) {
-  if (hitRate != null && hitRate < 0.5) return "Try anchoring one regular meal with a protein you already like.";
-  if (repeatedTitle) return `Keep ${repeatedTitle} handy as a quick repeat log when the week gets busy.`;
+function nextWeekSuggestion(
+  hitRate: number | null,
+  repeatedTitle: string | null,
+) {
+  if (hitRate != null && hitRate < 0.5) {
+    return "Try anchoring one regular meal with a protein you already like.";
+  }
+  if (repeatedTitle) {
+    return `Keep ${repeatedTitle} handy as a quick repeat log when the week gets busy.`;
+  }
   return "Log one familiar meal a few times next week to make repeat tracking faster.";
 }
 
 function weekStartDate(value: string) {
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) throw new ApiError("INVALID_INPUT", "week_start is invalid", 400, false);
+  if (Number.isNaN(date.getTime())) {
+    throw new ApiError("INVALID_INPUT", "week_start is invalid", 400, false);
+  }
   const day = date.getUTCDay();
   const diff = day === 0 ? -6 : 1 - day;
   date.setUTCDate(date.getUTCDate() + diff);
@@ -326,21 +489,18 @@ function localDay(value: string, timezone: string) {
       month: "2-digit",
       day: "2-digit",
     }).formatToParts(new Date(value));
-    return `${parts.find((part) => part.type === "year")?.value}-${parts.find((part) => part.type === "month")?.value}-${parts.find((part) => part.type === "day")?.value}`;
+    return `${parts.find((part) => part.type === "year")?.value}-${
+      parts.find((part) => part.type === "month")?.value
+    }-${parts.find((part) => part.type === "day")?.value}`;
   } catch (_) {
     return value.slice(0, 10);
   }
 }
 
-function requiredString(value: unknown, field: string) {
-  if (typeof value !== "string" || value.trim().length === 0) {
-    throw new ApiError("INVALID_INPUT", `${field} is required`, 400, false, { field });
-  }
-  return value.trim();
-}
-
 function optionalString(value: unknown) {
-  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+  return typeof value === "string" && value.trim().length > 0
+    ? value.trim()
+    : null;
 }
 
 function boundedLimit(value: unknown) {
@@ -369,10 +529,17 @@ function round(value: number) {
 }
 
 function label(value: string) {
-  return value.replaceAll("_", " ").replace(/^\w/, (char) => char.toUpperCase());
+  return value.replaceAll("_", " ").replace(
+    /^\w/,
+    (char) => char.toUpperCase(),
+  );
 }
 
-async function startJobRun(client: ReturnType<typeof serviceClient>, jobName: string, requestId: string) {
+async function startJobRun(
+  client: ReturnType<typeof serviceClient>,
+  jobName: string,
+  requestId: string,
+) {
   const { data, error } = await client
     .from("job_runs")
     .insert({ job_name: jobName, request_id: requestId, status: "running" })

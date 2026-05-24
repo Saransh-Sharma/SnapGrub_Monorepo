@@ -14,7 +14,11 @@ Deno.serve(async (req) => {
     const body = await parseBody(req);
     const limit = boundedLimit(body.limit);
     const client = serviceClient();
-    const jobRun = await startJobRun(client, "media-retention-cleanup", requestId);
+    const jobRun = await startJobRun(
+      client,
+      "media-retention-cleanup",
+      requestId,
+    );
 
     try {
       const exportCleanup = await cleanupExpiredExports(client, limit);
@@ -31,7 +35,21 @@ Deno.serve(async (req) => {
         request_id: requestId,
       });
     } catch (error) {
-      await completeJobRun(client, jobRun.id, "failed", {}, errorSummary(error));
+      try {
+        await completeJobRun(
+          client,
+          jobRun.id,
+          "failed",
+          {},
+          errorSummary(error),
+        );
+      } catch (completeError) {
+        logError(
+          "media-retention-cleanup.complete-failed",
+          requestId,
+          completeError,
+        );
+      }
       throw error;
     }
   } catch (error) {
@@ -48,7 +66,11 @@ async function parseBody(req: Request): Promise<Record<string, unknown>> {
   }
 }
 
-async function startJobRun(client: ReturnType<typeof serviceClient>, jobName: string, requestId: string) {
+async function startJobRun(
+  client: ReturnType<typeof serviceClient>,
+  jobName: string,
+  requestId: string,
+) {
   const { data, error } = await client
     .from("job_runs")
     .insert({ job_name: jobName, request_id: requestId, status: "running" })
@@ -89,8 +111,13 @@ function boundedLimit(value: unknown) {
   return Math.max(1, Math.min(Math.trunc(n), 5000));
 }
 
-async function cleanupExpiredExports(client: ReturnType<typeof serviceClient>, limit: number) {
-  const { data, error } = await client.rpc("expired_export_artifacts", { p_limit: limit });
+async function cleanupExpiredExports(
+  client: ReturnType<typeof serviceClient>,
+  limit: number,
+) {
+  const { data, error } = await client.rpc("expired_export_artifacts", {
+    p_limit: limit,
+  });
   if (error) throw error;
 
   let removed = 0;
@@ -100,13 +127,17 @@ async function cleanupExpiredExports(client: ReturnType<typeof serviceClient>, l
     const path = row.result_storage_path;
     expiredIds.push(row.id);
     if (!path) continue;
-    const { data: deleted, error: removeError } = await client.storage.from(bucket).remove([path]);
+    const { data: deleted, error: removeError } = await client.storage.from(
+      bucket,
+    ).remove([path]);
     if (removeError) throw removeError;
     removed += deleted?.length ?? 1;
   }
 
   if (expiredIds.length > 0) {
-    const { error: markError } = await client.rpc("mark_exports_expired", { p_export_ids: expiredIds });
+    const { error: markError } = await client.rpc("mark_exports_expired", {
+      p_export_ids: expiredIds,
+    });
     if (markError) throw markError;
   }
 
@@ -116,8 +147,13 @@ async function cleanupExpiredExports(client: ReturnType<typeof serviceClient>, l
   };
 }
 
-async function cleanupExpiredMealAssets(client: ReturnType<typeof serviceClient>, limit: number) {
-  const { data, error } = await client.rpc("expired_meal_assets", { p_limit: limit });
+async function cleanupExpiredMealAssets(
+  client: ReturnType<typeof serviceClient>,
+  limit: number,
+) {
+  const { data, error } = await client.rpc("expired_meal_assets", {
+    p_limit: limit,
+  });
   if (error) throw error;
 
   const markedIds: string[] = [];
@@ -132,7 +168,9 @@ async function cleanupExpiredMealAssets(client: ReturnType<typeof serviceClient>
     }
 
     for (const [bucket, paths] of pathsByBucket) {
-      const { data: deleted, error: removeError } = await client.storage.from(bucket).remove(paths);
+      const { data: deleted, error: removeError } = await client.storage.from(
+        bucket,
+      ).remove(paths);
       if (removeError) throw removeError;
       removed += deleted?.length ?? paths.length;
     }
@@ -140,7 +178,9 @@ async function cleanupExpiredMealAssets(client: ReturnType<typeof serviceClient>
   }
 
   if (markedIds.length > 0) {
-    const { error: markError } = await client.rpc("mark_meal_assets_deleted", { p_asset_ids: markedIds });
+    const { error: markError } = await client.rpc("mark_meal_assets_deleted", {
+      p_asset_ids: markedIds,
+    });
     if (markError) throw markError;
   }
 

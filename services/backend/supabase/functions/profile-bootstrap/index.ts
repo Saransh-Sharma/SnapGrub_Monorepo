@@ -1,7 +1,12 @@
 import { jsonResponse, optionsResponse } from "../_shared/cors.ts";
 import { ApiError, errorBody } from "../_shared/errors.ts";
+import { isRecord } from "../_shared/request.ts";
 import { requireUser, serviceClient } from "../_shared/supabase.ts";
-import { assertPlatform, optionalString, requireString } from "../_shared/validation.ts";
+import {
+  assertPlatform,
+  optionalString,
+  requireString,
+} from "../_shared/validation.ts";
 
 Deno.serve(async (req) => {
   const requestId = crypto.randomUUID();
@@ -53,7 +58,12 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (existingDeviceError) throw existingDeviceError;
     if (existingDevice && existingDevice.user_id !== user.id) {
-      throw new ApiError("CONFLICT", "install_id is already registered to another user", 409, false);
+      throw new ApiError(
+        "CONFLICT",
+        "install_id is already registered to another user",
+        409,
+        false,
+      );
     }
 
     const devicePayload = {
@@ -102,10 +112,14 @@ Deno.serve(async (req) => {
         appVersion: optionalString(body.app_version),
         buildNumber: optionalString(body.build_number),
         buildEnv: optionalString(body.build_env),
-        countryCode: typeof profile?.country_code === "string" ? profile.country_code : null,
+        countryCode: typeof profile?.country_code === "string"
+          ? profile.country_code
+          : null,
       });
     }
-    for (const override of overrides ?? []) featureFlags[override.flag_key] = override.forced_value;
+    for (const override of overrides ?? []) {
+      featureFlags[override.flag_key] = override.forced_value;
+    }
 
     return jsonResponse({
       profile,
@@ -138,7 +152,8 @@ function resolveFlag(flag: Record<string, unknown>, context: FlagContext) {
   if (!Number.isFinite(rolloutPercent)) return false;
   if (rolloutPercent >= 100) return true;
   if (rolloutPercent <= 0) return false;
-  return rolloutBucket(`${flag.key}:${context.userId}:${context.installId}`) < rolloutPercent;
+  return rolloutBucket(`${flag.key}:${context.userId}:${context.installId}`) <
+    rolloutPercent;
 }
 
 function matchesRules(rules: unknown, context: FlagContext) {
@@ -155,7 +170,9 @@ function matchesRules(rules: unknown, context: FlagContext) {
 function matchesRuleValue(rule: unknown, value: string | null) {
   if (rule == null) return true;
   if (typeof rule === "string") return value === rule;
-  if (Array.isArray(rule)) return value != null && rule.map(String).includes(value);
+  if (Array.isArray(rule)) {
+    return value != null && rule.map(String).includes(value);
+  }
   return false;
 }
 
@@ -175,19 +192,25 @@ function matchesMinBuild(rule: unknown, value: string | null) {
   if (rule == null) return true;
   const ruleNumber = Number(rule);
   const valueNumber = Number(value);
-  return Number.isFinite(ruleNumber) && Number.isFinite(valueNumber) && valueNumber >= ruleNumber;
+  return Number.isFinite(ruleNumber) && Number.isFinite(valueNumber) &&
+    valueNumber >= ruleNumber;
 }
 
 function matchesMaxBuild(rule: unknown, value: string | null) {
   if (rule == null) return true;
   const ruleNumber = Number(rule);
   const valueNumber = Number(value);
-  return Number.isFinite(ruleNumber) && Number.isFinite(valueNumber) && valueNumber <= ruleNumber;
+  return Number.isFinite(ruleNumber) && Number.isFinite(valueNumber) &&
+    valueNumber <= ruleNumber;
 }
 
 function compareVersion(left: string, right: string) {
-  const leftParts = left.split(".").map((part) => Number(part.replace(/\D.*$/, "")) || 0);
-  const rightParts = right.split(".").map((part) => Number(part.replace(/\D.*$/, "")) || 0);
+  const leftParts = left.split(".").map((part) =>
+    Number(part.replace(/\D.*$/, "")) || 0
+  );
+  const rightParts = right.split(".").map((part) =>
+    Number(part.replace(/\D.*$/, "")) || 0
+  );
   const length = Math.max(leftParts.length, rightParts.length);
   for (let index = 0; index < length; index += 1) {
     const delta = (leftParts[index] ?? 0) - (rightParts[index] ?? 0);
@@ -203,8 +226,4 @@ function rolloutBucket(value: string) {
     hash = Math.imul(hash, 16777619);
   }
   return (hash >>> 0) % 100;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

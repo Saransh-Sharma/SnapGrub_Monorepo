@@ -1,6 +1,9 @@
 import { jsonResponse, optionsResponse } from "../_shared/cors.ts";
 import { ApiError, errorBody } from "../_shared/errors.ts";
-import { maybeReplayIdempotency, storeIdempotency } from "../_shared/idempotency.ts";
+import {
+  maybeReplayIdempotency,
+  storeIdempotency,
+} from "../_shared/idempotency.ts";
 import { requireUser, serviceClient } from "../_shared/supabase.ts";
 import { isRecord, parseJsonBody } from "../_shared/request.ts";
 import { requireString } from "../_shared/validation.ts";
@@ -60,7 +63,7 @@ Deno.serve(async (req) => {
         .eq("user_id", user.id)
         .is("deleted_at", null)
         .order("logged_at", { ascending: false })
-        .limit(day ? 500 : limit);
+        .limit(limit);
 
       const { data: meals, error } = await query;
       if (error) throw error;
@@ -72,7 +75,6 @@ Deno.serve(async (req) => {
         "user_id",
         user.id,
       );
-      if (day) rollupQuery.eq("day", day);
       const { data: dailyRollups, error: rollupError } = await rollupQuery;
       if (rollupError) throw rollupError;
 

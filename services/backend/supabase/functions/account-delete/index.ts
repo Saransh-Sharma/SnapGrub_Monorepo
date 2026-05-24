@@ -4,22 +4,34 @@ import { consumeRateLimit } from "../_shared/rate_limit.ts";
 import { requireUser, serviceClient } from "../_shared/supabase.ts";
 import { requireString } from "../_shared/validation.ts";
 
-const STORAGE_BUCKETS = ["meal-originals-private", "meal-thumbnails-private", "exports-private"];
+const STORAGE_BUCKETS = [
+  "meal-originals-private",
+  "meal-thumbnails-private",
+  "exports-private",
+];
 
 Deno.serve(async (req) => {
   const requestId = crypto.randomUUID();
   if (req.method === "OPTIONS") return optionsResponse();
 
   try {
-    if (req.method !== "POST") throw new ApiError("INVALID_INPUT", "Method not allowed", 405);
+    if (req.method !== "POST") {
+      throw new ApiError("INVALID_INPUT", "Method not allowed", 405);
+    }
 
     const user = await requireUser(req);
     const body = await parseBody(req);
     const confirmation = requireString(body.confirmation, "confirmation");
     if (confirmation !== "DELETE") {
-      throw new ApiError("INVALID_INPUT", "Type DELETE to confirm account deletion", 400, false, {
-        field: "confirmation",
-      });
+      throw new ApiError(
+        "INVALID_INPUT",
+        "Type DELETE to confirm account deletion",
+        400,
+        false,
+        {
+          field: "confirmation",
+        },
+      );
     }
 
     const client = serviceClient();
@@ -40,7 +52,9 @@ Deno.serve(async (req) => {
       const deletedStorageObjects = await deleteUserStorage(client, user.id);
       await client.from("analytics_events").delete().eq("user_id", user.id);
 
-      const { error: authDeleteError } = await client.auth.admin.deleteUser(user.id);
+      const { error: authDeleteError } = await client.auth.admin.deleteUser(
+        user.id,
+      );
       if (authDeleteError) throw authDeleteError;
 
       const { data: completed, error: updateError } = await client
@@ -66,7 +80,9 @@ Deno.serve(async (req) => {
         .update({
           status: "failed",
           error_code: error instanceof ApiError ? error.code : "UNKNOWN",
-          error_message: error instanceof Error ? error.message : "Unknown error",
+          error_message: error instanceof Error
+            ? error.message
+            : "Unknown error",
         })
         .eq("id", deletion.id);
       throw error;
@@ -81,17 +97,27 @@ async function parseBody(req: Request): Promise<Record<string, unknown>> {
   try {
     return await req.json();
   } catch (_) {
-    throw new ApiError("INVALID_INPUT", "Request body must be valid JSON", 400, false);
+    throw new ApiError(
+      "INVALID_INPUT",
+      "Request body must be valid JSON",
+      400,
+      false,
+    );
   }
 }
 
-async function deleteUserStorage(client: ReturnType<typeof serviceClient>, userId: string) {
+async function deleteUserStorage(
+  client: ReturnType<typeof serviceClient>,
+  userId: string,
+) {
   let deleted = 0;
   const known = await knownStoragePaths(client, userId);
 
   for (const bucket of STORAGE_BUCKETS) {
     const paths = new Set<string>(known.get(bucket) ?? []);
-    for (const listed of await listUserPrefixRecursive(client, bucket, userId)) paths.add(listed);
+    for (
+      const listed of await listUserPrefixRecursive(client, bucket, userId)
+    ) paths.add(listed);
     if (paths.size === 0) continue;
 
     for (const batch of chunks([...paths], 100)) {
@@ -104,9 +130,15 @@ async function deleteUserStorage(client: ReturnType<typeof serviceClient>, userI
   return deleted;
 }
 
-async function knownStoragePaths(client: ReturnType<typeof serviceClient>, userId: string) {
+async function knownStoragePaths(
+  client: ReturnType<typeof serviceClient>,
+  userId: string,
+) {
   const byBucket = new Map<string, string[]>();
-  const push = (bucket: string | null | undefined, path: string | null | undefined) => {
+  const push = (
+    bucket: string | null | undefined,
+    path: string | null | undefined,
+  ) => {
     if (!bucket || !path) return;
     byBucket.set(bucket, [...(byBucket.get(bucket) ?? []), path]);
   };
@@ -127,7 +159,10 @@ async function knownStoragePaths(client: ReturnType<typeof serviceClient>, userI
     .eq("user_id", userId);
   if (exportError) throw exportError;
   for (const exportRequest of exports ?? []) {
-    push(exportRequest.result_storage_bucket ?? "exports-private", exportRequest.result_storage_path);
+    push(
+      exportRequest.result_storage_bucket ?? "exports-private",
+      exportRequest.result_storage_path,
+    );
   }
 
   return byBucket;
@@ -150,12 +185,21 @@ async function listPrefixPage(
   paths: string[],
 ) {
   const pageSize = 1000;
-  for (let offset = 0; ; offset += pageSize) {
+  for (let offset = 0;; offset += pageSize) {
     const { data, error } = await client.storage.from(bucket).list(prefix, {
       limit: pageSize,
       offset,
     });
-    if (error) return;
+    if (error) {
+      console.error(JSON.stringify({
+        level: "error",
+        scope: "account-delete.storage-list",
+        bucket,
+        prefix,
+        message: error.message,
+      }));
+      throw error;
+    }
     const items = data ?? [];
     for (const item of items) {
       if (!item.name) continue;

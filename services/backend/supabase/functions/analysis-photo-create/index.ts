@@ -31,14 +31,21 @@ Deno.serve(async (req) => {
 
     assertAllowedStorageBucket(storageBucket);
     assertOwnStoragePath(user.id, storagePath);
-    if (thumbStoragePath) assertOwnStoragePath(user.id, thumbStoragePath, "thumb_storage_path");
+    if (thumbStoragePath) {
+      assertOwnStoragePath(user.id, thumbStoragePath, "thumb_storage_path");
+    }
     const existing = await readExistingJob(client, user.id, clientRequestId);
     if (existing) {
       return jsonResponse(await responseForJob(client, existing, requestId));
     }
     await consumeRateLimit(client, user.id, "analysis:photo", 60 * 60, 30);
 
-    const image = await downloadImage(client, storageBucket, storagePath, mimeType);
+    const image = await downloadImage(
+      client,
+      storageBucket,
+      storagePath,
+      mimeType,
+    );
     const profile = await readProfilePrivacy(client, user.id);
     const asset = await upsertAsset(client, {
       userId: user.id,
@@ -221,7 +228,11 @@ async function parseBody(req: Request): Promise<Record<string, unknown>> {
   }
 }
 
-function assertOwnStoragePath(userId: string, storagePath: string, field = "storage_path") {
+function assertOwnStoragePath(
+  userId: string,
+  storagePath: string,
+  field = "storage_path",
+) {
   if (storagePath.split("/")[0] !== userId) {
     throw new ApiError(
       "INVALID_INPUT",
@@ -271,10 +282,19 @@ async function downloadImage(
     throw new ApiError("NOT_FOUND", "Uploaded image was not found", 404, false);
   }
   const actualMimeType = data.type || requestedMimeType;
-  if (!ALLOWED_IMAGE_TYPES.has(actualMimeType) || !ALLOWED_IMAGE_TYPES.has(requestedMimeType)) {
-    throw new ApiError("INVALID_INPUT", "Uploaded image type is not supported", 400, false, {
-      mime_type: actualMimeType,
-    });
+  if (
+    !ALLOWED_IMAGE_TYPES.has(actualMimeType) ||
+    !ALLOWED_IMAGE_TYPES.has(requestedMimeType)
+  ) {
+    throw new ApiError(
+      "INVALID_INPUT",
+      "Uploaded image type is not supported",
+      400,
+      false,
+      {
+        mime_type: actualMimeType,
+      },
+    );
   }
   return { bytes: new Uint8Array(await data.arrayBuffer()) };
 }
@@ -428,9 +448,7 @@ function numberOrNull(value: unknown) {
 }
 
 async function sha256Hex(bytes: Uint8Array) {
-  const buffer = new ArrayBuffer(bytes.byteLength);
-  new Uint8Array(buffer).set(bytes);
-  const digest = await crypto.subtle.digest("SHA-256", buffer);
+  const digest = await crypto.subtle.digest("SHA-256", bytes as BufferSource);
   return [...new Uint8Array(digest)].map((byte) =>
     byte.toString(16).padStart(2, "0")
   ).join("");

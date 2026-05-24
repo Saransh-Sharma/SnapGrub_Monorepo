@@ -1,6 +1,10 @@
 import { jsonResponse, optionsResponse } from "../_shared/cors.ts";
 import { ApiError, errorBody } from "../_shared/errors.ts";
-import { failIdempotency, maybeReplayIdempotency, storeIdempotency } from "../_shared/idempotency.ts";
+import {
+  failIdempotency,
+  maybeReplayIdempotency,
+  storeIdempotency,
+} from "../_shared/idempotency.ts";
 import { consumeRateLimit } from "../_shared/rate_limit.ts";
 import { requireUser, serviceClient } from "../_shared/supabase.ts";
 import { isRecord, parseJsonBody } from "../_shared/request.ts";
@@ -35,25 +39,52 @@ Deno.serve(async (req) => {
     }
 
     const { body, bodyText } = await parseJsonBody(req);
-    const clientRequestId = requireString(body.client_request_id, "client_request_id");
-    const idempotencyKey = req.headers.get("idempotency-key") ?? clientRequestId;
+    const clientRequestId = requireString(
+      body.client_request_id,
+      "client_request_id",
+    );
+    const idempotencyKey = req.headers.get("idempotency-key") ??
+      clientRequestId;
     const endpoint = "exports:create";
     const exportType = normalizeExportType(body.export_type);
-    const replay = await maybeReplayIdempotency(client, user.id, endpoint, idempotencyKey, bodyText);
-    if (replay) return jsonResponse(replay.response_body, replay.response_status ?? 202);
+    const replay = await maybeReplayIdempotency(
+      client,
+      user.id,
+      endpoint,
+      idempotencyKey,
+      bodyText,
+    );
+    if (replay) {
+      return jsonResponse(replay.response_body, replay.response_status ?? 202);
+    }
     await consumeRateLimit(client, user.id, "exports:create", 60 * 60, 5);
 
-    const exportRequest = await createQueuedRequest(client, user.id, clientRequestId, exportType, body.filters);
+    const exportRequest = await createQueuedRequest(
+      client,
+      user.id,
+      clientRequestId,
+      exportType,
+      body.filters,
+    );
 
     try {
-      const artifact = await buildArtifact(client, user.id, exportType, body.filters);
+      const artifact = await buildArtifact(
+        client,
+        user.id,
+        exportType,
+        body.filters,
+      );
       const storagePath = `${user.id}/${exportRequest.id}/${artifact.fileName}`;
       const { error: uploadError } = await client.storage
         .from(EXPORT_BUCKET)
-        .upload(storagePath, new Blob([artifact.body], { type: artifact.contentType }), {
-          contentType: artifact.contentType,
-          upsert: true,
-        });
+        .upload(
+          storagePath,
+          new Blob([artifact.body], { type: artifact.contentType }),
+          {
+            contentType: artifact.contentType,
+            upsert: true,
+          },
+        );
       if (uploadError) throw uploadError;
 
       const signed = await signedUrl(client, storagePath);
@@ -63,7 +94,8 @@ Deno.serve(async (req) => {
         result_storage_path: storagePath,
         signed_url: signed.signedUrl,
         signed_url_expires_at: signed.expiresAt,
-        expires_at: new Date(Date.now() + EXPORT_TTL_SECONDS * 1000).toISOString(),
+        expires_at: new Date(Date.now() + EXPORT_TTL_SECONDS * 1000)
+          .toISOString(),
         size_bytes: new TextEncoder().encode(artifact.body).length,
         content_type: artifact.contentType,
         row_counts: artifact.rowCounts,
@@ -75,7 +107,15 @@ Deno.serve(async (req) => {
         server_time: new Date().toISOString(),
         request_id: requestId,
       };
-      await storeIdempotency(client, user.id, endpoint, idempotencyKey, bodyText, 202, responseBody);
+      await storeIdempotency(
+        client,
+        user.id,
+        endpoint,
+        idempotencyKey,
+        bodyText,
+        202,
+        responseBody,
+      );
       return jsonResponse(responseBody, 202);
     } catch (error) {
       const failed = await updateExport(client, String(exportRequest.id), {
@@ -87,7 +127,15 @@ Deno.serve(async (req) => {
         server_time: new Date().toISOString(),
         request_id: requestId,
       };
-      await failIdempotency(client, user.id, endpoint, idempotencyKey, bodyText, 500, responseBody);
+      await failIdempotency(
+        client,
+        user.id,
+        endpoint,
+        idempotencyKey,
+        bodyText,
+        500,
+        responseBody,
+      );
       return jsonResponse(responseBody, 500);
     }
   } catch (error) {
@@ -99,7 +147,9 @@ Deno.serve(async (req) => {
 function normalizeExportType(value: unknown) {
   const type = value == null ? "journal_csv" : String(value);
   if (!["journal_csv", "nutrition_json"].includes(type)) {
-    throw new ApiError("INVALID_INPUT", "export_type is invalid", 400, false, { field: "export_type" });
+    throw new ApiError("INVALID_INPUT", "export_type is invalid", 400, false, {
+      field: "export_type",
+    });
   }
   return type;
 }
@@ -109,7 +159,12 @@ function exportIdFromUrl(url: string) {
   const parts = pathname.split("/").filter(Boolean);
   const id = parts[parts.length - 1];
   if (!id || id === "exports-create") {
-    throw new ApiError("INVALID_INPUT", "export_request_id is required", 400, false);
+    throw new ApiError(
+      "INVALID_INPUT",
+      "export_request_id is required",
+      400,
+      false,
+    );
   }
   return id;
 }
@@ -136,7 +191,11 @@ async function createQueuedRequest(
   return data as Record<string, unknown>;
 }
 
-async function readOwnedExport(client: ReturnType<typeof serviceClient>, userId: string, exportId: string) {
+async function readOwnedExport(
+  client: ReturnType<typeof serviceClient>,
+  userId: string,
+  exportId: string,
+) {
   const { data, error } = await client
     .from("export_requests")
     .select("*")
@@ -144,19 +203,32 @@ async function readOwnedExport(client: ReturnType<typeof serviceClient>, userId:
     .eq("user_id", userId)
     .maybeSingle();
   if (error) throw error;
-  if (!data) throw new ApiError("NOT_FOUND", "Export request not found", 404, false);
+  if (!data) {
+    throw new ApiError("NOT_FOUND", "Export request not found", 404, false);
+  }
   return data as Record<string, unknown>;
 }
 
-async function withFreshSignedUrl(client: ReturnType<typeof serviceClient>, exportRequest: Record<string, unknown>) {
-  if (exportRequest.status !== "completed" || !exportRequest.result_storage_path) return exportRequest;
+async function withFreshSignedUrl(
+  client: ReturnType<typeof serviceClient>,
+  exportRequest: Record<string, unknown>,
+) {
+  if (
+    exportRequest.status !== "completed" || !exportRequest.result_storage_path
+  ) return exportRequest;
   const expiresAt = exportRequest.signed_url_expires_at == null
     ? 0
     : Date.parse(String(exportRequest.signed_url_expires_at));
-  if (Number.isFinite(expiresAt) && expiresAt > Date.now() + 60_000 && exportRequest.signed_url) {
+  if (
+    Number.isFinite(expiresAt) && expiresAt > Date.now() + 60_000 &&
+    exportRequest.signed_url
+  ) {
     return exportRequest;
   }
-  const signed = await signedUrl(client, String(exportRequest.result_storage_path));
+  const signed = await signedUrl(
+    client,
+    String(exportRequest.result_storage_path),
+  );
   return await updateExport(client, String(exportRequest.id), {
     signed_url: signed.signedUrl,
     signed_url_expires_at: signed.expiresAt,
@@ -178,18 +250,35 @@ async function updateExport(
   return data as Record<string, unknown>;
 }
 
-async function signedUrl(client: ReturnType<typeof serviceClient>, storagePath: string) {
+async function signedUrl(
+  client: ReturnType<typeof serviceClient>,
+  storagePath: string,
+) {
   const { data, error } = await client.storage
     .from(EXPORT_BUCKET)
     .createSignedUrl(storagePath, SIGNED_URL_TTL_SECONDS);
-  if (error || !data?.signedUrl) throw error ?? new ApiError("UNKNOWN", "Could not create export download link", 500, true);
+  if (error || !data?.signedUrl) {
+    throw error ??
+      new ApiError(
+        "UNKNOWN",
+        "Could not create export download link",
+        500,
+        true,
+      );
+  }
   return {
     signedUrl: data.signedUrl,
-    expiresAt: new Date(Date.now() + SIGNED_URL_TTL_SECONDS * 1000).toISOString(),
+    expiresAt: new Date(Date.now() + SIGNED_URL_TTL_SECONDS * 1000)
+      .toISOString(),
   };
 }
 
-async function buildArtifact(client: ReturnType<typeof serviceClient>, userId: string, exportType: string, filters: unknown) {
+async function buildArtifact(
+  client: ReturnType<typeof serviceClient>,
+  userId: string,
+  exportType: string,
+  filters: unknown,
+) {
   const data = await readExportData(client, userId, exportFilters(filters));
   if (exportType === "journal_csv") {
     return {
@@ -202,23 +291,31 @@ async function buildArtifact(client: ReturnType<typeof serviceClient>, userId: s
   return {
     fileName: "nutrition.json",
     contentType: "application/json",
-    body: JSON.stringify({
-      exported_at: new Date().toISOString(),
-      profile: data.profile,
-      active_goals: data.nutrition_goals,
-      body_measurements: data.body_measurements,
-      meals: data.meals,
-      meal_items: data.meal_items,
-      custom_foods: data.custom_foods,
-      meal_templates: data.meal_templates,
-      correction_events: data.correction_events,
-      weekly_insights: data.weekly_insights,
-    }, null, 2),
+    body: JSON.stringify(
+      {
+        exported_at: new Date().toISOString(),
+        profile: data.profile,
+        active_goals: data.nutrition_goals,
+        body_measurements: data.body_measurements,
+        meals: data.meals,
+        meal_items: data.meal_items,
+        custom_foods: data.custom_foods,
+        meal_templates: data.meal_templates,
+        correction_events: data.correction_events,
+        weekly_insights: data.weekly_insights,
+      },
+      null,
+      2,
+    ),
     rowCounts: rowCounts(data),
   };
 }
 
-async function readExportData(client: ReturnType<typeof serviceClient>, userId: string, filters: ExportFilters) {
+async function readExportData(
+  client: ReturnType<typeof serviceClient>,
+  userId: string,
+  filters: ExportFilters,
+) {
   const [
     profile,
     nutritionGoals,
@@ -254,9 +351,16 @@ async function readExportData(client: ReturnType<typeof serviceClient>, userId: 
   };
 }
 
-async function selectMaybeSingle(client: ReturnType<typeof serviceClient>, table: string, userId: string) {
+async function selectMaybeSingle(
+  client: ReturnType<typeof serviceClient>,
+  table: string,
+  userId: string,
+) {
   const column = table === "profiles" ? "id" : "user_id";
-  const { data, error } = await client.from(table).select("*").eq(column, userId).maybeSingle();
+  const { data, error } = await client.from(table).select("*").eq(
+    column,
+    userId,
+  ).maybeSingle();
   if (error) throw error;
   return data;
 }
@@ -287,53 +391,101 @@ async function selectRows(
   timestampColumn: string | null = null,
 ) {
   const rows: Array<Record<string, unknown>> = [];
-  for (let from = 0; from < MAX_EXPORT_ROWS_PER_TABLE; from += EXPORT_PAGE_SIZE) {
+  for (let from = 0;; from += EXPORT_PAGE_SIZE) {
     let query = client
       .from(table)
       .select("*")
       .eq("user_id", userId)
       .range(from, from + EXPORT_PAGE_SIZE - 1);
-    if (timestampColumn && filters.from) query = query.gte(timestampColumn, filters.from);
-    if (timestampColumn && filters.to) query = query.lt(timestampColumn, filters.to);
+    if (timestampColumn && filters.from) {
+      query = query.gte(timestampColumn, filters.from);
+    }
+    if (timestampColumn && filters.to) {
+      query = query.lt(timestampColumn, filters.to);
+    }
     const { data, error } = await query;
     if (error) throw error;
-    rows.push(...(data ?? []));
-    if ((data ?? []).length < EXPORT_PAGE_SIZE) return rows;
+    const page = data ?? [];
+    rows.push(...page);
+    if (rows.length > MAX_EXPORT_ROWS_PER_TABLE) {
+      throw new ApiError(
+        "CONFLICT",
+        `${table} export is too large for synchronous generation`,
+        413,
+        false,
+        {
+          table,
+          max_rows: MAX_EXPORT_ROWS_PER_TABLE,
+        },
+      );
+    }
+    if (page.length < EXPORT_PAGE_SIZE) return rows;
   }
-  throw new ApiError("CONFLICT", `${table} export is too large for synchronous generation`, 413, false, {
-    table,
-    max_rows: MAX_EXPORT_ROWS_PER_TABLE,
-  });
 }
 
 function rowCounts(data: Record<string, unknown>) {
   return Object.fromEntries(
-    Object.entries(data).map(([key, value]) => [key, Array.isArray(value) ? value.length : value == null ? 0 : 1]),
+    Object.entries(data).map((
+      [key, value],
+    ) => [key, Array.isArray(value) ? value.length : value == null ? 0 : 1]),
   );
 }
 
-function journalCsv(meals: Array<Record<string, unknown>>, items: Array<Record<string, unknown>>) {
+function journalCsv(
+  meals: Array<Record<string, unknown>>,
+  items: Array<Record<string, unknown>>,
+) {
   const itemMap = new Map<string, Array<Record<string, unknown>>>();
   for (const item of items) {
     const mealId = String(item.meal_id ?? "");
     itemMap.set(mealId, [...(itemMap.get(mealId) ?? []), item]);
   }
   const rows = [
-    ["logged_at", "meal_title", "meal_type", "source", "item_name", "quantity", "unit", "calories_kcal", "protein_g", "carbs_g", "fat_g"],
+    [
+      "logged_at",
+      "meal_title",
+      "meal_type",
+      "source",
+      "item_name",
+      "quantity",
+      "unit",
+      "calories_kcal",
+      "protein_g",
+      "carbs_g",
+      "fat_g",
+    ],
   ];
   for (const meal of meals) {
     const mealItems = itemMap.get(String(meal.id)) ?? [];
     if (mealItems.length === 0) {
       rows.push([
-        meal.logged_at, meal.title, meal.meal_type, meal.source, "", "", "",
-        meal.calories_kcal, meal.protein_g, meal.carbs_g, meal.fat_g,
+        meal.logged_at,
+        meal.title,
+        meal.meal_type,
+        meal.source,
+        "",
+        "",
+        "",
+        meal.calories_kcal,
+        meal.protein_g,
+        meal.carbs_g,
+        meal.fat_g,
       ].map(csvValue));
       continue;
     }
     for (const item of mealItems) {
       rows.push([
-        meal.logged_at, meal.title, meal.meal_type, meal.source,
-        item.name, item.quantity, item.unit, item.calories_kcal, item.protein_g, item.carbs_g, item.fat_g,
+        meal.logged_at,
+        meal.title,
+        meal.meal_type,
+        meal.source,
+        item.name,
+        item.quantity,
+        item.unit,
+        item.calories_kcal,
+        item.protein_g,
+        item.carbs_g,
+        item.fat_g,
       ].map(csvValue));
     }
   }
@@ -347,10 +499,20 @@ function csvValue(value: unknown) {
 
 function mapPostgresError(error: { message?: string; code?: string }) {
   if (error.code === "23505") {
-    return new ApiError("IDEMPOTENCY_CONFLICT", error.message ?? "Export request already exists", 409, false);
+    return new ApiError(
+      "IDEMPOTENCY_CONFLICT",
+      error.message ?? "Export request already exists",
+      409,
+      false,
+    );
   }
   if (error.code === "23514" || error.code === "22P02") {
-    return new ApiError("INVALID_INPUT", error.message ?? "Invalid export request", 400, false);
+    return new ApiError(
+      "INVALID_INPUT",
+      error.message ?? "Invalid export request",
+      400,
+      false,
+    );
   }
   return error;
 }
