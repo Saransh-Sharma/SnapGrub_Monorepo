@@ -1,5 +1,8 @@
 name: CI
 
+permissions:
+  contents: read
+
 on:
   pull_request:
   push:
@@ -9,6 +12,9 @@ on:
 jobs:
   contracts-and-backend:
     runs-on: ubuntu-latest
+    env:
+      CORS_ALLOW_ORIGIN: http://localhost:3000
+      AI_PROVIDER: mock
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -25,6 +31,9 @@ jobs:
       - uses: supabase/setup-cli@v1
         with:
           version: latest
+      - run: |
+          printf 'CORS_ALLOW_ORIGIN=%s\n' "$CORS_ALLOW_ORIGIN" > services/backend/supabase/functions/.env
+          printf 'AI_PROVIDER=%s\n' "$AI_PROVIDER" >> services/backend/supabase/functions/.env
       - working-directory: services/backend/supabase
         run: supabase start && supabase db reset
       - working-directory: services/backend/supabase
@@ -32,11 +41,9 @@ jobs:
       - run: npm run backend:test:auth-profile
         env:
           NODE_OPTIONS: --experimental-websocket
-          AI_PROVIDER: mock
       - run: npm run backend:test:photo-analysis
         env:
           NODE_OPTIONS: --experimental-websocket
-          AI_PROVIDER: mock
       - run: npm run backend:test:rls
         env:
           NODE_OPTIONS: --experimental-websocket

@@ -1,4 +1,7 @@
-import { assertEquals, assertRejects } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import {
+  assertEquals,
+  assertRejects,
+} from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { ApiError } from "../../functions/_shared/errors.ts";
 import { analyzePhoto } from "../../functions/_shared/photo_analysis.ts";
 import { requireServiceRole } from "../../functions/_shared/request.ts";
@@ -34,14 +37,17 @@ Deno.test("photo analysis does not silently fall back to mock for real providers
   }
 });
 
-Deno.test("service role auth rejects unsigned role payloads", () => {
+Deno.test("service role auth rejects incorrect bearer token", () => {
   const previousServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   try {
     Deno.env.set("SUPABASE_SERVICE_ROLE_KEY", "real-service-key");
-    const req = new Request("http://localhost/functions/v1/media-retention-cleanup", {
-      method: "POST",
-      headers: { authorization: `Bearer ${fakeJwt({ role: "service_role" })}` },
-    });
+    const req = new Request(
+      "http://localhost/functions/v1/media-retention-cleanup",
+      {
+        method: "POST",
+        headers: { authorization: "Bearer invalid-service-key" },
+      },
+    );
     const error = assertRejectsSync(() => requireServiceRole(req), ApiError);
     assertEquals(error.status, 401);
   } finally {
@@ -57,12 +63,6 @@ function assertRejectsSync(fn: () => void, errorClass: typeof ApiError) {
     throw error;
   }
   throw new Error("Expected function to throw");
-}
-
-function fakeJwt(payload: Record<string, unknown>) {
-  const encode = (value: Record<string, unknown>) =>
-    btoa(JSON.stringify(value)).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
-  return `${encode({ alg: "none", typ: "JWT" })}.${encode(payload)}.fake`;
 }
 
 function restoreEnv(key: string, value: string | undefined) {

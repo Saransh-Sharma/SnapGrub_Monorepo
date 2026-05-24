@@ -81,13 +81,20 @@ export E2E_VOICE_MEAL_TITLE="${E2E_VOICE_MEAL_TITLE:-$data_prefix Voice Poha}"
 export E2E_UNKNOWN_BAR_TITLE="${E2E_UNKNOWN_BAR_TITLE:-$data_prefix Unknown Bar}"
 export E2E_PHOTO_MEAL_TITLE="${E2E_PHOTO_MEAL_TITLE:-$data_prefix Photo Meal}"
 
-export E2E_MANUAL_MEAL_ID="journal.meal.$(slugify "$E2E_MANUAL_MEAL_TITLE")"
-export E2E_MANUAL_MEAL_COPY_ID="${E2E_MANUAL_MEAL_ID}_copy"
-export E2E_EDITED_MEAL_ID="journal.meal.$(slugify "$E2E_EDITED_MEAL_TITLE")"
-export E2E_TEXT_MEAL_ID="journal.meal.$(slugify "$E2E_TEXT_MEAL_TITLE")"
-export E2E_VOICE_MEAL_ID="journal.meal.$(slugify "$E2E_VOICE_MEAL_TITLE")"
-export E2E_UNKNOWN_BAR_ID="journal.meal.$(slugify "$E2E_UNKNOWN_BAR_TITLE")"
-export E2E_PHOTO_MEAL_ID="journal.meal.$(slugify "$E2E_PHOTO_MEAL_TITLE")"
+E2E_MANUAL_MEAL_ID="journal.meal.$(slugify "$E2E_MANUAL_MEAL_TITLE")"
+E2E_MANUAL_MEAL_COPY_ID="${E2E_MANUAL_MEAL_ID}_copy"
+E2E_EDITED_MEAL_ID="journal.meal.$(slugify "$E2E_EDITED_MEAL_TITLE")"
+E2E_TEXT_MEAL_ID="journal.meal.$(slugify "$E2E_TEXT_MEAL_TITLE")"
+E2E_VOICE_MEAL_ID="journal.meal.$(slugify "$E2E_VOICE_MEAL_TITLE")"
+E2E_UNKNOWN_BAR_ID="journal.meal.$(slugify "$E2E_UNKNOWN_BAR_TITLE")"
+E2E_PHOTO_MEAL_ID="journal.meal.$(slugify "$E2E_PHOTO_MEAL_TITLE")"
+export E2E_MANUAL_MEAL_ID
+export E2E_MANUAL_MEAL_COPY_ID
+export E2E_EDITED_MEAL_ID
+export E2E_TEXT_MEAL_ID
+export E2E_VOICE_MEAL_ID
+export E2E_UNKNOWN_BAR_ID
+export E2E_PHOTO_MEAL_ID
 
 if [[ "$backend" == "supabase" ]]; then
   app_env_file="$mobile_dir/.env.$target"

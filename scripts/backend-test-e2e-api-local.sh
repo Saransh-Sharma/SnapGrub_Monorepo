@@ -3,8 +3,28 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 env_file="${TMPDIR:-/tmp}/snapgrub-supabase-e2e.env"
+edge_env_file="services/backend/supabase/functions/.env"
 
 cd "$repo_root"
+export CORS_ALLOW_ORIGIN="${CORS_ALLOW_ORIGIN:-http://localhost:3000}"
+export AI_PROVIDER="${AI_PROVIDER:-mock}"
+touch "$edge_env_file"
+upsert_edge_env() {
+  local key="$1"
+  local value="$2"
+  if grep -q "^${key}=" "$edge_env_file"; then
+    sed -i.bak "s|^${key}=.*|${key}=${value}|" "$edge_env_file"
+    rm -f "$edge_env_file.bak"
+  else
+    printf '%s=%s\n' "$key" "$value" >> "$edge_env_file"
+  fi
+}
+upsert_edge_env CORS_ALLOW_ORIGIN "$CORS_ALLOW_ORIGIN"
+upsert_edge_env AI_PROVIDER "$AI_PROVIDER"
+(
+  cd services/backend/supabase
+  supabase stop --no-backup --yes >/dev/null 2>&1 || true
+)
 bash scripts/run-local-supabase.sh
 
 (
@@ -21,7 +41,6 @@ export SUPABASE_URL="${SUPABASE_URL:-${API_URL:-}}"
 export SUPABASE_ANON_KEY="${SUPABASE_ANON_KEY:-${ANON_KEY:-}}"
 export SUPABASE_SERVICE_ROLE_KEY="${SUPABASE_SERVICE_ROLE_KEY:-${SERVICE_ROLE_KEY:-}}"
 export NODE_OPTIONS="${NODE_OPTIONS:+$NODE_OPTIONS }--experimental-websocket"
-export AI_PROVIDER="${AI_PROVIDER:-mock}"
 
 wait_for_auth() {
   local attempts="$1"
@@ -37,9 +56,11 @@ wait_for_auth() {
 }
 
 if ! wait_for_auth 10; then
-  kong_container="$(docker ps --format '{{.Names}}' | grep '^supabase_kong_' | head -n 1 || true)"
-  if [[ -n "$kong_container" ]]; then
-    docker restart "$kong_container" >/dev/null
+  if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
+    kong_container="$(docker ps --format '{{.Names}}' | grep '^supabase_kong_' | head -n 1 || true)"
+    if [[ -n "$kong_container" ]]; then
+      docker restart "$kong_container" >/dev/null
+    fi
   fi
   wait_for_auth 60
 fi

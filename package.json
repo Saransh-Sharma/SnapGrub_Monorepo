@@ -18,7 +18,7 @@
     "backend:test:insights": "node services/backend/supabase/tests/integration/insights/insights_defaults_smoke.mjs",
     "backend:test:privacy": "node services/backend/supabase/tests/integration/privacy/privacy_export_delete_smoke.mjs",
     "backend:test:remediation": "node services/backend/supabase/tests/integration/backend-remediation/backend_remediation_smoke.mjs",
-    "backend:test:remediation-unit": "deno test --allow-env services/backend/supabase/tests/unit/backend_remediation_test.ts",
+    "backend:test:remediation-unit": "npx --yes deno test --allow-env services/backend/supabase/tests/unit/backend_remediation_test.ts",
     "e2e:maestro:doctor": "bash scripts/e2e/maestro_doctor.sh",
     "e2e:android:mock": "bash scripts/e2e/run-maestro.sh android mock",
     "e2e:ios:mock": "bash scripts/e2e/run-maestro.sh ios mock",

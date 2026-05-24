@@ -597,7 +597,16 @@ components:
       properties:
         code:
           type: string
-          enum: [AUTH_REQUIRED, INVALID_INPUT, NOT_FOUND, IDEMPOTENCY_CONFLICT, CONFLICT, UNKNOWN]
+          enum:
+            [
+              AUTH_REQUIRED,
+              INVALID_INPUT,
+              NOT_FOUND,
+              IDEMPOTENCY_CONFLICT,
+              CONFLICT,
+              RATE_LIMITED,
+              UNKNOWN,
+            ]
         message:
           type: string
         user_message:
@@ -761,7 +770,8 @@ components:
           type: string
     ProfileBootstrapResponse:
       type: object
-      required: [profile, active_goal, device, feature_flags, server_time, request_id]
+      required:
+        [profile, active_goal, device, feature_flags, server_time, request_id]
       properties:
         profile:
           $ref: "#/components/schemas/Profile"
@@ -913,7 +923,19 @@ components:
             $ref: "#/components/schemas/AnalyticsEvent"
     CustomFood:
       type: object
-      required: [id, user_id, client_id, name, calories_kcal, protein_g, carbs_g, fat_g, created_at, updated_at]
+      required:
+        [
+          id,
+          user_id,
+          client_id,
+          name,
+          calories_kcal,
+          protein_g,
+          carbs_g,
+          fat_g,
+          created_at,
+          updated_at,
+        ]
       properties:
         id:
           type: string
@@ -1089,7 +1111,16 @@ components:
           $ref: "#/components/schemas/RequestId"
     ExportRequest:
       type: object
-      required: [id, user_id, client_request_id, export_type, status, created_at, updated_at]
+      required:
+        [
+          id,
+          user_id,
+          client_request_id,
+          export_type,
+          status,
+          created_at,
+          updated_at,
+        ]
       properties:
         id:
           type: string
@@ -1159,7 +1190,8 @@ components:
           $ref: "#/components/schemas/RequestId"
     WeeklyInsight:
       type: object
-      required: [id, user_id, week_start, insight_type, title, summary, payload, status]
+      required:
+        [id, user_id, week_start, insight_type, title, summary, payload, status]
       properties:
         id:
           type: string
@@ -1372,7 +1404,18 @@ components:
             $ref: "#/components/schemas/MealItem"
     MealItemWrite:
       type: object
-      required: [client_id, position, name, quantity, unit, calories_kcal, protein_g, carbs_g, fat_g]
+      required:
+        [
+          client_id,
+          position,
+          name,
+          quantity,
+          unit,
+          calories_kcal,
+          protein_g,
+          carbs_g,
+          fat_g,
+        ]
       properties:
         client_id:
           type: string
@@ -1471,7 +1514,18 @@ components:
             $ref: "#/components/schemas/MealItemWrite"
     DailyRollup:
       type: object
-      required: [user_id, day, calories_kcal, protein_g, carbs_g, fat_g, meal_count, has_photo_meal, updated_at]
+      required:
+        [
+          user_id,
+          day,
+          calories_kcal,
+          protein_g,
+          carbs_g,
+          fat_g,
+          meal_count,
+          has_photo_meal,
+          updated_at,
+        ]
       properties:
         user_id:
           type: string

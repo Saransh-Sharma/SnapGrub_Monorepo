@@ -29,7 +29,9 @@ Install Maestro, then rerun this doctor:
 MSG
 fi
 
-flutter --version | sed -n '1,3p'
+if command -v flutter >/dev/null 2>&1; then
+  flutter --version | sed -n '1,3p'
+fi
 if command -v maestro >/dev/null 2>&1; then
   maestro --version
 fi
