@@ -1,4 +1,5 @@
 import { ApiError } from "./errors.ts";
+import type { serviceClient } from "./supabase.ts";
 
 const IN_PROGRESS_TTL_MS = 2 * 60 * 1000;
 
@@ -10,7 +11,7 @@ export type IdempotencyReplay = {
 };
 
 export async function maybeReplayIdempotency(
-  client: any,
+  client: ReturnType<typeof serviceClient>,
   userId: string,
   endpoint: string,
   key: string,
@@ -55,12 +56,13 @@ export async function maybeReplayIdempotency(
         .is("response_body", null);
       if (deleteError) throw deleteError;
 
-      const { error: reclaimError } = await client.from("api_idempotency").insert({
-        user_id: userId,
-        endpoint,
-        key,
-        request_hash: requestHash,
-      });
+      const { error: reclaimError } = await client.from("api_idempotency")
+        .insert({
+          user_id: userId,
+          endpoint,
+          key,
+          request_hash: requestHash,
+        });
       if (!reclaimError) return null;
       if (reclaimError.code !== "23505") throw reclaimError;
     }
@@ -78,11 +80,12 @@ export async function maybeReplayIdempotency(
 function isStaleInProgress(createdAt: string | undefined) {
   if (!createdAt) return false;
   const createdAtMs = Date.parse(createdAt);
-  return Number.isFinite(createdAtMs) && Date.now() - createdAtMs > IN_PROGRESS_TTL_MS;
+  return Number.isFinite(createdAtMs) &&
+    Date.now() - createdAtMs > IN_PROGRESS_TTL_MS;
 }
 
 export async function storeIdempotency(
-  client: any,
+  client: ReturnType<typeof serviceClient>,
   userId: string,
   endpoint: string,
   key: string,
@@ -90,7 +93,7 @@ export async function storeIdempotency(
   responseStatus: number,
   responseBody: Record<string, unknown>,
 ) {
-  const { error } = await client
+  const { data, error } = await client
     .from("api_idempotency")
     .update({
       response_status: responseStatus,
@@ -99,12 +102,21 @@ export async function storeIdempotency(
     .eq("user_id", userId)
     .eq("endpoint", endpoint)
     .eq("key", key)
-    .eq("request_hash", await sha256Hex(bodyText));
+    .eq("request_hash", await sha256Hex(bodyText))
+    .select("id");
   if (error) throw error;
+  if (!data || data.length === 0) {
+    throw new ApiError(
+      "CONFLICT",
+      "Idempotency record could not be updated",
+      409,
+      true,
+    );
+  }
 }
 
 export async function failIdempotency(
-  client: any,
+  client: ReturnType<typeof serviceClient>,
   userId: string,
   endpoint: string,
   key: string,
@@ -112,7 +124,15 @@ export async function failIdempotency(
   responseStatus: number,
   responseBody: Record<string, unknown>,
 ) {
-  await storeIdempotency(client, userId, endpoint, key, bodyText, responseStatus, responseBody);
+  await storeIdempotency(
+    client,
+    userId,
+    endpoint,
+    key,
+    bodyText,
+    responseStatus,
+    responseBody,
+  );
 }
 
 export async function sha256Hex(value: string) {

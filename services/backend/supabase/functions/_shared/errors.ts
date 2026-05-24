@@ -4,6 +4,7 @@ export type ErrorCode =
   | "NOT_FOUND"
   | "IDEMPOTENCY_CONFLICT"
   | "CONFLICT"
+  | "RATE_LIMITED"
   | "UNKNOWN";
 
 export class ApiError extends Error {
@@ -44,17 +45,30 @@ export function errorStatus(error: unknown) {
   return error instanceof ApiError ? error.status : 500;
 }
 
-export function logError(scope: string, requestId: string, error: unknown, details: Record<string, unknown> = {}) {
+export function logError(
+  scope: string,
+  requestId: string,
+  error: unknown,
+  details: Record<string, unknown> = {},
+) {
   const message = error instanceof Error ? error.message : String(error);
   const stack = error instanceof Error ? error.stack : undefined;
   const code = error instanceof ApiError ? error.code : "UNKNOWN";
-  console.error(JSON.stringify({
+  const payload = {
     level: "error",
     scope,
     request_id: requestId,
     code,
     message,
     stack,
-    ...details,
-  }));
+    details,
+  };
+  try {
+    console.error(JSON.stringify(payload));
+  } catch (_) {
+    console.error(JSON.stringify({
+      ...payload,
+      details: { serialization_error: "Unable to serialize log details" },
+    }));
+  }
 }

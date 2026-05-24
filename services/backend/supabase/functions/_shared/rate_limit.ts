@@ -1,7 +1,8 @@
 import { ApiError } from "./errors.ts";
+import type { serviceClient } from "./supabase.ts";
 
 export async function consumeRateLimit(
-  client: any,
+  client: ReturnType<typeof serviceClient>,
   userId: string,
   action: string,
   windowSeconds: number,
@@ -15,6 +16,11 @@ export async function consumeRateLimit(
   });
   if (error) throw error;
   if (data !== true) {
-    throw new ApiError("CONFLICT", "Too many requests. Please try again later.", 429, true);
+    throw new ApiError(
+      "RATE_LIMITED",
+      "Too many requests. Please try again later.",
+      429,
+      true,
+    );
   }
 }

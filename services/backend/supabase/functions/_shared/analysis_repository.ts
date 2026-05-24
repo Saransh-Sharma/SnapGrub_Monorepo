@@ -1,7 +1,8 @@
 import type { EditableMealDraft } from "./multimodal.ts";
+import type { serviceClient } from "./supabase.ts";
 
 export async function readExistingAnalysisJob(
-  client: any,
+  client: ReturnType<typeof serviceClient>,
   userId: string,
   clientRequestId: string,
 ) {
@@ -16,7 +17,7 @@ export async function readExistingAnalysisJob(
 }
 
 export async function persistRuleAnalysis(
-  client: any,
+  client: ReturnType<typeof serviceClient>,
   input: {
     userId: string;
     clientRequestId: string;
@@ -27,67 +28,33 @@ export async function persistRuleAnalysis(
     latencyMs: number;
   },
 ) {
-  const { data: job, error: jobError } = await client
-    .from("analysis_jobs")
-    .insert({
-      user_id: input.userId,
-      client_request_id: input.clientRequestId,
-      analysis_mode: input.mode,
-      status: "completed",
-      input_payload: input.inputPayload,
-      provider: "snapgrub",
-      model_name: input.modelName,
-      latency_ms: input.latencyMs,
-      completed_at: new Date().toISOString(),
+  const { data: job, error } = await client
+    .rpc("persist_rule_analysis", {
+      p_user_id: input.userId,
+      p_client_request_id: input.clientRequestId,
+      p_mode: input.mode,
+      p_input_payload: input.inputPayload,
+      p_result_payload: input.result,
+      p_model_name: input.modelName,
+      p_latency_ms: input.latencyMs,
+      p_request_payload: safeRuleRequestPayload(input.inputPayload),
+      p_response_payload: {
+        title: input.result.title,
+        confidence: input.result.confidence,
+        component_count: input.result.components.length,
+      },
     })
-    .select("*")
     .single();
-  if (jobError) throw jobError;
+  if (error) throw error;
 
-  const resultPayload = {
-    ...input.result,
-    provenance: { ...input.result.provenance, analysis_id: job.id },
-  };
-
-  const { error: revisionError } = await client.from("analysis_revisions").insert({
-    analysis_job_id: job.id,
-    user_id: input.userId,
-    revision_no: 1,
-    title: input.result.title,
-    meal_type: input.result.meal_type,
-    calories_kcal: input.result.total.calories_kcal,
-    protein_g: input.result.total.protein_g,
-    carbs_g: input.result.total.carbs_g,
-    fat_g: input.result.total.fat_g,
-    confidence_overall: input.result.confidence.overall,
-    confidence_breakdown: input.result.confidence,
-    warnings: input.result.confidence.warnings.map((warning) => warning.message),
-    provenance: resultPayload.provenance,
-    result_payload: resultPayload,
-  });
-  if (revisionError) throw revisionError;
-
-  const { error: invocationError } = await client.from("model_invocations").insert({
-    analysis_job_id: job.id,
-    user_id: input.userId,
-    provider: "snapgrub",
-    model_name: input.modelName,
-    purpose: `${input.mode}_analysis`,
-    status: "completed",
-    latency_ms: input.latencyMs,
-    request_payload: safeRuleRequestPayload(input.inputPayload),
-    response_payload: {
-      title: input.result.title,
-      confidence: input.result.confidence,
-      component_count: input.result.components.length,
-    },
-  });
-  if (invocationError) throw invocationError;
-
-  return job;
+  return job as Record<string, unknown>;
 }
 
-export async function analysisResponseForJob(client: any, job: Record<string, unknown>, requestId: string) {
+export async function analysisResponseForJob(
+  client: ReturnType<typeof serviceClient>,
+  job: Record<string, unknown>,
+  requestId: string,
+) {
   const { data: revision, error } = await client
     .from("analysis_revisions")
     .select("result_payload")
