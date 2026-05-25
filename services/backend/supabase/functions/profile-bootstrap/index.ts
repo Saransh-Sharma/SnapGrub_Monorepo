@@ -49,6 +49,18 @@ Deno.serve(async (req) => {
         .single();
       if (error) throw error;
       profile = data;
+    } else if (
+      profile.locale !== locale ||
+      profile.timezone !== timezone
+    ) {
+      const { data, error } = await client
+        .from("profiles")
+        .update({ locale, timezone })
+        .eq("id", user.id)
+        .select("*")
+        .single();
+      if (error) throw error;
+      profile = data;
     }
 
     const { data: existingDevice, error: existingDeviceError } = await client
@@ -74,13 +86,9 @@ Deno.serve(async (req) => {
       build_number: optionalString(body.build_number),
       last_seen_at: new Date().toISOString(),
     };
-    const deviceQuery = existingDevice
-      ? client.from("devices").update(devicePayload).eq("id", existingDevice.id)
-      : client.from("devices").insert(devicePayload);
-    const { data: device, error: deviceError } = await deviceQuery
-      .select("*")
-      .single();
-    if (deviceError) throw deviceError;
+    const device = existingDevice
+      ? await updateDevice(client, String(existingDevice.id), devicePayload)
+      : await insertDevice(client, user.id, installId, devicePayload);
 
     const { data: activeGoal, error: goalError } = await client
       .from("nutrition_goals")
@@ -134,6 +142,52 @@ Deno.serve(async (req) => {
     return jsonResponse(errorBody(error, requestId), status);
   }
 });
+
+async function updateDevice(
+  client: ReturnType<typeof serviceClient>,
+  id: string,
+  devicePayload: Record<string, unknown>,
+) {
+  const { data, error } = await client
+    .from("devices")
+    .update(devicePayload)
+    .eq("id", id)
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+async function insertDevice(
+  client: ReturnType<typeof serviceClient>,
+  userId: string,
+  installId: string,
+  devicePayload: Record<string, unknown>,
+) {
+  const { data, error } = await client
+    .from("devices")
+    .insert(devicePayload)
+    .select("*")
+    .single();
+  if (!error) return data;
+  if (error.code !== "23505") throw error;
+
+  const { data: existing, error: readError } = await client
+    .from("devices")
+    .select("id,user_id")
+    .eq("install_id", installId)
+    .maybeSingle();
+  if (readError) throw readError;
+  if (!existing || existing.user_id !== userId) {
+    throw new ApiError(
+      "CONFLICT",
+      "install_id is already registered to another user",
+      409,
+      false,
+    );
+  }
+  return await updateDevice(client, String(existing.id), devicePayload);
+}
 
 type FlagContext = {
   userId: string;

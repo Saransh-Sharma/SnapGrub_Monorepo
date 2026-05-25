@@ -20,10 +20,7 @@ Deno.serve(async (req) => {
 
     if (req.method === "GET" && mealId == null) {
       const day = url.searchParams.get("day");
-      const limit = Math.min(
-        Math.max(Number(url.searchParams.get("limit") ?? 50), 1),
-        100,
-      );
+      const limit = parseLimit(url.searchParams.get("limit"));
       if (day) {
         if (!isDateString(day)) {
           throw new ApiError(
@@ -222,6 +219,22 @@ function mealIdFromPath(pathname: string) {
   const mealsIndex = parts.lastIndexOf("meals");
   if (mealsIndex < 0 || parts.length <= mealsIndex + 1) return null;
   return parts[mealsIndex + 1];
+}
+
+function parseLimit(rawLimit: string | null) {
+  const parsed = rawLimit == null ? 50 : Number(rawLimit);
+  if (!Number.isInteger(parsed)) {
+    throw new ApiError(
+      "INVALID_INPUT",
+      "limit must be an integer",
+      400,
+      false,
+      {
+        field: "limit",
+      },
+    );
+  }
+  return Math.min(Math.max(parsed, 1), 100);
 }
 
 function validateMealWrite(body: Record<string, unknown>) {

@@ -7,6 +7,8 @@ import {
   draftFromFoodResult,
 } from "../_shared/multimodal.ts";
 
+const OPEN_FOOD_FACTS_PROVIDER = "open_food_facts";
+
 Deno.serve(async (req) => {
   const requestId = crypto.randomUUID();
   if (req.method === "OPTIONS") return optionsResponse();
@@ -36,7 +38,7 @@ Deno.serve(async (req) => {
 
     const local = await readLocalProduct(client, barcode);
     if (local) {
-      await clearBarcodeMiss(client, barcode);
+      await clearBarcodeMiss(client, barcode, OPEN_FOOD_FACTS_PROVIDER);
       const product = brandedProductToFoodResult(local);
       return jsonResponse({
         barcode,
@@ -49,7 +51,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    const cachedMiss = await readBarcodeMiss(client, barcode);
+    const cachedMiss = await readBarcodeMiss(
+      client,
+      barcode,
+      OPEN_FOOD_FACTS_PROVIDER,
+    );
     if (cachedMiss) {
       return notFoundResponse(
         barcode,
@@ -62,7 +68,13 @@ Deno.serve(async (req) => {
     try {
       off = await fetchOpenFoodFacts(barcode);
     } catch (_) {
-      await cacheBarcodeMiss(client, barcode, "provider_unavailable", 5 * 60);
+      await cacheBarcodeMiss(
+        client,
+        barcode,
+        OPEN_FOOD_FACTS_PROVIDER,
+        "provider_unavailable",
+        5 * 60,
+      );
       return notFoundResponse(
         barcode,
         requestId,
@@ -70,7 +82,7 @@ Deno.serve(async (req) => {
       );
     }
     if (off) {
-      await clearBarcodeMiss(client, barcode);
+      await clearBarcodeMiss(client, barcode, OPEN_FOOD_FACTS_PROVIDER);
       const cached = await cacheOpenFoodFactsProduct(client, barcode, off);
       const product = brandedProductToFoodResult(cached);
       return jsonResponse({
@@ -84,7 +96,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    await cacheBarcodeMiss(client, barcode, "not_found", 24 * 60 * 60);
+    await cacheBarcodeMiss(
+      client,
+      barcode,
+      OPEN_FOOD_FACTS_PROVIDER,
+      "not_found",
+      24 * 60 * 60,
+    );
     return notFoundResponse(
       barcode,
       requestId,
@@ -142,14 +160,13 @@ async function fetchOpenFoodFacts(barcode: string) {
       },
     );
   } catch (error) {
-    if (error instanceof DOMException && error.name === "AbortError") {
-      return null;
-    }
     throw error;
   } finally {
     clearTimeout(timeout);
   }
-  if (!response.ok) return null;
+  if (!response.ok) {
+    throw new Error(`OpenFoodFacts responded with ${response.status}`);
+  }
   const raw = await response.json().catch(() => null) as
     | Record<string, unknown>
     | null;
@@ -160,10 +177,12 @@ async function fetchOpenFoodFacts(barcode: string) {
 async function readBarcodeMiss(
   client: ReturnType<typeof serviceClient>,
   barcode: string,
+  provider: string,
 ) {
   const { data, error } = await client
     .from("barcode_lookup_misses")
     .select("reason, expires_at")
+    .eq("provider", provider)
     .eq("barcode", barcode)
     .gt("expires_at", new Date().toISOString())
     .maybeSingle();
@@ -174,6 +193,7 @@ async function readBarcodeMiss(
 async function cacheBarcodeMiss(
   client: ReturnType<typeof serviceClient>,
   barcode: string,
+  provider: string,
   reason: "not_found" | "provider_unavailable",
   ttlSeconds: number,
 ) {
@@ -181,22 +201,24 @@ async function cacheBarcodeMiss(
     .from("barcode_lookup_misses")
     .upsert({
       barcode,
-      provider: "open_food_facts",
+      provider,
       reason,
       checked_at: new Date().toISOString(),
       expires_at: new Date(Date.now() + ttlSeconds * 1000).toISOString(),
-    }, { onConflict: "barcode" });
+    }, { onConflict: "provider,barcode" });
   if (error) throw error;
 }
 
 async function clearBarcodeMiss(
   client: ReturnType<typeof serviceClient>,
   barcode: string,
+  provider: string,
 ) {
-  const { error } = await client.from("barcode_lookup_misses").delete().eq(
-    "barcode",
-    barcode,
-  );
+  const { error } = await client
+    .from("barcode_lookup_misses")
+    .delete()
+    .eq("provider", provider)
+    .eq("barcode", barcode);
   if (error) throw error;
 }
 

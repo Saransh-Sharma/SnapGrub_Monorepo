@@ -43,8 +43,7 @@ Deno.serve(async (req) => {
       body.client_request_id,
       "client_request_id",
     );
-    const idempotencyKey = req.headers.get("idempotency-key") ??
-      clientRequestId;
+    const idempotencyKey = idempotencyKeyFor(req, clientRequestId);
     const endpoint = "exports:create";
     const exportType = normalizeExportType(body.export_type);
     const replay = await maybeReplayIdempotency(
@@ -118,6 +117,7 @@ Deno.serve(async (req) => {
       );
       return jsonResponse(responseBody, 202);
     } catch (error) {
+      const status = error instanceof ApiError ? error.status : 500;
       const failed = await updateExport(client, String(exportRequest.id), {
         status: "failed",
         error_code: error instanceof ApiError ? error.code : "UNKNOWN",
@@ -133,10 +133,10 @@ Deno.serve(async (req) => {
         endpoint,
         idempotencyKey,
         bodyText,
-        500,
+        status,
         responseBody,
       );
-      return jsonResponse(responseBody, 500);
+      return jsonResponse(responseBody, status);
     }
   } catch (error) {
     const status = error instanceof ApiError ? error.status : 500;
@@ -152,6 +152,11 @@ function normalizeExportType(value: unknown) {
     });
   }
   return type;
+}
+
+function idempotencyKeyFor(req: Request, clientRequestId: string) {
+  const header = req.headers.get("idempotency-key")?.trim();
+  return header && header.length > 0 ? header : clientRequestId;
 }
 
 function exportIdFromUrl(url: string) {
@@ -321,7 +326,6 @@ async function readExportData(
     nutritionGoals,
     bodyMeasurements,
     meals,
-    mealItems,
     customFoods,
     mealTemplates,
     correctionEvents,
@@ -331,12 +335,16 @@ async function readExportData(
     selectRows(client, "nutrition_goals", userId),
     selectRows(client, "body_measurements", userId, filters, "measured_at"),
     selectRows(client, "meals", userId, filters, "logged_at"),
-    selectRows(client, "meal_items", userId),
     selectRows(client, "custom_foods", userId),
     selectRows(client, "meal_templates", userId),
     selectRows(client, "correction_events", userId),
     selectRows(client, "weekly_insights", userId),
   ]);
+  const mealItems = await selectMealItemsForMeals(
+    client,
+    userId,
+    meals.map((meal) => String(meal["id"])),
+  );
 
   return {
     profile,
@@ -396,6 +404,7 @@ async function selectRows(
       .from(table)
       .select("*")
       .eq("user_id", userId)
+      .order("id", { ascending: true })
       .range(from, from + EXPORT_PAGE_SIZE - 1);
     if (timestampColumn && filters.from) {
       query = query.gte(timestampColumn, filters.from);
@@ -421,6 +430,41 @@ async function selectRows(
     }
     if (page.length < EXPORT_PAGE_SIZE) return rows;
   }
+}
+
+async function selectMealItemsForMeals(
+  client: ReturnType<typeof serviceClient>,
+  userId: string,
+  mealIds: string[],
+) {
+  if (mealIds.length === 0) return [];
+  const rows: Array<Record<string, unknown>> = [];
+  for (let index = 0; index < mealIds.length; index += EXPORT_PAGE_SIZE) {
+    const batch = mealIds.slice(index, index + EXPORT_PAGE_SIZE);
+    const { data, error } = await client
+      .from("meal_items")
+      .select("*")
+      .eq("user_id", userId)
+      .in("meal_id", batch)
+      .order("meal_id", { ascending: true })
+      .order("position", { ascending: true })
+      .order("id", { ascending: true });
+    if (error) throw error;
+    rows.push(...(data ?? []));
+    if (rows.length > MAX_EXPORT_ROWS_PER_TABLE) {
+      throw new ApiError(
+        "CONFLICT",
+        "meal_items export is too large for synchronous generation",
+        413,
+        false,
+        {
+          table: "meal_items",
+          max_rows: MAX_EXPORT_ROWS_PER_TABLE,
+        },
+      );
+    }
+  }
+  return rows;
 }
 
 function rowCounts(data: Record<string, unknown>) {

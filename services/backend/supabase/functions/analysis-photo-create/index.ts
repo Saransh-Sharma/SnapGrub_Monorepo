@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
       "meal-originals-private";
     const storagePath = requireString(body.storage_path, "storage_path");
     const thumbStoragePath = optionalString(body.thumb_storage_path);
-    const mimeType = optionalString(body.mime_type) ?? "image/jpeg";
+    const requestedMimeType = optionalString(body.mime_type);
 
     assertAllowedStorageBucket(storageBucket);
     assertOwnStoragePath(user.id, storagePath);
@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
       client,
       storageBucket,
       storagePath,
-      mimeType,
+      requestedMimeType,
     );
     const profile = await readProfilePrivacy(client, user.id);
     const asset = await upsertAsset(client, {
@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
       storagePath,
       thumbStoragePath,
       sha256: optionalString(body.asset_sha256) ?? await sha256Hex(image.bytes),
-      mimeType,
+      mimeType: image.mimeType,
       width: numberOrNull(body.width),
       height: numberOrNull(body.height),
       sizeBytes: numberOrNull(body.size_bytes) ?? image.bytes.byteLength,
@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
     try {
       const providerResult = await analyzePhoto({
         imageBytes: image.bytes,
-        mimeType,
+        mimeType: image.mimeType,
         locale: requireString(body.locale, "locale"),
         timezone: requireString(body.timezone, "timezone"),
         mealTypeHint: optionalString(body.meal_type_hint),
@@ -275,16 +275,16 @@ async function downloadImage(
   client: ReturnType<typeof serviceClient>,
   bucket: string,
   path: string,
-  requestedMimeType: string,
+  requestedMimeType: string | null,
 ) {
   const { data, error } = await client.storage.from(bucket).download(path);
   if (error || !data) {
     throw new ApiError("NOT_FOUND", "Uploaded image was not found", 404, false);
   }
-  const actualMimeType = data.type || requestedMimeType;
+  const actualMimeType = data.type || requestedMimeType || "image/jpeg";
   if (
     !ALLOWED_IMAGE_TYPES.has(actualMimeType) ||
-    !ALLOWED_IMAGE_TYPES.has(requestedMimeType)
+    (requestedMimeType != null && !ALLOWED_IMAGE_TYPES.has(requestedMimeType))
   ) {
     throw new ApiError(
       "INVALID_INPUT",
@@ -296,7 +296,10 @@ async function downloadImage(
       },
     );
   }
-  return { bytes: new Uint8Array(await data.arrayBuffer()) };
+  return {
+    bytes: new Uint8Array(await data.arrayBuffer()),
+    mimeType: actualMimeType,
+  };
 }
 
 async function upsertAsset(
