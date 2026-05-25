@@ -37,7 +37,7 @@ jobs:
       - working-directory: services/backend/supabase
         run: supabase start && supabase db reset
       - working-directory: services/backend/supabase
-        run: supabase status -o env >> "$GITHUB_ENV"
+        run: supabase status -o env | sed -E 's/^([^=]+)="(.*)"$/\1=\2/' >> "$GITHUB_ENV"
       - run: npm run backend:test:auth-profile
         env:
           NODE_OPTIONS: --experimental-websocket
@@ -66,6 +66,8 @@ jobs:
         env:
           NODE_OPTIONS: --experimental-websocket
       - run: npm run backend:test:remediation-unit
+        env:
+          NODE_OPTIONS: --experimental-websocket
 
   mobile:
     runs-on: ubuntu-latest

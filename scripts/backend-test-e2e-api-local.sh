@@ -2,8 +2,13 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-env_file="${TMPDIR:-/tmp}/snapgrub-supabase-e2e.env"
+env_file="$(mktemp "${TMPDIR:-/tmp}/snapgrub-supabase-e2e.XXXXXX")"
 edge_env_file="services/backend/supabase/functions/.env"
+
+cleanup() {
+  rm -f "$env_file"
+}
+trap cleanup EXIT
 
 cd "$repo_root"
 export CORS_ALLOW_ORIGIN="${CORS_ALLOW_ORIGIN:-http://localhost:3000}"
@@ -12,8 +17,12 @@ touch "$edge_env_file"
 upsert_edge_env() {
   local key="$1"
   local value="$2"
+  local escaped_value
+  escaped_value="${value//\\/\\\\}"
+  escaped_value="${escaped_value//&/\\&}"
+  escaped_value="${escaped_value//|/\\|}"
   if grep -q "^${key}=" "$edge_env_file"; then
-    sed -i.bak "s|^${key}=.*|${key}=${value}|" "$edge_env_file"
+    sed -i.bak "s|^${key}=.*|${key}=${escaped_value}|" "$edge_env_file"
     rm -f "$edge_env_file.bak"
   else
     printf '%s=%s\n' "$key" "$value" >> "$edge_env_file"

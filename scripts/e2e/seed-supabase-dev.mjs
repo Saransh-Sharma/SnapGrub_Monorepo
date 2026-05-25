@@ -6,9 +6,6 @@ import ws from "ws";
 const repoRoot = path.resolve(import.meta.dirname, "../..");
 const platform = process.env.E2E_PLATFORM || process.argv[2] || "android";
 const target = process.env.E2E_TARGET || process.argv[3] || "local";
-const email =
-  process.env.E2E_EMAIL || `snapgrub-e2e-${platform}@example.com`;
-const password = process.env.E2E_PASSWORD || "SnapGrub-e2e-password-123";
 
 if (platform !== "android" && platform !== "ios") {
   throw new Error("E2E_PLATFORM must be android or ios.");
@@ -16,12 +13,6 @@ if (platform !== "android" && platform !== "ios") {
 
 if (target !== "local" && target !== "developer") {
   throw new Error("E2E_TARGET must be local or developer.");
-}
-
-if (!/^snapgrub-e2e-(android|ios)@example\.com$/i.test(email)) {
-  throw new Error(
-    `Refusing to reset non-dedicated E2E user: ${email}. Use snapgrub-e2e-android@example.com or snapgrub-e2e-ios@example.com.`,
-  );
 }
 
 function loadEnv(file) {
@@ -39,9 +30,30 @@ function loadEnv(file) {
 loadEnv(path.join(repoRoot, `apps/mobile/.env.${target}`));
 loadEnv(path.join(repoRoot, `services/backend/supabase/.env.${target}`));
 
+const email = process.env.E2E_EMAIL || `snapgrub-e2e-${platform}@example.com`;
+const passwordFromEnv = process.env.E2E_PASSWORD;
+const password = passwordFromEnv || "SnapGrub-e2e-password-123";
+
+if (!/^snapgrub-e2e-(android|ios)@example\.com$/i.test(email)) {
+  throw new Error(
+    `Refusing to reset non-dedicated E2E user: ${email}. Use snapgrub-e2e-android@example.com or snapgrub-e2e-ios@example.com.`,
+  );
+}
+
+if (target === "developer") {
+  if (process.env.SNAPGRUB_ALLOW_REMOTE_E2E_SEED !== "1") {
+    throw new Error(
+      "Developer Supabase E2E seeding requires SNAPGRUB_ALLOW_REMOTE_E2E_SEED=1.",
+    );
+  }
+  if (!passwordFromEnv) {
+    throw new Error("Developer Supabase E2E seeding requires E2E_PASSWORD.");
+  }
+}
+
 const url = process.env.SUPABASE_URL;
-const serviceRole =
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SERVICE_ROLE_KEY;
+const serviceRole = process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.SERVICE_ROLE_KEY;
 
 if (!url || !serviceRole) {
   throw new Error(
@@ -53,7 +65,9 @@ const localhost = /^http:\/\/(127\.0\.0\.1|localhost|0\.0\.0\.0)(:|\/|$)/.test(
   url,
 );
 if (target === "developer" && localhost) {
-  throw new Error("Developer Supabase E2E cannot use a localhost SUPABASE_URL.");
+  throw new Error(
+    "Developer Supabase E2E cannot use a localhost SUPABASE_URL.",
+  );
 }
 if (target === "local" && !localhost) {
   throw new Error("Local Supabase E2E must use a localhost SUPABASE_URL.");
@@ -74,16 +88,18 @@ if (existing) {
   console.log(`deleted E2E auth user: ${email}`);
 }
 
-const { data: created, error: createError } = await admin.auth.admin.createUser({
-  email,
-  password,
-  email_confirm: true,
-  user_metadata: {
-    purpose: "snapgrub-e2e",
-    platform,
-    target,
+const { data: created, error: createError } = await admin.auth.admin.createUser(
+  {
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: {
+      purpose: "snapgrub-e2e",
+      platform,
+      target,
+    },
   },
-});
+);
 
 if (createError) throw createError;
 console.log(`seeded E2E auth user: ${email} (${created.user.id})`);
@@ -116,17 +132,21 @@ async function assertRequiredBuckets() {
   for (const bucket of data ?? []) required.delete(bucket.name);
   if (required.size > 0) {
     throw new Error(
-      `Missing required Supabase storage bucket(s): ${[...required].join(", ")}`,
+      `Missing required Supabase storage bucket(s): ${
+        [...required].join(", ")
+      }`,
     );
   }
 }
 
 async function removeUserStorage(userId) {
-  for (const bucket of [
-    "meal-originals-private",
-    "meal-thumbnails-private",
-    "exports-private",
-  ]) {
+  for (
+    const bucket of [
+      "meal-originals-private",
+      "meal-thumbnails-private",
+      "exports-private",
+    ]
+  ) {
     const paths = await listStoragePaths(bucket, userId);
     if (paths.length === 0) continue;
     const { error } = await admin.storage.from(bucket).remove(paths);
@@ -143,7 +163,7 @@ async function listStoragePaths(bucket, prefix) {
 
 async function collectStoragePaths(bucket, prefix, paths) {
   const limit = 100;
-  for (let offset = 0; ; offset += limit) {
+  for (let offset = 0;; offset += limit) {
     const { data, error } = await admin.storage.from(bucket).list(prefix, {
       limit,
       offset,
