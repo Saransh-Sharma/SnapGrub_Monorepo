@@ -1,13 +1,17 @@
 create table if not exists public.barcode_lookup_misses (
-  barcode text primary key,
+  barcode text not null,
   provider text not null,
   reason text not null check (reason in ('not_found', 'provider_unavailable')),
   checked_at timestamptz not null default now(),
-  expires_at timestamptz not null
+  expires_at timestamptz not null,
+  primary key (provider, barcode)
 );
 
 create index if not exists idx_barcode_lookup_misses_expires_at
 on public.barcode_lookup_misses (expires_at);
+
+create unique index if not exists devices_install_id_unique
+on public.devices (install_id);
 
 alter table public.barcode_lookup_misses enable row level security;
 

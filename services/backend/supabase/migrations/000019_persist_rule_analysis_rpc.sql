@@ -41,7 +41,19 @@ begin
     p_latency_ms,
     now()
   )
+  on conflict (user_id, client_request_id) do nothing
   returning * into v_job;
+
+  if v_job.id is null then
+    select *
+      into v_job
+    from public.analysis_jobs
+    where user_id = p_user_id
+      and client_request_id = p_client_request_id;
+
+    return next v_job;
+    return;
+  end if;
 
   v_result_payload = jsonb_set(
     coalesce(p_result_payload, '{}'::jsonb),
