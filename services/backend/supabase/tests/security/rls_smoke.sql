@@ -22,5 +22,6 @@ where schemaname = 'public'
     'analysis_jobs',
     'analysis_revisions',
     'analysis_candidates',
-    'model_invocations'
+    'model_invocations',
+    'barcode_lookup_misses'
   );

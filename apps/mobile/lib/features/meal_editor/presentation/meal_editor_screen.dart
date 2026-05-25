@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:snapgrub/app/e2e/e2e_ids.dart';
+import 'package:snapgrub/app/env/app_config_provider.dart';
 import 'package:snapgrub/core/widgets/app_scaffold.dart';
 import 'package:snapgrub/features/custom_foods/data/custom_food_repository.dart';
 import 'package:snapgrub/features/custom_foods/domain/custom_food.dart';
@@ -21,6 +23,7 @@ class MealEditorScreen extends ConsumerStatefulWidget {
 }
 
 class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
+  final _titleController = TextEditingController();
   MealDraft? _draft;
   bool _loading = true;
   bool _saving = false;
@@ -32,9 +35,17 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
     _loadDraft();
   }
 
+  @override
+  void dispose() {
+    _titleController.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadDraft() async {
     if (_draft != null) return;
     if (widget.initialDraft != null) {
+      if (!mounted) return;
+      _syncTitleController(widget.initialDraft!);
       setState(() {
         _draft = widget.initialDraft;
         _loading = false;
@@ -42,19 +53,24 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
       return;
     }
     final contextData = await ref.read(homeUserContextProvider.future);
+    if (!mounted) return;
     if (contextData == null) return;
     final repo = ref.read(mealRepositoryProvider);
     final mealId = widget.mealId;
     if (mealId == null) {
+      final draft = repo.newManualDraft(
+          userId: contextData.userId, timezone: contextData.timezone);
+      if (!mounted) return;
+      _syncTitleController(draft);
       setState(() {
-        _draft = repo.newManualDraft(
-            userId: contextData.userId, timezone: contextData.timezone);
+        _draft = draft;
         _loading = false;
       });
       return;
     }
 
     final meal = await repo.getMeal(mealId);
+    if (!mounted) return;
     if (meal == null) {
       setState(() {
         _error = 'Meal not found.';
@@ -62,48 +78,57 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
       });
       return;
     }
+    final draft = MealDraft(
+      id: meal.id,
+      userId: meal.userId,
+      clientId: meal.clientId,
+      timezone: meal.timezone,
+      title: meal.title,
+      mealType: meal.mealType,
+      source: meal.source,
+      loggedAt: meal.loggedAt,
+      expectedRevision: meal.revision,
+      confidenceOverall: meal.confidenceOverall,
+      provenanceType: meal.provenanceType,
+      analysisJobId: meal.analysisJobId,
+      photoAssetId: meal.photoAssetId,
+      items: meal.items
+          .map(
+            (item) => MealDraftItem(
+              id: item.id,
+              clientId: item.clientId,
+              name: item.name,
+              foodRefKind: item.foodRefKind,
+              canonicalFoodId: item.canonicalFoodId,
+              brandedProductId: item.brandedProductId,
+              customFoodId: item.customFoodId,
+              quantity: item.quantity,
+              unit: item.unit,
+              gramsEstimated: item.gramsEstimated,
+              caloriesKcal: item.caloriesKcal,
+              proteinG: item.proteinG,
+              carbsG: item.carbsG,
+              fatG: item.fatG,
+              confidence: item.confidence,
+              sourceType: item.sourceType,
+              sourceId: item.sourceId,
+              notes: item.notes,
+            ),
+          )
+          .toList(),
+    );
+    if (!mounted) return;
+    _syncTitleController(draft);
     setState(() {
-      _draft = MealDraft(
-        id: meal.id,
-        userId: meal.userId,
-        clientId: meal.clientId,
-        timezone: meal.timezone,
-        title: meal.title,
-        mealType: meal.mealType,
-        source: meal.source,
-        loggedAt: meal.loggedAt,
-        expectedRevision: meal.revision,
-        confidenceOverall: meal.confidenceOverall,
-        provenanceType: meal.provenanceType,
-        analysisJobId: meal.analysisJobId,
-        photoAssetId: meal.photoAssetId,
-        items: meal.items
-            .map(
-              (item) => MealDraftItem(
-                id: item.id,
-                clientId: item.clientId,
-                name: item.name,
-                foodRefKind: item.foodRefKind,
-                canonicalFoodId: item.canonicalFoodId,
-                brandedProductId: item.brandedProductId,
-                customFoodId: item.customFoodId,
-                quantity: item.quantity,
-                unit: item.unit,
-                gramsEstimated: item.gramsEstimated,
-                caloriesKcal: item.caloriesKcal,
-                proteinG: item.proteinG,
-                carbsG: item.carbsG,
-                fatG: item.fatG,
-                confidence: item.confidence,
-                sourceType: item.sourceType,
-                sourceId: item.sourceId,
-                notes: item.notes,
-              ),
-            )
-            .toList(),
-      );
+      _draft = draft;
       _loading = false;
     });
+  }
+
+  void _syncTitleController(MealDraft draft) {
+    _titleController.text = draft.title;
+    _titleController.selection =
+        TextSelection.collapsed(offset: _titleController.text.length);
   }
 
   @override
@@ -113,16 +138,22 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
       title: 'Meal Editor',
       actions: [
         if (draft != null)
-          IconButton(
-            tooltip: 'Save as template',
-            onPressed: _saving ? null : () => _saveTemplate(draft),
-            icon: const Icon(Icons.bookmark_add_outlined),
+          E2eId(
+            id: 'meal.save_template',
+            child: IconButton(
+              tooltip: 'Save as template',
+              onPressed: _saving ? null : () => _saveTemplate(draft),
+              icon: const Icon(Icons.bookmark_add_outlined),
+            ),
           ),
         if (draft != null && widget.mealId != null)
-          IconButton(
-            tooltip: 'Delete meal',
-            onPressed: _saving ? null : () => _deleteMeal(draft.id),
-            icon: const Icon(Icons.delete_outline),
+          E2eId(
+            id: 'meal.delete',
+            child: IconButton(
+              tooltip: 'Delete meal',
+              onPressed: _saving ? null : () => _deleteMeal(draft.id),
+              icon: const Icon(Icons.delete_outline),
+            ),
           ),
       ],
       child: _loading
@@ -172,11 +203,21 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
                       ),
                       const SizedBox(height: 12),
                     ],
-                    TextFormField(
-                      initialValue: draft.title,
-                      decoration:
-                          const InputDecoration(labelText: 'Meal title'),
-                      onChanged: (value) => draft.title = value,
+                    E2eId(
+                      id: 'meal.title',
+                      child: TextFormField(
+                        controller: _titleController,
+                        onTap: () {
+                          if (!ref.read(appConfigProvider).isE2e) return;
+                          _titleController.selection = TextSelection(
+                            baseOffset: 0,
+                            extentOffset: _titleController.text.length,
+                          );
+                        },
+                        decoration:
+                            const InputDecoration(labelText: 'Meal title'),
+                        onChanged: (value) => draft.title = value,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<MealType>(
@@ -207,22 +248,29 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
                     for (var i = 0; i < draft.items.length; i++)
                       _ItemEditor(
                         key: ValueKey(draft.items[i].id),
+                        index: i,
                         item: draft.items[i],
                         onDelete: draft.items.length == 1
                             ? null
                             : () => setState(() => draft.items.removeAt(i)),
                       ),
-                    OutlinedButton.icon(
-                      onPressed: () =>
-                          setState(() => draft.items.add(MealDraftItem())),
-                      icon: const Icon(Icons.add),
-                      label: const Text('Add item'),
+                    E2eId(
+                      id: 'meal.add_item',
+                      child: OutlinedButton.icon(
+                        onPressed: () =>
+                            setState(() => draft.items.add(MealDraftItem())),
+                        icon: const Icon(Icons.add),
+                        label: const Text('Add item'),
+                      ),
                     ),
                     const SizedBox(height: 8),
-                    OutlinedButton.icon(
-                      onPressed: () => _insertCustomFood(draft),
-                      icon: const Icon(Icons.fastfood_outlined),
-                      label: const Text('Add custom food'),
+                    E2eId(
+                      id: 'meal.add_custom_food',
+                      child: OutlinedButton.icon(
+                        onPressed: () => _insertCustomFood(draft),
+                        icon: const Icon(Icons.fastfood_outlined),
+                        label: const Text('Add custom food'),
+                      ),
                     ),
                     const SizedBox(height: 16),
                     _Totals(draft: draft),
@@ -231,15 +279,19 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
                       Text(_error!,
                           style: TextStyle(
                               color: Theme.of(context).colorScheme.error)),
-                    FilledButton.icon(
-                      onPressed: _saving ? null : () => _save(draft),
-                      icon: _saving
-                          ? const SizedBox.square(
-                              dimension: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.check),
-                      label: const Text('Save meal'),
+                    E2eId(
+                      id: 'meal.save',
+                      child: FilledButton.icon(
+                        onPressed: _saving ? null : () => _save(draft),
+                        icon: _saving
+                            ? const SizedBox.square(
+                                dimension: 18,
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.check),
+                        label: const Text('Save meal'),
+                      ),
                     ),
                   ],
                 ),
@@ -349,11 +401,13 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
 
 class _ItemEditor extends StatefulWidget {
   const _ItemEditor({
+    required this.index,
     required this.item,
     required this.onDelete,
     super.key,
   });
 
+  final int index;
   final MealDraftItem item;
   final VoidCallback? onDelete;
 
@@ -388,10 +442,13 @@ class _ItemEditorState extends State<_ItemEditor> {
             Row(
               children: [
                 Expanded(
-                  child: TextFormField(
-                    initialValue: item.name,
-                    decoration: const InputDecoration(labelText: 'Food'),
-                    onChanged: (value) => item.name = value,
+                  child: E2eId(
+                    id: 'meal.item.${widget.index}.food',
+                    child: TextFormField(
+                      initialValue: item.name,
+                      decoration: const InputDecoration(labelText: 'Food'),
+                      onChanged: (value) => item.name = value,
+                    ),
                   ),
                 ),
                 IconButton(
@@ -406,20 +463,25 @@ class _ItemEditorState extends State<_ItemEditor> {
               children: [
                 Expanded(
                     child: _NumberField(
+                        id: 'meal.item.${widget.index}.qty',
                         label: 'Qty',
                         initial: item.quantity,
-                        onChanged: (v) => item.quantity = v)),
+                        onChanged: (v) => item.quantity = v ?? 0)),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: TextFormField(
-                    initialValue: item.unit,
-                    decoration: const InputDecoration(labelText: 'Unit'),
-                    onChanged: (value) => item.unit = value,
+                  child: E2eId(
+                    id: 'meal.item.${widget.index}.unit',
+                    child: TextFormField(
+                      initialValue: item.unit,
+                      decoration: const InputDecoration(labelText: 'Unit'),
+                      onChanged: (value) => item.unit = value,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: _NumberField(
+                    id: 'meal.item.${widget.index}.grams',
                     label: 'Grams',
                     initial: item.gramsEstimated,
                     onChanged: (v) => item.gramsEstimated = v,
@@ -433,15 +495,17 @@ class _ItemEditorState extends State<_ItemEditor> {
               children: [
                 Expanded(
                     child: _NumberField(
+                        id: 'meal.item.${widget.index}.kcal',
                         label: 'Kcal',
                         initial: item.caloriesKcal,
-                        onChanged: (v) => item.caloriesKcal = v)),
+                        onChanged: (v) => item.caloriesKcal = v ?? 0)),
                 const SizedBox(width: 8),
                 Expanded(
                     child: _NumberField(
+                        id: 'meal.item.${widget.index}.protein',
                         label: 'Protein',
                         initial: item.proteinG,
-                        onChanged: (v) => item.proteinG = v)),
+                        onChanged: (v) => item.proteinG = v ?? 0)),
               ],
             ),
             const SizedBox(height: 8),
@@ -449,15 +513,17 @@ class _ItemEditorState extends State<_ItemEditor> {
               children: [
                 Expanded(
                     child: _NumberField(
+                        id: 'meal.item.${widget.index}.carbs',
                         label: 'Carbs',
                         initial: item.carbsG,
-                        onChanged: (v) => item.carbsG = v)),
+                        onChanged: (v) => item.carbsG = v ?? 0)),
                 const SizedBox(width: 8),
                 Expanded(
                     child: _NumberField(
+                        id: 'meal.item.${widget.index}.fat',
                         label: 'Fat',
                         initial: item.fatG,
-                        onChanged: (v) => item.fatG = v)),
+                        onChanged: (v) => item.fatG = v ?? 0)),
               ],
             ),
             if (item.confidence != null) ...[
@@ -477,10 +543,13 @@ class _ItemEditorState extends State<_ItemEditor> {
               ),
             ],
             const SizedBox(height: 8),
-            TextFormField(
-              initialValue: item.notes,
-              decoration: const InputDecoration(labelText: 'Notes'),
-              onChanged: (value) => item.notes = value,
+            E2eId(
+              id: 'meal.item.${widget.index}.notes',
+              child: TextFormField(
+                initialValue: item.notes,
+                decoration: const InputDecoration(labelText: 'Notes'),
+                onChanged: (value) => item.notes = value,
+              ),
             ),
           ],
         ),
@@ -491,30 +560,38 @@ class _ItemEditorState extends State<_ItemEditor> {
 
 class _NumberField extends StatelessWidget {
   const _NumberField({
+    required this.id,
     required this.label,
     required this.initial,
     required this.onChanged,
     this.nullable = false,
   });
 
+  final String id;
   final String label;
   final double? initial;
-  final ValueChanged<double> onChanged;
+  final ValueChanged<double?> onChanged;
   final bool nullable;
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      initialValue: initial == null
-          ? ''
-          : initial!.toStringAsFixed(initial! % 1 == 0 ? 0 : 1),
-      decoration: InputDecoration(labelText: label),
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))],
-      onChanged: (value) {
-        if (nullable && value.trim().isEmpty) return;
-        onChanged(double.tryParse(value) ?? 0);
-      },
+    return E2eId(
+      id: id,
+      child: TextFormField(
+        initialValue: initial == null
+            ? ''
+            : initial!.toStringAsFixed(initial! % 1 == 0 ? 0 : 1),
+        decoration: InputDecoration(labelText: label),
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))],
+        onChanged: (value) {
+          if (nullable && value.trim().isEmpty) {
+            onChanged(null);
+            return;
+          }
+          onChanged(double.tryParse(value) ?? 0);
+        },
+      ),
     );
   }
 }

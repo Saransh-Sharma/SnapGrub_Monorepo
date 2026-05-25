@@ -25,6 +25,7 @@ This folder captures product boundaries that affect engineering. It does not rep
 
 Related docs:
 
+- [App feature walkthrough](feature-walkthrough.md)
 - [Phase scope](phase-scope.md)
 - [Project phase status](../14-project-management/phase-status.md)
 - [Phase 0-7 implementation review](../14-project-management/phase-0-7-implementation-review-2026-05-21.md)

@@ -1,6 +1,14 @@
+import { ApiError } from "./errors.ts";
+
+const corsOrigin = Deno.env.get("CORS_ALLOW_ORIGIN")?.trim();
+if (!corsOrigin) {
+  throw new ApiError("UNKNOWN", "CORS_ALLOW_ORIGIN must be set", 500, true);
+}
+
 export const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, idempotency-key",
+  "Access-Control-Allow-Origin": corsOrigin,
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, idempotency-key",
   "Access-Control-Allow-Methods": "GET,POST,PATCH,DELETE,OPTIONS",
 };
 

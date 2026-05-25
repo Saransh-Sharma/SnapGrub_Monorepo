@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:snapgrub/core/feature_flags/feature_flags.dart';
+import 'package:snapgrub/core/time/user_day.dart';
 import 'package:snapgrub/features/auth/application/auth_controller.dart';
 import 'package:snapgrub/features/auth/domain/auth_state.dart';
 import 'package:snapgrub/features/meal_editor/data/meal_repository.dart';
@@ -16,8 +20,8 @@ final homeUserContextProvider = FutureProvider<HomeUserContext?>((ref) async {
     proteinGoal: profile.activeGoal?.proteinG,
     carbsGoal: profile.activeGoal?.carbsG,
     fatGoal: profile.activeGoal?.fatG,
-    weeklyInsightsEnabled:
-        profile.featureFlags['weekly_insights.enabled'] == true,
+    weeklyInsightsEnabled: FeatureFlags(profile.featureFlags)
+        .isEnabled(FeatureFlag.weeklyInsights),
   );
 });
 
@@ -27,17 +31,33 @@ final todayMealsProvider = StreamProvider<List<Meal>>((ref) async* {
     yield const [];
     return;
   }
+  final day = ref.watch(userDayTickProvider(context.timezone));
   yield* ref
       .watch(mealRepositoryProvider)
-      .watchMealsForDay(context.userId, DateTime.now());
+      .watchMealsForDay(context.userId, day, timezone: context.timezone);
 });
 
 final todayRollupProvider = StreamProvider<DailyRollup>((ref) async* {
   final context = await ref.watch(homeUserContextProvider.future);
   if (context == null) return;
-  yield* ref
-      .watch(mealRepositoryProvider)
-      .watchRollup(context.userId, DateTime.now());
+  final day = ref.watch(userDayTickProvider(context.timezone));
+  yield* ref.watch(mealRepositoryProvider).watchRollup(context.userId, day);
+});
+
+final userDayTickProvider = Provider.family<DateTime, String>((ref, timezone) {
+  final day = nowInUserDay(timezone);
+  final window = userDayWindow(day, timezone);
+  final now = DateTime.now().toUtc();
+  final delay = window.endUtc.difference(now);
+  final nextTickDelay = delay.isNegative
+      ? const Duration(seconds: 1)
+      : delay + const Duration(seconds: 1);
+  final timer = Timer(
+    nextTickDelay,
+    ref.invalidateSelf,
+  );
+  ref.onDispose(timer.cancel);
+  return day;
 });
 
 class HomeUserContext {

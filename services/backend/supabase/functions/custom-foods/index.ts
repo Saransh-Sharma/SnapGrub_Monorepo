@@ -2,6 +2,7 @@ import { jsonResponse, optionsResponse } from "../_shared/cors.ts";
 import { ApiError, errorBody } from "../_shared/errors.ts";
 import { maybeReplayIdempotency, storeIdempotency } from "../_shared/idempotency.ts";
 import { requireUser, serviceClient } from "../_shared/supabase.ts";
+import { parseJsonBody } from "../_shared/request.ts";
 import { requireString } from "../_shared/validation.ts";
 
 Deno.serve(async (req) => {
@@ -14,13 +15,17 @@ Deno.serve(async (req) => {
     }
 
     const user = await requireUser(req);
-    const bodyText = await req.text();
-    const body = parseJsonBody(bodyText);
+    const { body, bodyText } = await parseJsonBody(req);
     const clientRequestId = requireString(body.client_request_id, "client_request_id");
     const clientId = requireString(body.client_id, "client_id");
     const client = serviceClient();
     const idempotencyKey = req.headers.get("idempotency-key") ?? clientRequestId;
     const endpoint = body.deleted_at == null ? "custom-foods:upsert" : `custom-foods:delete:${clientId}`;
+    if (body.deleted_at == null) {
+      customFoodPayload(user.id, body);
+    } else {
+      optionalTimestamp(body.deleted_at);
+    }
     const replay = await maybeReplayIdempotency(client, user.id, endpoint, idempotencyKey, bodyText);
     if (replay) return jsonResponse(replay.response_body, replay.response_status ?? 200);
 
@@ -40,15 +45,6 @@ Deno.serve(async (req) => {
     return jsonResponse(errorBody(error, requestId), status);
   }
 });
-
-function parseJsonBody(bodyText: string): Record<string, unknown> {
-  if (!bodyText) return {};
-  try {
-    return JSON.parse(bodyText);
-  } catch (_) {
-    throw new ApiError("INVALID_INPUT", "Request body must be valid JSON", 400, false);
-  }
-}
 
 function customFoodPayload(userId: string, body: Record<string, unknown>) {
   const name = body.deleted_at == null ? requireString(body.name, "name") : (body.name as string | undefined);

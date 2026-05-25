@@ -1,5 +1,8 @@
 name: CI
 
+permissions:
+  contents: read
+
 on:
   pull_request:
   push:
@@ -9,6 +12,9 @@ on:
 jobs:
   contracts-and-backend:
     runs-on: ubuntu-latest
+    env:
+      CORS_ALLOW_ORIGIN: http://localhost:3000
+      AI_PROVIDER: mock
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -25,18 +31,19 @@ jobs:
       - uses: supabase/setup-cli@v1
         with:
           version: latest
+      - run: |
+          printf 'CORS_ALLOW_ORIGIN=%s\n' "$CORS_ALLOW_ORIGIN" > services/backend/supabase/functions/.env
+          printf 'AI_PROVIDER=%s\n' "$AI_PROVIDER" >> services/backend/supabase/functions/.env
       - working-directory: services/backend/supabase
         run: supabase start && supabase db reset
       - working-directory: services/backend/supabase
-        run: supabase status -o env >> "$GITHUB_ENV"
+        run: supabase status -o env | sed -E 's/^([^=]+)="(.*)"$/\1=\2/' >> "$GITHUB_ENV"
       - run: npm run backend:test:auth-profile
         env:
           NODE_OPTIONS: --experimental-websocket
-          AI_PROVIDER: mock
       - run: npm run backend:test:photo-analysis
         env:
           NODE_OPTIONS: --experimental-websocket
-          AI_PROVIDER: mock
       - run: npm run backend:test:rls
         env:
           NODE_OPTIONS: --experimental-websocket
@@ -55,6 +62,12 @@ jobs:
       - run: npm run backend:test:privacy
         env:
           NODE_OPTIONS: --experimental-websocket
+      - run: npm run backend:test:remediation
+        env:
+          NODE_OPTIONS: --experimental-websocket
+      - run: npm run backend:test:remediation-unit
+        env:
+          NODE_OPTIONS: --experimental-websocket
 
   mobile:
     runs-on: ubuntu-latest
@@ -64,15 +77,19 @@ jobs:
         with:
           channel: stable
           cache: true
+      - run: bash scripts/clean-flutter-ephemeral.sh
       - run: bash scripts/bootstrap-mobile-platforms.sh
       - working-directory: apps/mobile
         run: flutter pub get
       - working-directory: apps/mobile
         run: dart run build_runner build --delete-conflicting-outputs
+      - run: git diff --exit-code -- apps/mobile/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java apps/mobile/ios/Runner/GeneratedPluginRegistrant.*
       - working-directory: apps/mobile
         run: dart format --set-exit-if-changed lib test integration_test
+      - run: bash scripts/clean-flutter-ephemeral.sh
       - working-directory: apps/mobile
         run: flutter analyze
+      - run: bash scripts/clean-flutter-ephemeral.sh
       - working-directory: apps/mobile
         run: flutter test
       - working-directory: apps/mobile

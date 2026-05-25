@@ -5,7 +5,7 @@ The numbered folders are the canonical developer docs. Older folders remain avai
 | Area | Canonical folder | What belongs here |
 | --- | --- | --- |
 | Getting started | `00-start-here` | New developer paths, doc ownership, current gate links |
-| Product | `01-product` | MVP boundaries, phase scope, handoff references |
+| Product | `01-product` | MVP boundaries, app feature walkthrough, phase scope, handoff references |
 | Architecture | `02-architecture` | System shape, mobile/backend architecture, security boundaries |
 | API | `03-api-contracts` | OpenAPI workflow, endpoints, errors, examples |
 | Database | `04-database` | Supabase schema, migrations, RLS, indexes |

@@ -87,13 +87,20 @@ Developer-facing Phase 8 work:
 - Added mobile privacy surfaces for AI consent, media retention, export, delete account, and clear local data under Settings.
 - Added `npm run backend:test:privacy` and wired it into CI.
 
+Backend hardening follow-up:
+
+- Added migrations `000014` through `000019` for runtime grants, media retention backfill, day-listing RPCs, remediation helpers, barcode miss caching, stricter model invocation privacy, custom-food ownership enforcement, safer export cleanup marking, and atomic rule-analysis persistence.
+- Added thumbnail path ownership validation, analysis rate limits, stale idempotency recovery, recursive account storage cleanup, feature flag rollout/rule evaluation, timezone-aware weekly insight windows, environment-configurable CORS, and paginated export reads.
+- Added `infra/supabase/scheduled-jobs.example.sql` for staging/prod pg_cron + pg_net setup.
+- Added `npm run backend:test:remediation` and `npm run backend:test:remediation-unit` to CI.
+
 Verified locally on 2026-05-21:
 
-- Contracts, backend typecheck, migration lint, local Supabase reset, Phase 1, RLS, meal-core, Phase 4, Phase 5, Phase 6, Phase 7, and Phase 8 backend smokes.
+- Contracts, backend typecheck, migration lint, local Supabase reset through `000019`, Phase 1, RLS, meal-core, Phase 4, Phase 5, Phase 6, Phase 7, Phase 8, and backend remediation smokes.
 
 Known blockers before Phase 9 beta hardening:
 
-- `flutter` and `dart` were not on `PATH` in the latest local verification shell, so mobile analyze/test/build were not rerun.
+- Flutter/Dart are available locally; mobile `flutter analyze` and tests pass after cleaning ignored iOS ephemeral state. Mobile build artifacts still require CI/device evidence.
 - iOS and Android manual acceptance is still required for existing capture/multimodal/sync flows and new privacy/export/delete flows.
 - Real Gemini/OpenAI staging validation still requires server-side staging secrets.
 - Scheduled weekly insight and media-retention cleanup jobs must be deployed and observed in staging.

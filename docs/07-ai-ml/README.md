@@ -8,7 +8,7 @@ Phase 4 implements the first AI provider orchestration path for meal photo analy
 - Backend orchestrates provider calls.
 - AI meal analysis is an editable draft, not source of truth.
 - Photo analysis supports `AI_PROVIDER=mock|gemini|openai`.
-- `AI_PROVIDER=mock` is the local fallback when provider keys are unavailable.
+- `AI_PROVIDER` must be set explicitly; use `AI_PROVIDER=mock` locally when provider keys are unavailable.
 - Real provider keys, model names, and token price assumptions are backend runtime secrets/config only.
 - Meal Editor fields, confidence/provenance fields, and correction-event storage are reused for AI drafts.
 

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:snapgrub/core/time/user_day.dart';
 import 'package:snapgrub/data/db/drift/app_database.dart';
 import 'package:snapgrub/data/db/drift/database_provider.dart';
 import 'package:snapgrub/features/meal_editor/data/meal_remote_service.dart';
@@ -45,15 +46,18 @@ class MealRepository {
     );
   }
 
-  Stream<List<domain.Meal>> watchMealsForDay(String userId, DateTime day) {
-    final start = DateTime(day.year, day.month, day.day);
-    final end = start.add(const Duration(days: 1));
+  Stream<List<domain.Meal>> watchMealsForDay(
+    String userId,
+    DateTime day, {
+    required String timezone,
+  }) {
+    final window = userDayWindow(day, timezone);
     final query = _db.select(_db.mealsLocal)
       ..where((tbl) =>
           tbl.userId.equals(userId) &
           tbl.deletedAt.isNull() &
-          tbl.loggedAt.isBiggerOrEqualValue(start) &
-          tbl.loggedAt.isSmallerThanValue(end))
+          tbl.loggedAt.isBiggerOrEqualValue(window.startUtc) &
+          tbl.loggedAt.isSmallerThanValue(window.endUtc))
       ..orderBy([(tbl) => OrderingTerm.desc(tbl.loggedAt)]);
     return query.watch().asyncMap((rows) async {
       final meals = <domain.Meal>[];
@@ -104,7 +108,20 @@ class MealRepository {
         eventType: existing == null ? 'meal_created' : 'meal_updated',
         afterValue: _draftPayload(draft),
       );
-      await _refreshLocalRollup(draft.userId, draft.loggedAt);
+      if (existing != null &&
+          _rollupWindowChanged(
+            existing.loggedAt,
+            existing.timezone,
+            draft.loggedAt,
+            draft.timezone,
+          )) {
+        await _refreshLocalRollup(
+          existing.userId,
+          existing.loggedAt,
+          existing.timezone,
+        );
+      }
+      await _refreshLocalRollup(draft.userId, draft.loggedAt, draft.timezone);
     });
 
     await _outbox.enqueue(
@@ -169,7 +186,7 @@ class MealRepository {
       eventType: 'meal_deleted',
       beforeValue: {'id': meal.id, 'title': meal.title},
     );
-    await _refreshLocalRollup(meal.userId, meal.loggedAt);
+    await _refreshLocalRollup(meal.userId, meal.loggedAt, meal.timezone);
     await _outbox.enqueue(
       userId: meal.userId,
       commandType: 'meal.delete',
@@ -371,16 +388,15 @@ class MealRepository {
     }
   }
 
-  Future<void> _refreshLocalRollup(String userId, DateTime loggedAt) async {
-    final day = _dateOnly(loggedAt);
-    final start = day;
-    final end = day.add(const Duration(days: 1));
+  Future<void> _refreshLocalRollup(
+      String userId, DateTime loggedAt, String timezone) async {
+    final window = userDayFor(loggedAt, timezone);
     final rows = await (_db.select(_db.mealsLocal)
           ..where((tbl) =>
               tbl.userId.equals(userId) &
               tbl.deletedAt.isNull() &
-              tbl.loggedAt.isBiggerOrEqualValue(start) &
-              tbl.loggedAt.isSmallerThanValue(end)))
+              tbl.loggedAt.isBiggerOrEqualValue(window.startUtc) &
+              tbl.loggedAt.isSmallerThanValue(window.endUtc)))
         .get();
     final calories = rows.fold<double>(0, (sum, row) => sum + row.caloriesKcal);
     final protein = rows.fold<double>(0, (sum, row) => sum + row.proteinG);
@@ -389,7 +405,7 @@ class MealRepository {
     await _db.into(_db.dailyRollupsLocal).insertOnConflictUpdate(
           DailyRollupsLocalCompanion.insert(
             userId: userId,
-            day: day,
+            day: window.day,
             caloriesKcal: Value(calories),
             proteinG: Value(protein),
             carbsG: Value(carbs),
@@ -400,6 +416,17 @@ class MealRepository {
             updatedAt: Value(DateTime.now().toUtc()),
           ),
         );
+  }
+
+  bool _rollupWindowChanged(
+    DateTime oldLoggedAt,
+    String oldTimezone,
+    DateTime newLoggedAt,
+    String newTimezone,
+  ) {
+    final oldWindow = userDayFor(oldLoggedAt, oldTimezone);
+    final newWindow = userDayFor(newLoggedAt, newTimezone);
+    return oldWindow.day != newWindow.day || oldTimezone != newTimezone;
   }
 
   Future<domain.Meal> _mealFromRow(dynamic row) async {

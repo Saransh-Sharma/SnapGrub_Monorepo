@@ -1,0 +1,62 @@
+appId: ${APP_ID}
+---
+- assertVisible:
+    id: "screen.auth"
+- tapOn:
+    id: "auth.email"
+- inputText: "${E2E_EMAIL}"
+- tapOn:
+    id: "auth.password"
+- inputText: "${E2E_PASSWORD}"
+- tapOn:
+    id: "auth.password_sign_in"
+- extendedWaitUntil:
+    visible:
+      id: "screen.onboarding"
+    timeout: 10000
+- tapOn:
+    id: "onboarding.display_name"
+- inputText: "${E2E_DISPLAY_NAME}"
+- tapOn:
+    id: "onboarding.next"
+- tapOn:
+    id: "onboarding.goal.maintain"
+- tapOn:
+    id: "onboarding.next"
+- tapOn:
+    id: "onboarding.weight"
+- inputText: "70"
+- tapOn:
+    id: "onboarding.height"
+- inputText: "175"
+- tapOn:
+    id: "onboarding.next"
+- tapOn:
+    id: "onboarding.calories"
+- eraseText: 100
+- inputText: "2100"
+- tapOn:
+    id: "onboarding.protein"
+- eraseText: 100
+- inputText: "130"
+- tapOn:
+    id: "onboarding.next"
+- tapOn:
+    id: "onboarding.cuisines"
+- eraseText: 100
+- inputText: "Indian, Mediterranean"
+- tapOn:
+    id: "onboarding.timezone"
+- eraseText: 100
+- inputText: "Asia/Kolkata"
+- pressKey: "enter"
+- tapOn:
+    id: "onboarding.next"
+- tapOn:
+    id: "onboarding.camera_primer"
+- tapOn:
+    id: "onboarding.finish"
+- extendedWaitUntil:
+    visible:
+      id: "scaffold.today"
+    timeout: 15000

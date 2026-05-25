@@ -1,0 +1,12 @@
+flows:
+  - "flows/*.yaml"
+executionOrder:
+  continueOnFailure: false
+  flowsOrder:
+    - 01_critical_smoke
+testOutputDir: "../../build/maestro"
+platform:
+  ios:
+    snapshotKeyHonorModalViews: false
+  android:
+    disableAnimations: true

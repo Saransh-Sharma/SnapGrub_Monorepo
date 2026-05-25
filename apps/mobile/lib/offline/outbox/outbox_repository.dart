@@ -15,6 +15,8 @@ final outboxRepositoryProvider = Provider<OutboxRepository>((ref) {
 class OutboxRepository {
   OutboxRepository(this._db);
 
+  static const maxRetryCount = 8;
+
   final AppDatabase _db;
 
   Future<void> enqueue({
@@ -47,7 +49,8 @@ class OutboxRepository {
               tbl.commandType.equals('settings.patch') &
               tbl.status.equals('pending') &
               (tbl.nextRetryAt.isNull() |
-                  tbl.nextRetryAt.isSmallerOrEqualValue(DateTime.now())))
+                  tbl.nextRetryAt
+                      .isSmallerOrEqualValue(DateTime.now().toUtc())))
           ..orderBy([(tbl) => OrderingTerm.asc(tbl.createdAt)]))
         .get();
   }
@@ -97,7 +100,8 @@ class OutboxRepository {
               tbl.commandType.isIn(commandTypes) &
               tbl.status.equals('pending') &
               (tbl.nextRetryAt.isNull() |
-                  tbl.nextRetryAt.isSmallerOrEqualValue(DateTime.now())) &
+                  tbl.nextRetryAt
+                      .isSmallerOrEqualValue(DateTime.now().toUtc())) &
               (tbl.dependencyCommandId.isNull() |
                   tbl.dependencyCommandId
                       .isNotInQuery(_blockedDependencyIds(userId))))
@@ -143,7 +147,7 @@ class OutboxRepository {
         status: const Value('pending'),
         nextRetryAt: const Value<DateTime?>(null),
         lastError: const Value<String?>(null),
-        updatedAt: Value(DateTime.now()),
+        updatedAt: Value(DateTime.now().toUtc()),
       ),
     );
   }
@@ -154,7 +158,7 @@ class OutboxRepository {
       OutboxCommandsCompanion(
         status: const Value('synced'),
         lastError: const Value<String?>(null),
-        updatedAt: Value(DateTime.now()),
+        updatedAt: Value(DateTime.now().toUtc()),
       ),
     );
   }
@@ -189,7 +193,22 @@ class OutboxRepository {
       OutboxCommandsCompanion(
         status: const Value('synced'),
         lastError: const Value<String?>(null),
-        updatedAt: Value(DateTime.now()),
+        updatedAt: Value(DateTime.now().toUtc()),
+      ),
+    );
+  }
+
+  Future<void> markAllUserCommandsSynced(String userId) async {
+    await (_db.update(_db.outboxCommands)
+          ..where((tbl) =>
+              tbl.userId.equals(userId) &
+              tbl.status
+                  .isIn(const ['pending', 'failed', 'conflict', 'blocked'])))
+        .write(
+      OutboxCommandsCompanion(
+        status: const Value('synced'),
+        lastError: const Value<String?>(null),
+        updatedAt: Value(DateTime.now().toUtc()),
       ),
     );
   }
@@ -200,16 +219,18 @@ class OutboxRepository {
           ..where((tbl) => tbl.id.equals(id)))
         .getSingleOrNull();
     final retryCount = (current?.retryCount ?? 0) + 1;
-    final nextRetry =
-        retryable ? DateTime.now().add(_backoffDelay(retryCount)) : null;
+    final shouldRetry = retryable && retryCount < maxRetryCount;
+    final nextRetry = shouldRetry
+        ? DateTime.now().toUtc().add(_backoffDelay(retryCount))
+        : null;
     await (_db.update(_db.outboxCommands)..where((tbl) => tbl.id.equals(id)))
         .write(
       OutboxCommandsCompanion(
-        status: Value(retryable ? 'pending' : 'failed'),
+        status: Value(shouldRetry ? 'pending' : 'failed'),
         retryCount: Value(retryCount),
         nextRetryAt: Value<DateTime?>(nextRetry),
         lastError: Value(error?.toString()),
-        updatedAt: Value(DateTime.now()),
+        updatedAt: Value(DateTime.now().toUtc()),
       ),
     );
   }
@@ -220,7 +241,7 @@ class OutboxRepository {
       OutboxCommandsCompanion(
         status: const Value('conflict'),
         lastError: Value(error.toString()),
-        updatedAt: Value(DateTime.now()),
+        updatedAt: Value(DateTime.now().toUtc()),
       ),
     );
   }
@@ -231,7 +252,7 @@ class OutboxRepository {
       OutboxCommandsCompanion(
         status: const Value('blocked'),
         lastError: Value(error.toString()),
-        updatedAt: Value(DateTime.now()),
+        updatedAt: Value(DateTime.now().toUtc()),
       ),
     );
   }

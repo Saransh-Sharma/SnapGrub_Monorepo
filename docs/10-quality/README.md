@@ -5,7 +5,9 @@ Quality docs define automated gates, manual smoke tests, and release readiness.
 ## Current Gates
 
 - Contracts: OpenAPI validation and generated client freshness.
-- Backend: migration lint, Deno typecheck, Supabase reset, auth/profile, photo-analysis, RLS isolation, meal-core, multimodal, offline-sync, insights, and privacy smoke tests.
+- Backend:
+  API E2E product-flow coverage through `npm run backend:test:e2e:api:local`.
+  Focused feature and security smokes through auth/profile, photo-analysis, RLS isolation, meal-core, multimodal, offline-sync, insights, privacy, and remediation scripts.
 - Mobile: pub get, build runner, format, analyze, tests, dev flavor build.
 - Manual: auth, onboarding, offline submit, meal create/edit/delete, templates, custom foods, progress rollups, sync drain, relaunch, second-user isolation, privacy toggles, export, delete account, clear local data, scheduled-job staging checks, and beta observability synthetic failures.
 

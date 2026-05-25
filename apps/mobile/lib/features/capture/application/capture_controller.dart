@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:snapgrub/app/env/app_config_provider.dart';
+import 'package:snapgrub/core/feature_flags/feature_flags.dart';
 import 'package:snapgrub/data/repositories/analytics_repository.dart';
 import 'package:snapgrub/features/capture/application/camera_controller_adapter.dart';
 import 'package:snapgrub/features/capture/data/capture_asset_repository.dart';
@@ -30,8 +32,9 @@ class CaptureController extends Notifier<CaptureState> {
   @override
   CaptureState build() {
     final profile = ref.watch(profileControllerProvider).valueOrNull;
-    final enabled = profile?.featureFlags['snapstrip.enabled'];
-    if (enabled == false) {
+    final flags = FeatureFlags(profile?.featureFlags ?? const {});
+    final isE2e = ref.watch(appConfigProvider).isE2e;
+    if (!isE2e && !flags.isEnabled(FeatureFlag.snapstrip)) {
       return const CaptureState(status: CaptureStatus.featureDisabled);
     }
     return const CaptureState(status: CaptureStatus.permissionNeeded);
@@ -99,7 +102,7 @@ class CaptureController extends Notifier<CaptureState> {
 
   Future<CaptureAsset?> capture({required String userId}) async {
     await _analytics.track('snapstrip_capture_tapped');
-    if (!_flagEnabled('photo_analysis.enabled')) return null;
+    if (!_flagEnabled(FeatureFlag.photoAnalysis)) return null;
     if (!state.canCapture) return null;
     state = const CaptureState(status: CaptureStatus.captureInProgress);
     try {
@@ -116,9 +119,9 @@ class CaptureController extends Notifier<CaptureState> {
 
   Future<void> trackAction(String eventName) {
     final requiredFlag = switch (eventName) {
-      'snapstrip_barcode_tapped' => 'barcode.enabled',
-      'snapstrip_voice_tapped' => 'voice_capture.enabled',
-      'snapstrip_text_tapped' => 'ocr_assist.enabled',
+      'snapstrip_barcode_tapped' => FeatureFlag.barcode,
+      'snapstrip_voice_tapped' => FeatureFlag.voiceCapture,
+      'snapstrip_text_tapped' => FeatureFlag.ocrAssist,
       _ => null,
     };
     if (requiredFlag != null && !_flagEnabled(requiredFlag)) {
@@ -127,9 +130,9 @@ class CaptureController extends Notifier<CaptureState> {
     return _analytics.track(eventName);
   }
 
-  bool _flagEnabled(String key) {
+  bool _flagEnabled(FeatureFlag key) {
+    if (ref.read(appConfigProvider).isE2e) return true;
     final profile = ref.read(profileControllerProvider).valueOrNull;
-    final value = profile?.featureFlags[key];
-    return value is bool ? value : true;
+    return FeatureFlags(profile?.featureFlags ?? const {}).isEnabled(key);
   }
 }

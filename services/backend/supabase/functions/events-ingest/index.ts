@@ -1,6 +1,7 @@
 import { jsonResponse, optionsResponse } from "../_shared/cors.ts";
 import { ApiError, errorBody } from "../_shared/errors.ts";
 import { maybeReplayIdempotency, storeIdempotency } from "../_shared/idempotency.ts";
+import { parseJsonBody } from "../_shared/request.ts";
 import { anonClient, serviceClient } from "../_shared/supabase.ts";
 
 Deno.serve(async (req) => {
@@ -12,8 +13,7 @@ Deno.serve(async (req) => {
       throw new ApiError("INVALID_INPUT", "Method not allowed", 405);
     }
 
-    const bodyText = await req.text();
-    const body = parseJsonBody(bodyText);
+    const { body, bodyText } = await parseJsonBody(req);
     if (!Array.isArray(body.events) || body.events.length === 0 || body.events.length > 50) {
       throw new ApiError("INVALID_INPUT", "events must contain 1 to 50 items", 400);
     }
@@ -69,15 +69,6 @@ Deno.serve(async (req) => {
     return jsonResponse(errorBody(error, requestId), status);
   }
 });
-
-function parseJsonBody(bodyText: string): Record<string, unknown> {
-  if (!bodyText) return {};
-  try {
-    return JSON.parse(bodyText);
-  } catch (_) {
-    throw new ApiError("INVALID_INPUT", "Request body must be valid JSON", 400, false);
-  }
-}
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);

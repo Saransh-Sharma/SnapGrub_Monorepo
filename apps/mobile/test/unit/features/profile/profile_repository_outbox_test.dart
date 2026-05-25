@@ -4,6 +4,7 @@ import 'package:snapgrub/data/db/drift/app_database.dart';
 import 'package:snapgrub/data/repositories/profile_repository.dart';
 import 'package:snapgrub/data/services/device_identity_service.dart';
 import 'package:snapgrub/data/services/profile_remote_service.dart';
+import 'package:snapgrub/data/services/supabase_function_client.dart';
 import 'package:snapgrub/features/onboarding/domain/onboarding_draft.dart';
 import 'package:snapgrub/offline/outbox/outbox_repository.dart';
 import 'package:snapgrub_api_contracts/snapgrub_api_contracts.dart';
@@ -16,7 +17,7 @@ void main() {
 
     final repository = ProfileRepository(
       db: db,
-      remote: const ProfileRemoteService(null),
+      remote: const ProfileRemoteService(SnapGrubFunctionClient(null)),
       outbox: OutboxRepository(db),
       deviceIdentity: const DeviceIdentityService(),
     );
@@ -36,7 +37,7 @@ void main() {
 
     final repository = ProfileRepository(
       db: db,
-      remote: const ProfileRemoteService(null),
+      remote: const ProfileRemoteService(SnapGrubFunctionClient(null)),
       outbox: OutboxRepository(db),
       deviceIdentity: const DeviceIdentityService(),
     );
@@ -57,7 +58,7 @@ void main() {
     final outbox = OutboxRepository(db);
     final offlineRepository = ProfileRepository(
       db: db,
-      remote: const ProfileRemoteService(null),
+      remote: const ProfileRemoteService(SnapGrubFunctionClient(null)),
       outbox: outbox,
       deviceIdentity: const DeviceIdentityService(),
     );
@@ -95,7 +96,7 @@ OnboardingDraft validDraft() {
 }
 
 class FakeProfileRemoteService extends ProfileRemoteService {
-  FakeProfileRemoteService() : super(null);
+  FakeProfileRemoteService() : super(const SnapGrubFunctionClient(null));
 
   @override
   bool get isConfigured => true;

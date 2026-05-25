@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:snapgrub/app/e2e/e2e_ids.dart';
 import 'package:snapgrub/core/widgets/app_scaffold.dart';
 import 'package:snapgrub/data/repositories/profile_repository.dart';
 import 'package:snapgrub/features/auth/application/auth_controller.dart';
 import 'package:snapgrub/features/privacy/data/local_data_repository.dart';
 import 'package:snapgrub/features/privacy/data/privacy_remote_service.dart';
 import 'package:snapgrub/features/profile/application/profile_controller.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 
 class PrivacySettingsScreen extends ConsumerWidget {
@@ -21,47 +23,62 @@ class PrivacySettingsScreen extends ConsumerWidget {
       title: 'Privacy',
       child: ListView(
         children: [
-          ListTile(
-            leading: const Icon(Icons.psychology_alt_outlined),
-            title: const Text('AI consent'),
-            subtitle: Text(profile?.aiImprovementConsent == true
-                ? 'Improvement consent is on'
-                : 'Improvement consent is off'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.go('/settings/privacy/ai-consent'),
+          E2eId(
+            id: 'privacy.ai_consent',
+            child: ListTile(
+              leading: const Icon(Icons.psychology_alt_outlined),
+              title: const Text('AI consent'),
+              subtitle: Text(profile?.aiImprovementConsent == true
+                  ? 'Improvement consent is on'
+                  : 'Improvement consent is off'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.go('/settings/privacy/ai-consent'),
+            ),
           ),
-          ListTile(
-            leading: const Icon(Icons.photo_library_outlined),
-            title: const Text('Media retention'),
-            subtitle: Text(profile?.cloudMediaStorage == true
-                ? 'Cloud media storage is on'
-                : 'Cloud media storage is off'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.go('/settings/privacy/media-retention'),
+          E2eId(
+            id: 'privacy.media_retention',
+            child: ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('Media retention'),
+              subtitle: Text(profile?.cloudMediaStorage == true
+                  ? 'Cloud media storage is on'
+                  : 'Cloud media storage is off'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.go('/settings/privacy/media-retention'),
+            ),
           ),
           const Divider(),
-          ListTile(
-            leading: const Icon(Icons.file_download_outlined),
-            title: const Text('Export data'),
-            subtitle: const Text('Create a private JSON or CSV export'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.go('/settings/privacy/export'),
+          E2eId(
+            id: 'privacy.export',
+            child: ListTile(
+              leading: const Icon(Icons.file_download_outlined),
+              title: const Text('Export data'),
+              subtitle: const Text('Create a private JSON or CSV export'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.go('/settings/privacy/export'),
+            ),
           ),
-          ListTile(
-            leading: const Icon(Icons.cleaning_services_outlined),
-            title: const Text('Clear local data'),
-            subtitle: const Text(
-                'Remove this device cache without deleting cloud data'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.go('/settings/privacy/clear-local-data'),
+          E2eId(
+            id: 'privacy.clear_local_data',
+            child: ListTile(
+              leading: const Icon(Icons.cleaning_services_outlined),
+              title: const Text('Clear local data'),
+              subtitle: const Text(
+                  'Remove this device cache without deleting cloud data'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.go('/settings/privacy/clear-local-data'),
+            ),
           ),
-          ListTile(
-            leading: Icon(Icons.delete_forever_outlined,
-                color: Theme.of(context).colorScheme.error),
-            title: const Text('Delete account'),
-            subtitle: const Text('Permanently delete your SnapGrub account'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.go('/settings/privacy/delete-account'),
+          E2eId(
+            id: 'privacy.delete_account',
+            child: ListTile(
+              leading: Icon(Icons.delete_forever_outlined,
+                  color: Theme.of(context).colorScheme.error),
+              title: const Text('Delete account'),
+              subtitle: const Text('Permanently delete your SnapGrub account'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.go('/settings/privacy/delete-account'),
+            ),
           ),
         ],
       ),
@@ -88,18 +105,21 @@ class _AIConsentScreenState extends ConsumerState<AIConsentScreen> {
       title: 'AI Consent',
       child: ListView(
         children: [
-          SwitchListTile(
-            value: enabled,
-            title: const Text('Help improve food analysis'),
-            subtitle: const Text(
-                'Uses your explicit consent setting for future improvement workflows.'),
-            onChanged: profile == null || _saving
-                ? null
-                : (value) => _save(
-                      cloudMediaStorage: profile.cloudMediaStorage,
-                      saveOriginalPhotos: profile.saveOriginalPhotos,
-                      aiImprovementConsent: value,
-                    ),
+          E2eId(
+            id: 'privacy.ai_consent.toggle',
+            child: SwitchListTile(
+              value: enabled,
+              title: const Text('Help improve food analysis'),
+              subtitle: const Text(
+                  'Uses your explicit consent setting for future improvement workflows.'),
+              onChanged: profile == null || _saving
+                  ? null
+                  : (value) => _save(
+                        cloudMediaStorage: profile.cloudMediaStorage,
+                        saveOriginalPhotos: profile.saveOriginalPhotos,
+                        aiImprovementConsent: value,
+                      ),
+            ),
           ),
         ],
       ),
@@ -147,31 +167,37 @@ class _MediaRetentionScreenState extends ConsumerState<MediaRetentionScreen> {
       title: 'Media Retention',
       child: ListView(
         children: [
-          SwitchListTile(
-            value: profile?.cloudMediaStorage ?? true,
-            title: const Text('Cloud media storage'),
-            subtitle: const Text(
-                'Allow meal images needed for analysis and sync to be stored privately.'),
-            onChanged: profile == null || _saving
-                ? null
-                : (value) => _save(
-                      cloudMediaStorage: value,
-                      saveOriginalPhotos: profile.saveOriginalPhotos,
-                      aiImprovementConsent: profile.aiImprovementConsent,
-                    ),
+          E2eId(
+            id: 'privacy.media_retention.cloud_storage',
+            child: SwitchListTile(
+              value: profile?.cloudMediaStorage ?? true,
+              title: const Text('Cloud media storage'),
+              subtitle: const Text(
+                  'Allow meal images needed for analysis and sync to be stored privately.'),
+              onChanged: profile == null || _saving
+                  ? null
+                  : (value) => _save(
+                        cloudMediaStorage: value,
+                        saveOriginalPhotos: profile.saveOriginalPhotos,
+                        aiImprovementConsent: profile.aiImprovementConsent,
+                      ),
+            ),
           ),
-          SwitchListTile(
-            value: profile?.saveOriginalPhotos ?? false,
-            title: const Text('Save original photos'),
-            subtitle: const Text(
-                'Keep original captures beyond the analysis workflow when enabled.'),
-            onChanged: profile == null || _saving
-                ? null
-                : (value) => _save(
-                      cloudMediaStorage: profile.cloudMediaStorage,
-                      saveOriginalPhotos: value,
-                      aiImprovementConsent: profile.aiImprovementConsent,
-                    ),
+          E2eId(
+            id: 'privacy.media_retention.save_originals',
+            child: SwitchListTile(
+              value: profile?.saveOriginalPhotos ?? false,
+              title: const Text('Save original photos'),
+              subtitle: const Text(
+                  'Keep original captures beyond the analysis workflow when enabled.'),
+              onChanged: profile == null || _saving
+                  ? null
+                  : (value) => _save(
+                        cloudMediaStorage: profile.cloudMediaStorage,
+                        saveOriginalPhotos: value,
+                        aiImprovementConsent: profile.aiImprovementConsent,
+                      ),
+            ),
           ),
         ],
       ),
@@ -230,15 +256,18 @@ class _ExportDataScreenState extends ConsumerState<ExportDataScreen> {
                 : (value) => setState(() => _exportType = value.single),
           ),
           const SizedBox(height: 16),
-          FilledButton.icon(
-            onPressed: _loading ? null : _requestExport,
-            icon: _loading
-                ? const SizedBox.square(
-                    dimension: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.file_download_outlined),
-            label: Text(_loading ? 'Preparing export...' : 'Create export'),
+          E2eId(
+            id: 'privacy.export.create',
+            child: FilledButton.icon(
+              onPressed: _loading ? null : _requestExport,
+              icon: _loading
+                  ? const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.file_download_outlined),
+              label: Text(_loading ? 'Preparing export...' : 'Create export'),
+            ),
           ),
           if (_error != null)
             Padding(
@@ -248,7 +277,10 @@ class _ExportDataScreenState extends ConsumerState<ExportDataScreen> {
             ),
           if (_exportRequest != null) ...[
             const SizedBox(height: 24),
-            _ExportStatusCard(exportRequest: _exportRequest!),
+            _ExportStatusCard(
+              exportRequest: _exportRequest!,
+              onRefresh: _pollExport,
+            ),
           ],
         ],
       ),
@@ -276,12 +308,38 @@ class _ExportDataScreenState extends ConsumerState<ExportDataScreen> {
       if (mounted) setState(() => _loading = false);
     }
   }
+
+  Future<void> _pollExport() async {
+    final id = _exportRequest?['id'] as String?;
+    if (id == null) return;
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final response =
+          await ref.read(privacyRemoteServiceProvider).getExport(id);
+      if (!mounted) return;
+      setState(() {
+        _exportRequest =
+            Map<String, dynamic>.from(response['export_request'] as Map);
+      });
+    } catch (error) {
+      if (mounted) setState(() => _error = error.toString());
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
 }
 
 class _ExportStatusCard extends StatelessWidget {
-  const _ExportStatusCard({required this.exportRequest});
+  const _ExportStatusCard({
+    required this.exportRequest,
+    required this.onRefresh,
+  });
 
   final Map<String, dynamic> exportRequest;
+  final VoidCallback onRefresh;
 
   @override
   Widget build(BuildContext context) {
@@ -292,8 +350,11 @@ class _ExportStatusCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Status: ${exportRequest['status']}',
-                style: Theme.of(context).textTheme.titleMedium),
+            E2eId(
+              id: 'privacy.export.status',
+              child: Text('Status: ${exportRequest['status']}',
+                  style: Theme.of(context).textTheme.titleMedium),
+            ),
             const SizedBox(height: 8),
             Text('Type: ${exportRequest['export_type']}'),
             if (exportRequest['expires_at'] != null)
@@ -303,11 +364,45 @@ class _ExportStatusCard extends StatelessWidget {
               SelectableText(signedUrl),
               Align(
                 alignment: Alignment.centerLeft,
-                child: TextButton.icon(
-                  onPressed: () =>
-                      Clipboard.setData(ClipboardData(text: signedUrl)),
-                  icon: const Icon(Icons.copy),
-                  label: const Text('Copy download link'),
+                child: Wrap(
+                  spacing: 8,
+                  children: [
+                    TextButton.icon(
+                      onPressed: () async {
+                        final uri = Uri.tryParse(signedUrl);
+                        if (uri == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('Export link is invalid.')),
+                          );
+                          return;
+                        }
+                        final launched = await launchUrl(
+                          uri,
+                          mode: LaunchMode.externalApplication,
+                        );
+                        if (!launched && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('Could not open export link.')),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.open_in_new),
+                      label: const Text('Open'),
+                    ),
+                    TextButton.icon(
+                      onPressed: () =>
+                          Clipboard.setData(ClipboardData(text: signedUrl)),
+                      icon: const Icon(Icons.copy),
+                      label: const Text('Copy link'),
+                    ),
+                    TextButton.icon(
+                      onPressed: onRefresh,
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Refresh'),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -349,13 +444,16 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
             style: Theme.of(context).textTheme.bodyLarge,
           ),
           const SizedBox(height: 16),
-          TextField(
-            controller: _controller,
-            decoration: const InputDecoration(
-              labelText: 'Type DELETE to confirm',
-              border: OutlineInputBorder(),
+          E2eId(
+            id: 'privacy.delete.confirmation',
+            child: TextField(
+              controller: _controller,
+              decoration: const InputDecoration(
+                labelText: 'Type DELETE to confirm',
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (_) => setState(() {}),
             ),
-            onChanged: (_) => setState(() {}),
           ),
           if (_error != null)
             Padding(
@@ -364,19 +462,22 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
                   style: TextStyle(color: Theme.of(context).colorScheme.error)),
             ),
           const SizedBox(height: 16),
-          FilledButton.icon(
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-              foregroundColor: Theme.of(context).colorScheme.onError,
+          E2eId(
+            id: 'privacy.delete.submit',
+            child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error,
+                foregroundColor: Theme.of(context).colorScheme.onError,
+              ),
+              onPressed: canDelete ? _deleteAccount : null,
+              icon: _deleting
+                  ? const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.delete_forever_outlined),
+              label: Text(_deleting ? 'Deleting...' : 'Delete account'),
             ),
-            onPressed: canDelete ? _deleteAccount : null,
-            icon: _deleting
-                ? const SizedBox.square(
-                    dimension: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.delete_forever_outlined),
-            label: Text(_deleting ? 'Deleting...' : 'Delete account'),
           ),
         ],
       ),
@@ -423,15 +524,18 @@ class _ClearLocalDataScreenState extends ConsumerState<ClearLocalDataScreen> {
             style: Theme.of(context).textTheme.bodyLarge,
           ),
           const SizedBox(height: 16),
-          FilledButton.icon(
-            onPressed: _clearing ? null : _clear,
-            icon: _clearing
-                ? const SizedBox.square(
-                    dimension: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.cleaning_services_outlined),
-            label: Text(_clearing ? 'Clearing...' : 'Clear local data'),
+          E2eId(
+            id: 'privacy.clear_local_data.submit',
+            child: FilledButton.icon(
+              onPressed: _clearing ? null : _clear,
+              icon: _clearing
+                  ? const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.cleaning_services_outlined),
+              label: Text(_clearing ? 'Clearing...' : 'Clear local data'),
+            ),
           ),
         ],
       ),

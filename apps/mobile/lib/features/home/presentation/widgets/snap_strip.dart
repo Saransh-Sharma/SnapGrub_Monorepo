@@ -2,6 +2,10 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:snapgrub/app/e2e/e2e_data.dart';
+import 'package:snapgrub/app/e2e/e2e_ids.dart';
+import 'package:snapgrub/app/env/app_config_provider.dart';
+import 'package:snapgrub/core/feature_flags/feature_flags.dart';
 import 'package:snapgrub/features/capture/application/capture_controller.dart';
 import 'package:snapgrub/features/capture/domain/capture_state.dart';
 import 'package:snapgrub/features/home/application/home_controller.dart';
@@ -16,13 +20,15 @@ class SnapStrip extends ConsumerWidget {
     final controller = ref.read(captureControllerProvider.notifier);
     final camera = ref.read(cameraControllerAdapterProvider).controller;
     final userContext = ref.watch(homeUserContextProvider).valueOrNull;
-    final flags =
-        ref.watch(profileControllerProvider).valueOrNull?.featureFlags ??
-            const <String, Object?>{};
-    final photoEnabled = _flagEnabled(flags, 'photo_analysis.enabled');
-    final barcodeEnabled = _flagEnabled(flags, 'barcode.enabled');
-    final voiceEnabled = _flagEnabled(flags, 'voice_capture.enabled');
-    final textEnabled = _flagEnabled(flags, 'ocr_assist.enabled');
+    final flags = FeatureFlags(
+      ref.watch(profileControllerProvider).valueOrNull?.featureFlags ??
+          const <String, Object?>{},
+    );
+    final isE2e = ref.watch(appConfigProvider).isE2e;
+    final photoEnabled = isE2e || flags.isEnabled(FeatureFlag.photoAnalysis);
+    final barcodeEnabled = isE2e || flags.isEnabled(FeatureFlag.barcode);
+    final voiceEnabled = isE2e || flags.isEnabled(FeatureFlag.voiceCapture);
+    final textEnabled = isE2e || flags.isEnabled(FeatureFlag.ocrAssist);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -42,59 +48,99 @@ class SnapStrip extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                IconButton(
-                  tooltip: 'Barcode',
-                  onPressed: barcodeEnabled
-                      ? () async {
-                          await controller
-                              .trackAction('snapstrip_barcode_tapped');
-                          if (context.mounted) context.go('/barcode');
-                        }
-                      : null,
-                  icon: const Icon(Icons.qr_code_scanner),
+                E2eId(
+                  id: 'snapstrip.barcode',
+                  child: IconButton(
+                    tooltip: 'Barcode',
+                    onPressed: barcodeEnabled
+                        ? () async {
+                            await controller
+                                .trackAction('snapstrip_barcode_tapped');
+                            if (context.mounted) context.go('/barcode');
+                          }
+                        : null,
+                    icon: const Icon(Icons.qr_code_scanner),
+                  ),
                 ),
-                IconButton.filled(
-                  tooltip: 'Capture',
-                  onPressed:
-                      photoEnabled && capture.canCapture && userContext != null
-                          ? () async {
-                              final asset = await controller.capture(
-                                  userId: userContext.userId);
-                              if (asset != null && context.mounted) {
-                                context.go('/photo-analysis', extra: asset);
-                              }
+                E2eId(
+                  id: 'snapstrip.capture',
+                  child: IconButton.filled(
+                    tooltip: 'Capture',
+                    onPressed: photoEnabled &&
+                            capture.canCapture &&
+                            userContext != null
+                        ? () async {
+                            final asset = await controller.capture(
+                                userId: userContext.userId);
+                            if (asset != null && context.mounted) {
+                              context.go('/photo-analysis', extra: asset);
                             }
-                          : null,
-                  icon: const Icon(Icons.camera_alt),
+                          }
+                        : null,
+                    icon: const Icon(Icons.camera_alt),
+                  ),
                 ),
-                IconButton(
-                  tooltip: 'Text',
-                  onPressed: textEnabled
-                      ? () async {
-                          await controller.trackAction('snapstrip_text_tapped');
-                          if (context.mounted) context.go('/text-entry');
-                        }
-                      : null,
-                  icon: const Icon(Icons.keyboard),
+                E2eId(
+                  id: 'snapstrip.text',
+                  child: IconButton(
+                    tooltip: 'Text',
+                    onPressed: textEnabled
+                        ? () async {
+                            await controller
+                                .trackAction('snapstrip_text_tapped');
+                            if (context.mounted) context.go('/text-entry');
+                          }
+                        : null,
+                    icon: const Icon(Icons.keyboard),
+                  ),
                 ),
-                IconButton(
-                  tooltip: 'Voice',
-                  onPressed: voiceEnabled
-                      ? () async {
-                          await controller
-                              .trackAction('snapstrip_voice_tapped');
-                          if (context.mounted) context.go('/voice-entry');
-                        }
-                      : null,
-                  icon: const Icon(Icons.mic_none),
+                E2eId(
+                  id: 'snapstrip.voice',
+                  child: IconButton(
+                    tooltip: 'Voice',
+                    onPressed: voiceEnabled
+                        ? () async {
+                            await controller
+                                .trackAction('snapstrip_voice_tapped');
+                            if (context.mounted) context.go('/voice-entry');
+                          }
+                        : null,
+                    icon: const Icon(Icons.mic_none),
+                  ),
                 ),
               ],
             ),
+            if (isE2e && userContext != null) ...[
+              const SizedBox(height: 8),
+              E2eId(
+                id: 'snapstrip.fixture_photo',
+                child: OutlinedButton.icon(
+                  onPressed: () async {
+                    try {
+                      final asset =
+                          await E2eData.fixtureAsset(userContext.userId);
+                      if (!context.mounted) return;
+                      context.go('/photo-analysis', extra: asset);
+                    } catch (error) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(error.toString())),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.image_outlined),
+                  label: const Text('E2E photo fixture'),
+                ),
+              ),
+            ],
             if (capture.status == CaptureStatus.permissionNeeded) ...[
               const SizedBox(height: 8),
-              FilledButton(
-                onPressed: controller.requestPermission,
-                child: const Text('Enable camera'),
+              E2eId(
+                id: 'snapstrip.enable_camera',
+                child: FilledButton(
+                  onPressed: controller.requestPermission,
+                  child: const Text('Enable camera'),
+                ),
               ),
             ],
             if (capture.status == CaptureStatus.error) ...[
@@ -109,11 +155,6 @@ class SnapStrip extends ConsumerWidget {
       ),
     );
   }
-}
-
-bool _flagEnabled(Map<String, Object?> flags, String key) {
-  final value = flags[key];
-  return value is bool ? value : true;
 }
 
 class _PreviewState extends StatelessWidget {

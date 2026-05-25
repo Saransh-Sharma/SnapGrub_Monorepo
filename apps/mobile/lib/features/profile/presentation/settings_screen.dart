@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:snapgrub/app/e2e/e2e_ids.dart';
 import 'package:snapgrub/core/widgets/app_scaffold.dart';
 import 'package:snapgrub/features/auth/application/auth_controller.dart';
 import 'package:snapgrub/features/onboarding/domain/onboarding_draft.dart';
@@ -47,20 +48,27 @@ class SettingsScreen extends ConsumerWidget {
             leading: const Icon(Icons.sync),
             onTap: () => ref.read(profileControllerProvider.notifier).refresh(),
           ),
-          ListTile(
-            title: const Text('Privacy'),
-            subtitle: const Text('AI consent, media retention, export, delete'),
-            leading: const Icon(Icons.privacy_tip_outlined),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.go('/settings/privacy'),
+          E2eId(
+            id: 'settings.privacy',
+            child: ListTile(
+              title: const Text('Privacy'),
+              subtitle:
+                  const Text('AI consent, media retention, export, delete'),
+              leading: const Icon(Icons.privacy_tip_outlined),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.go('/settings/privacy'),
+            ),
           ),
-          ListTile(
-            title: const Text('Sign out'),
-            leading: const Icon(Icons.logout),
-            onTap: () async {
-              await ref.read(authControllerProvider.notifier).signOut();
-              if (context.mounted) context.go('/auth');
-            },
+          E2eId(
+            id: 'settings.sign_out',
+            child: ListTile(
+              title: const Text('Sign out'),
+              leading: const Icon(Icons.logout),
+              onTap: () async {
+                await ref.read(authControllerProvider.notifier).signOut();
+                if (context.mounted) context.go('/auth');
+              },
+            ),
           ),
         ],
       ),

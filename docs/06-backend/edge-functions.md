@@ -100,7 +100,10 @@ Batch mode is the intended scheduled-job path after staging validation.
 
 Backend-only AI/provider configuration lives in Supabase/Vercel runtime secrets, never in mobile:
 
+For local Supabase runs, copy `services/backend/supabase/functions/.env.example` to `services/backend/supabase/functions/.env`.
+
 ```sh
+CORS_ALLOW_ORIGIN=http://localhost:3000
 AI_PROVIDER=mock
 GEMINI_API_KEY=
 GEMINI_PRIMARY_MODEL=gemini-3.1-flash-lite
@@ -110,7 +113,7 @@ AI_INPUT_PRICE_PER_1M=0.25
 AI_OUTPUT_PRICE_PER_1M=1.50
 ```
 
-Use `AI_PROVIDER=mock` for local development without external provider keys. Real Gemini/OpenAI runs require provider keys configured outside the repository.
+`CORS_ALLOW_ORIGIN` and `AI_PROVIDER` are required runtime settings. Use `AI_PROVIDER=mock` for local development without external provider keys. Real Gemini/OpenAI runs require provider keys configured outside the repository.
 
 ## Operational Rules
 

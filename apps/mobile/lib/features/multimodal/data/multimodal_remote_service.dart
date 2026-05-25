@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:snapgrub/app/e2e/e2e_data.dart';
+import 'package:snapgrub/app/env/app_config_provider.dart';
 import 'package:snapgrub/data/services/supabase_client_provider.dart';
 import 'package:snapgrub/features/meal_editor/data/meal_draft_mapper.dart';
 import 'package:snapgrub/features/meal_editor/domain/meal.dart';
@@ -9,13 +11,17 @@ import 'package:uuid/uuid.dart';
 
 final multimodalRemoteServiceProvider =
     Provider<MultimodalRemoteService>((ref) {
-  return MultimodalRemoteService(ref.watch(supabaseClientProvider));
+  return MultimodalRemoteService(
+    ref.watch(supabaseClientProvider),
+    e2eMock: ref.watch(appConfigProvider).isE2eMock,
+  );
 });
 
 class MultimodalRemoteService {
-  const MultimodalRemoteService(this._client);
+  const MultimodalRemoteService(this._client, {this.e2eMock = false});
 
   final SupabaseClient? _client;
+  final bool e2eMock;
 
   bool get isConfigured => _client != null;
 
@@ -24,6 +30,15 @@ class MultimodalRemoteService {
     required UserProfile profile,
     required String text,
   }) async {
+    if (e2eMock) {
+      return E2eData.mockDraft(
+        userId: userId,
+        timezone: profile.timezone,
+        source: MealSource.text,
+        title: text.isEmpty ? 'E2E text meal' : text,
+        provenanceType: 'text_parser',
+      );
+    }
     final response = await _invokeMultimodal(
       'analysis-text-create',
       TextAnalysisCreateRequestDto(
@@ -48,6 +63,15 @@ class MultimodalRemoteService {
     required String transcript,
     double? transcriptConfidence,
   }) async {
+    if (e2eMock) {
+      return E2eData.mockDraft(
+        userId: userId,
+        timezone: profile.timezone,
+        source: MealSource.voice,
+        title: transcript.isEmpty ? 'E2E voice meal' : transcript,
+        provenanceType: 'voice_parser',
+      );
+    }
     final response = await _invokeMultimodal(
       'analysis-voice-create',
       VoiceAnalysisCreateRequestDto(
@@ -74,6 +98,17 @@ class MultimodalRemoteService {
     String? barcode,
     String? productNameHint,
   }) async {
+    if (e2eMock) {
+      return E2eData.mockDraft(
+        userId: userId,
+        timezone: profile.timezone,
+        source: MealSource.barcode,
+        title: productNameHint?.isNotEmpty == true
+            ? productNameHint!
+            : 'E2E OCR label meal',
+        provenanceType: 'label_ocr',
+      );
+    }
     final response = await _invokeMultimodal(
       'analysis-label-create',
       LabelAnalysisCreateRequestDto(

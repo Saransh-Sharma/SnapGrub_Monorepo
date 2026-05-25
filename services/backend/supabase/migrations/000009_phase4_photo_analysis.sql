@@ -220,7 +220,7 @@ begin
   end if;
 
   if v_existing.id is not null and p_expected_revision is not null and v_existing.revision <> p_expected_revision then
-    raise exception 'expected revision mismatch' using errcode = '40001';
+    raise exception 'expected revision mismatch' using errcode = 'P0001';
   end if;
 
   if v_existing.id is null then

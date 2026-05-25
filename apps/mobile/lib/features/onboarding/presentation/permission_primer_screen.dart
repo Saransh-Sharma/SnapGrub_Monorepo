@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:snapgrub/app/e2e/e2e_ids.dart';
 import 'package:snapgrub/features/onboarding/application/onboarding_controller.dart';
 
 class OnboardingPermissionPrimerScreen extends ConsumerWidget {
@@ -16,13 +17,16 @@ class OnboardingPermissionPrimerScreen extends ConsumerWidget {
           'SnapGrub asks for camera access only when you use capture. Text and manual logging stay available.',
         ),
         const SizedBox(height: 24),
-        CheckboxListTile(
-          value: ref.watch(onboardingControllerProvider).cameraPrimerSeen,
-          onChanged: (_) => ref
-              .read(onboardingControllerProvider.notifier)
-              .markCameraPrimerSeen(),
-          title: const Text('Got it'),
-          controlAffinity: ListTileControlAffinity.leading,
+        E2eId(
+          id: 'onboarding.camera_primer',
+          child: CheckboxListTile(
+            value: ref.watch(onboardingControllerProvider).cameraPrimerSeen,
+            onChanged: (_) => ref
+                .read(onboardingControllerProvider.notifier)
+                .markCameraPrimerSeen(),
+            title: const Text('Got it'),
+            controlAffinity: ListTileControlAffinity.leading,
+          ),
         ),
         CheckboxListTile(
           value: ref.watch(onboardingControllerProvider).notificationPreference,

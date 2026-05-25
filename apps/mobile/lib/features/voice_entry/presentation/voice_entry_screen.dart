@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:snapgrub/app/e2e/e2e_ids.dart';
 import 'package:snapgrub/core/widgets/app_scaffold.dart';
 import 'package:snapgrub/features/multimodal/data/multimodal_remote_service.dart';
 import 'package:snapgrub/features/profile/application/profile_controller.dart';
@@ -41,14 +42,17 @@ class _VoiceEntryScreenState extends ConsumerState<VoiceEntryScreen> {
       title: 'Voice meal',
       child: ListView(
         children: [
-          TextField(
-            controller: _transcriptController,
-            minLines: 3,
-            maxLines: 5,
-            decoration: const InputDecoration(
-              labelText: 'Transcript',
-              hintText: 'Say a short meal, then edit the transcript here.',
-              border: OutlineInputBorder(),
+          E2eId(
+            id: 'voice_entry.transcript',
+            child: TextField(
+              controller: _transcriptController,
+              minLines: 3,
+              maxLines: 5,
+              decoration: const InputDecoration(
+                labelText: 'Transcript',
+                hintText: 'Say a short meal, then edit the transcript here.',
+                border: OutlineInputBorder(),
+              ),
             ),
           ),
           const SizedBox(height: 16),
@@ -65,14 +69,17 @@ class _VoiceEntryScreenState extends ConsumerState<VoiceEntryScreen> {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _loading ? null : _parse,
-                  icon: _loading
-                      ? const SizedBox.square(
-                          dimension: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Icon(Icons.arrow_forward),
-                  label: const Text('Review'),
+                child: E2eId(
+                  id: 'voice_entry.review',
+                  child: OutlinedButton.icon(
+                    onPressed: _loading ? null : _parse,
+                    icon: _loading
+                        ? const SizedBox.square(
+                            dimension: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2))
+                        : const Icon(Icons.arrow_forward),
+                    label: const Text('Review'),
+                  ),
                 ),
               ),
             ],

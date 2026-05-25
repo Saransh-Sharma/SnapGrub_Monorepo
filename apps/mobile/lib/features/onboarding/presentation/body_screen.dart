@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:snapgrub/app/e2e/e2e_ids.dart';
 import 'package:snapgrub/features/onboarding/application/onboarding_controller.dart';
 
 class OnboardingBodyScreen extends ConsumerWidget {
@@ -14,36 +15,45 @@ class OnboardingBodyScreen extends ConsumerWidget {
         const SizedBox(height: 12),
         const Text('These are optional and editable later.'),
         const SizedBox(height: 24),
-        TextField(
-          keyboardType: TextInputType.number,
-          onChanged:
-              ref.read(onboardingControllerProvider.notifier).updateWeight,
-          decoration: InputDecoration(
-            labelText: draft.unitSystem == 'metric'
-                ? 'Current weight kg'
-                : 'Current weight lb',
+        E2eId(
+          id: 'onboarding.weight',
+          child: TextField(
+            keyboardType: TextInputType.number,
+            onChanged:
+                ref.read(onboardingControllerProvider.notifier).updateWeight,
+            decoration: InputDecoration(
+              labelText: draft.unitSystem == 'metric'
+                  ? 'Current weight kg'
+                  : 'Current weight lb',
+            ),
           ),
         ),
         const SizedBox(height: 12),
-        TextField(
-          keyboardType: TextInputType.number,
-          onChanged: ref
-              .read(onboardingControllerProvider.notifier)
-              .updateTargetWeight,
-          decoration: InputDecoration(
-            labelText: draft.unitSystem == 'metric'
-                ? 'Target weight kg'
-                : 'Target weight lb',
+        E2eId(
+          id: 'onboarding.target_weight',
+          child: TextField(
+            keyboardType: TextInputType.number,
+            onChanged: ref
+                .read(onboardingControllerProvider.notifier)
+                .updateTargetWeight,
+            decoration: InputDecoration(
+              labelText: draft.unitSystem == 'metric'
+                  ? 'Target weight kg'
+                  : 'Target weight lb',
+            ),
           ),
         ),
         const SizedBox(height: 12),
-        TextField(
-          keyboardType: TextInputType.number,
-          onChanged:
-              ref.read(onboardingControllerProvider.notifier).updateHeight,
-          decoration: InputDecoration(
-            labelText:
-                draft.unitSystem == 'metric' ? 'Height cm' : 'Height inches',
+        E2eId(
+          id: 'onboarding.height',
+          child: TextField(
+            keyboardType: TextInputType.number,
+            onChanged:
+                ref.read(onboardingControllerProvider.notifier).updateHeight,
+            decoration: InputDecoration(
+              labelText:
+                  draft.unitSystem == 'metric' ? 'Height cm' : 'Height inches',
+            ),
           ),
         ),
         const SizedBox(height: 12),

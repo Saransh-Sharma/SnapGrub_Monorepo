@@ -7,6 +7,8 @@
     "check:contracts": "npm run validate:openapi && bash scripts/generate-api-clients.sh --check",
     "backend:typecheck": "npx --yes deno check --no-lock services/backend/supabase/functions/*/index.ts",
     "backend:lint:migrations": "bash scripts/lint-supabase-migrations.sh",
+    "backend:test:e2e:api": "node --test --test-concurrency=1 services/backend/supabase/tests/e2e/api/*.test.mjs",
+    "backend:test:e2e:api:local": "bash scripts/backend-test-e2e-api-local.sh",
     "backend:test:auth-profile": "node services/backend/supabase/tests/integration/auth/profile_settings_events_smoke.mjs",
     "backend:test:photo-analysis": "node services/backend/supabase/tests/integration/photo-analysis/photo_analysis_smoke.mjs",
     "backend:test:rls": "node services/backend/supabase/tests/security/rls_isolation.mjs",
@@ -14,11 +16,25 @@
     "backend:test:multimodal": "node services/backend/supabase/tests/integration/multimodal/multimodal_entry_smoke.mjs",
     "backend:test:offline-sync": "node services/backend/supabase/tests/integration/offline-sync/sync_readiness_smoke.mjs",
     "backend:test:insights": "node services/backend/supabase/tests/integration/insights/insights_defaults_smoke.mjs",
-    "backend:test:privacy": "node services/backend/supabase/tests/integration/privacy/privacy_export_delete_smoke.mjs"
+    "backend:test:privacy": "node services/backend/supabase/tests/integration/privacy/privacy_export_delete_smoke.mjs",
+    "backend:test:remediation": "node services/backend/supabase/tests/integration/backend-remediation/backend_remediation_smoke.mjs",
+    "backend:test:remediation-unit": "npx --yes deno test --allow-env services/backend/supabase/tests/unit/backend_remediation_test.ts",
+    "e2e:maestro:doctor": "bash scripts/e2e/maestro_doctor.sh",
+    "e2e:android:mock": "bash scripts/e2e/run-maestro.sh android mock",
+    "e2e:ios:mock": "bash scripts/e2e/run-maestro.sh ios mock",
+    "e2e:android:supabase": "bash scripts/e2e/run-maestro.sh android supabase local",
+    "e2e:ios:supabase": "bash scripts/e2e/run-maestro.sh ios supabase local",
+    "e2e:android:supabase:local": "bash scripts/e2e/run-maestro.sh android supabase local",
+    "e2e:ios:supabase:local": "bash scripts/e2e/run-maestro.sh ios supabase local",
+    "e2e:android:supabase:developer": "bash scripts/e2e/run-maestro.sh android supabase developer",
+    "e2e:ios:supabase:developer": "bash scripts/e2e/run-maestro.sh ios supabase developer",
+    "e2e:seed:supabase": "node scripts/e2e/seed-supabase-dev.mjs"
   },
   "devDependencies": {
     "@redocly/cli": "^2.31.2",
     "@supabase/supabase-js": "^2.106.1",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
     "yaml": "^2.9.0"
   }
 }

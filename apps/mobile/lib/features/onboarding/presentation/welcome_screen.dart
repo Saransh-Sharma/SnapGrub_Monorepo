@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:snapgrub/app/e2e/e2e_ids.dart';
 import 'package:snapgrub/features/onboarding/application/onboarding_controller.dart';
 
 class OnboardingWelcomeScreen extends ConsumerStatefulWidget {
@@ -37,10 +38,14 @@ class _OnboardingWelcomeScreenState
         const Text(
             'A few details help set calorie and macro targets you can edit anytime.'),
         const SizedBox(height: 24),
-        TextField(
-          controller: _nameController,
-          onChanged: ref.read(onboardingControllerProvider.notifier).updateName,
-          decoration: const InputDecoration(labelText: 'Display name'),
+        E2eId(
+          id: 'onboarding.display_name',
+          child: TextField(
+            controller: _nameController,
+            onChanged:
+                ref.read(onboardingControllerProvider.notifier).updateName,
+            decoration: const InputDecoration(labelText: 'Display name'),
+          ),
         ),
       ],
     );
