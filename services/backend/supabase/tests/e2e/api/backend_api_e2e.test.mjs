@@ -26,28 +26,37 @@ test("backend API E2E covers critical Supabase Edge Function surface", async (t)
   });
 
   const userA = await trackedUser("api-e2e-a");
-  const userB = await trackedUser("api-e2e-b", { profile: true, displayName: "API E2E B" });
+  const userB = await trackedUser("api-e2e-b", {
+    profile: true,
+    displayName: "API E2E B",
+  });
   const state = {};
 
   await t.test("auth, bootstrap, settings, and analytics APIs", async () => {
     const installId = `install-${crypto.randomUUID()}`;
-    const bootstrap = assertOk(await invokeUser(userA, "profile-bootstrap", {
-      body: {
-        install_id: installId,
-        platform: "ios",
-        app_version: "0.1.0",
-        build_number: "1",
-        locale: "en-IN",
-        timezone: "Asia/Kolkata",
-      },
-    }));
+    const bootstrap = assertOk(
+      await invokeUser(userA, "profile-bootstrap", {
+        body: {
+          install_id: installId,
+          platform: "ios",
+          app_version: "0.1.0",
+          build_number: "1",
+          locale: "en-IN",
+          timezone: "Asia/Kolkata",
+        },
+      }),
+    );
     assertResponseMatchesContract("profileBootstrap", 200, bootstrap);
     assert.equal(bootstrap.profile.id, userA.id);
     assert.equal(bootstrap.device.install_id, installId);
     assert.equal(typeof bootstrap.feature_flags, "object");
 
     const takeover = await invokeUser(userB, "profile-bootstrap", {
-      body: { install_id: installId, platform: "ios", timezone: "Asia/Kolkata" },
+      body: {
+        install_id: installId,
+        platform: "ios",
+        timezone: "Asia/Kolkata",
+      },
     });
     assertError(takeover, 409, "CONFLICT");
 
@@ -76,23 +85,30 @@ test("backend API E2E covers critical Supabase Edge Function surface", async (t)
         source: "onboarding",
       },
     };
-    const settings = assertOk(await invokeUser(userA, "settings-patch", {
-      method: "PATCH",
-      headers: { "Idempotency-Key": settingsRequestId },
-      body: settingsBody,
-    }));
+    const settings = assertOk(
+      await invokeUser(userA, "settings-patch", {
+        method: "PATCH",
+        headers: { "Idempotency-Key": settingsRequestId },
+        body: settingsBody,
+      }),
+    );
     assertResponseMatchesContract("settingsPatch", 200, settings);
     assert.equal(settings.profile.display_name, "API E2E A");
     assert.equal(settings.active_goal.calories_kcal, 2100);
     assert.equal(settings.body_measurement.weight_kg, 70);
 
-    const settingsReplay = assertOk(await invokeUser(userA, "settings-patch", {
-      method: "PATCH",
-      headers: { "Idempotency-Key": settingsRequestId },
-      body: settingsBody,
-    }));
+    const settingsReplay = assertOk(
+      await invokeUser(userA, "settings-patch", {
+        method: "PATCH",
+        headers: { "Idempotency-Key": settingsRequestId },
+        body: settingsBody,
+      }),
+    );
     assert.equal(settingsReplay.request_id, settings.request_id);
-    assert.equal(settingsReplay.profile.display_name, settings.profile.display_name);
+    assert.equal(
+      settingsReplay.profile.display_name,
+      settings.profile.display_name,
+    );
 
     const settingsConflict = await invokeUser(userA, "settings-patch", {
       method: "PATCH",
@@ -102,28 +118,32 @@ test("backend API E2E covers critical Supabase Edge Function surface", async (t)
     assertError(settingsConflict, 409, "IDEMPOTENCY_CONFLICT");
 
     const eventsRequestId = crypto.randomUUID();
-    const events = assertOk(await invokeUser(userA, "events-ingest", {
-      headers: { "Idempotency-Key": eventsRequestId },
-      body: {
-        client_request_id: eventsRequestId,
-        events: [{
-          event_name: "api_e2e_authenticated",
-          properties: { source: "backend_api_e2e" },
-          occurred_at: new Date().toISOString(),
-        }],
-      },
-    }));
+    const events = assertOk(
+      await invokeUser(userA, "events-ingest", {
+        headers: { "Idempotency-Key": eventsRequestId },
+        body: {
+          client_request_id: eventsRequestId,
+          events: [{
+            event_name: "api_e2e_authenticated",
+            properties: { source: "backend_api_e2e" },
+            occurred_at: new Date().toISOString(),
+          }],
+        },
+      }),
+    );
     assert.equal(events.accepted, 1);
 
-    const anonymousEvents = assertOk(await invokeAnon("events-ingest", {
-      body: {
-        events: [{
-          event_name: "api_e2e_anonymous",
-          properties: { source: "backend_api_e2e" },
-          occurred_at: new Date().toISOString(),
-        }],
-      },
-    }));
+    const anonymousEvents = assertOk(
+      await invokeAnon("events-ingest", {
+        body: {
+          events: [{
+            event_name: "api_e2e_anonymous",
+            properties: { source: "backend_api_e2e" },
+            occurred_at: new Date().toISOString(),
+          }],
+        },
+      }),
+    );
     assert.equal(anonymousEvents.accepted, 1);
 
     const invalidEvents = await invokeUser(userA, "events-ingest", {
@@ -136,8 +156,16 @@ test("backend API E2E covers critical Supabase Edge Function surface", async (t)
       .select("event_name,user_id")
       .in("event_name", ["api_e2e_authenticated", "api_e2e_anonymous"]);
     if (error) throw error;
-    assert.ok(rows.some((row) => row.event_name === "api_e2e_authenticated" && row.user_id === userA.id));
-    assert.ok(rows.some((row) => row.event_name === "api_e2e_anonymous" && row.user_id == null));
+    assert.ok(
+      rows.some((row) =>
+        row.event_name === "api_e2e_authenticated" && row.user_id === userA.id
+      ),
+    );
+    assert.ok(
+      rows.some((row) =>
+        row.event_name === "api_e2e_anonymous" && row.user_id == null
+      ),
+    );
   });
 
   await t.test("meal ledger APIs and offline replay APIs", async () => {
@@ -146,10 +174,12 @@ test("backend API E2E covers critical Supabase Edge Function surface", async (t)
       loggedAt: "2026-05-20T07:30:00.000Z",
       calories: 450,
     });
-    const created = assertOk(await invokeUser(userA, "meals", {
-      headers: { "Idempotency-Key": mealCreateBody.client_request_id },
-      body: mealCreateBody,
-    }));
+    const created = assertOk(
+      await invokeUser(userA, "meals", {
+        headers: { "Idempotency-Key": mealCreateBody.client_request_id },
+        body: mealCreateBody,
+      }),
+    );
     assertResponseMatchesContract("createMeal", 200, created);
     assert.equal(created.meal.title, "API E2E dal roti");
     assert.equal(created.daily_rollup.calories_kcal, 450);
@@ -157,20 +187,29 @@ test("backend API E2E covers critical Supabase Edge Function surface", async (t)
     state.mealId = created.meal.id;
     state.mealRevision = created.meal.revision;
 
-    const list = assertOk(await invokeUser(userA, "meals?day=2026-05-20", { method: "GET" }));
+    const list = assertOk(
+      await invokeUser(userA, "meals?day=2026-05-20", { method: "GET" }),
+    );
     assertResponseMatchesContract("listMeals", 200, list);
     assert.ok(list.meals.some((meal) => meal.id === state.mealId));
     assert.ok(list.daily_rollups.some((rollup) => rollup.day === "2026-05-20"));
 
-    const detail = assertOk(await invokeUser(userA, `meals/${state.mealId}`, { method: "GET" }));
+    const detail = assertOk(
+      await invokeUser(userA, `meals/${state.mealId}`, { method: "GET" }),
+    );
     assertResponseMatchesContract("getMeal", 200, detail);
     assert.equal(detail.meal.items.length, 1);
 
-    const duplicateBody = mealBody({ title: "API E2E dal roti copy", calories: 450 });
-    const duplicate = assertOk(await invokeUser(userA, "meals", {
-      headers: { "Idempotency-Key": duplicateBody.client_request_id },
-      body: duplicateBody,
-    }));
+    const duplicateBody = mealBody({
+      title: "API E2E dal roti copy",
+      calories: 450,
+    });
+    const duplicate = assertOk(
+      await invokeUser(userA, "meals", {
+        headers: { "Idempotency-Key": duplicateBody.client_request_id },
+        body: duplicateBody,
+      }),
+    );
     state.activeMealId = duplicate.meal.id;
     assert.notEqual(duplicate.meal.id, state.mealId);
 
@@ -195,32 +234,49 @@ test("backend API E2E covers critical Supabase Edge Function surface", async (t)
         },
       ],
     };
-    const updated = assertOk(await invokeUser(userA, `meals/${state.mealId}`, {
-      method: "PATCH",
-      headers: { "Idempotency-Key": updateBody.client_request_id },
-      body: updateBody,
-    }));
+    const updated = assertOk(
+      await invokeUser(userA, `meals/${state.mealId}`, {
+        method: "PATCH",
+        headers: { "Idempotency-Key": updateBody.client_request_id },
+        body: updateBody,
+      }),
+    );
     assertResponseMatchesContract("updateMeal", 200, updated);
     assert.equal(updated.meal.revision, state.mealRevision + 1);
     assert.equal(updated.daily_rollup.calories_kcal, 973);
 
     const staleUpdate = await invokeUser(userA, `meals/${state.mealId}`, {
       method: "PATCH",
-      body: { ...updateBody, client_request_id: crypto.randomUUID(), expected_revision: state.mealRevision },
+      body: {
+        ...updateBody,
+        client_request_id: crypto.randomUUID(),
+        expected_revision: state.mealRevision,
+      },
     });
     assertError(staleUpdate, 409, "CONFLICT");
 
-    const crossUserRead = await invokeUser(userB, `meals/${state.activeMealId}`, { method: "GET" });
+    const crossUserRead = await invokeUser(
+      userB,
+      `meals/${state.activeMealId}`,
+      { method: "GET" },
+    );
     assertError(crossUserRead, 404, "NOT_FOUND");
 
-    const deleted = assertOk(await invokeUser(userA, `meals/${state.mealId}`, {
-      method: "DELETE",
-      headers: { "Idempotency-Key": crypto.randomUUID() },
-      body: { client_request_id: crypto.randomUUID(), expected_revision: updated.meal.revision },
-    }));
+    const deleted = assertOk(
+      await invokeUser(userA, `meals/${state.mealId}`, {
+        method: "DELETE",
+        headers: { "Idempotency-Key": crypto.randomUUID() },
+        body: {
+          client_request_id: crypto.randomUUID(),
+          expected_revision: updated.meal.revision,
+        },
+      }),
+    );
     assertResponseMatchesContract("deleteMeal", 200, deleted);
     assert.ok(deleted.meal.deleted_at);
-    const deletedRead = await invokeUser(userA, `meals/${state.mealId}`, { method: "GET" });
+    const deletedRead = await invokeUser(userA, `meals/${state.mealId}`, {
+      method: "GET",
+    });
     assertError(deletedRead, 404, "NOT_FOUND");
 
     const customFoodBody = {
@@ -236,31 +292,42 @@ test("backend API E2E covers critical Supabase Edge Function surface", async (t)
       carbs_g: 4,
       fat_g: 6,
     };
-    const customFood = assertOk(await invokeUser(userA, "custom-foods", {
-      headers: { "Idempotency-Key": customFoodBody.client_request_id },
-      body: customFoodBody,
-    }));
+    const customFood = assertOk(
+      await invokeUser(userA, "custom-foods", {
+        headers: { "Idempotency-Key": customFoodBody.client_request_id },
+        body: customFoodBody,
+      }),
+    );
     assertResponseMatchesContract("customFoodsUpsert", 200, customFood);
     state.customFoodId = customFood.custom_food.id;
 
-    const customFoodReplay = assertOk(await invokeUser(userA, "custom-foods", {
-      headers: { "Idempotency-Key": customFoodBody.client_request_id },
-      body: customFoodBody,
-    }));
+    const customFoodReplay = assertOk(
+      await invokeUser(userA, "custom-foods", {
+        headers: { "Idempotency-Key": customFoodBody.client_request_id },
+        body: customFoodBody,
+      }),
+    );
     assert.equal(customFoodReplay.custom_food.id, state.customFoodId);
 
     const invalidCustomFood = await invokeUser(userA, "custom-foods", {
-      body: { ...customFoodBody, client_request_id: crypto.randomUUID(), client_id: crypto.randomUUID(), calories_kcal: -1 },
+      body: {
+        ...customFoodBody,
+        client_request_id: crypto.randomUUID(),
+        client_id: crypto.randomUUID(),
+        calories_kcal: -1,
+      },
     });
     assertError(invalidCustomFood, 400, "INVALID_INPUT");
 
-    const deletedCustomFood = assertOk(await invokeUser(userA, "custom-foods", {
-      body: {
-        client_request_id: crypto.randomUUID(),
-        client_id: customFoodBody.client_id,
-        deleted_at: new Date().toISOString(),
-      },
-    }));
+    const deletedCustomFood = assertOk(
+      await invokeUser(userA, "custom-foods", {
+        body: {
+          client_request_id: crypto.randomUUID(),
+          client_id: customFoodBody.client_id,
+          deleted_at: new Date().toISOString(),
+        },
+      }),
+    );
     assert.ok(deletedCustomFood.custom_food.deleted_at);
 
     const templateBody = {
@@ -270,15 +337,19 @@ test("backend API E2E covers critical Supabase Edge Function surface", async (t)
       source_meal_id: state.activeMealId,
       snapshot: { meal_id: state.activeMealId, title: "API E2E dal roti copy" },
     };
-    const template = assertOk(await invokeUser(userA, "meal-templates", { body: templateBody }));
+    const template = assertOk(
+      await invokeUser(userA, "meal-templates", { body: templateBody }),
+    );
     assertResponseMatchesContract("mealTemplatesUpsert", 200, template);
-    const templateDelete = assertOk(await invokeUser(userA, "meal-templates", {
-      body: {
-        client_request_id: crypto.randomUUID(),
-        client_id: templateBody.client_id,
-        deleted_at: new Date().toISOString(),
-      },
-    }));
+    const templateDelete = assertOk(
+      await invokeUser(userA, "meal-templates", {
+        body: {
+          client_request_id: crypto.randomUUID(),
+          client_id: templateBody.client_id,
+          deleted_at: new Date().toISOString(),
+        },
+      }),
+    );
     assert.ok(templateDelete.meal_template.deleted_at);
 
     const measurementBody = {
@@ -288,103 +359,141 @@ test("backend API E2E covers critical Supabase Edge Function surface", async (t)
       body_fat_pct: 19.5,
       source: "manual",
     };
-    const measurement = assertOk(await invokeUser(userA, "body-measurements", {
-      headers: { "Idempotency-Key": measurementBody.client_request_id },
-      body: measurementBody,
-    }));
+    const measurement = assertOk(
+      await invokeUser(userA, "body-measurements", {
+        headers: { "Idempotency-Key": measurementBody.client_request_id },
+        body: measurementBody,
+      }),
+    );
     assertResponseMatchesContract("bodyMeasurementCreate", 200, measurement);
     const invalidMeasurement = await invokeUser(userA, "body-measurements", {
-      body: { client_request_id: crypto.randomUUID(), weight_kg: 2, source: "manual" },
+      body: {
+        client_request_id: crypto.randomUUID(),
+        weight_kg: 2,
+        source: "manual",
+      },
     });
     assertError(invalidMeasurement, 400, "INVALID_INPUT");
   });
 
   await t.test("catalog, barcode, and multimodal analysis APIs", async () => {
-    const searchCanonical = assertOk(await invokeUser(userA, "foods-search", {
-      body: { query: "roti", limit: 5 },
-    }));
+    const searchCanonical = assertOk(
+      await invokeUser(userA, "foods-search", {
+        body: { query: "roti", limit: 5 },
+      }),
+    );
     assertResponseMatchesContract("foodsSearch", 200, searchCanonical);
-    assert.ok(searchCanonical.results.some((result) => result.name.toLowerCase().includes("roti")));
+    assert.ok(
+      searchCanonical.results.some((result) =>
+        result.name.toLowerCase().includes("roti")
+      ),
+    );
 
-    const searchRecent = assertOk(await invokeUser(userA, "foods-search", {
-      body: { query: "dal", limit: 10 },
-    }));
-    assert.ok(searchRecent.results.some((result) => ["recent", "canonical"].includes(result.result_type)));
+    const searchRecent = assertOk(
+      await invokeUser(userA, "foods-search", {
+        body: { query: "dal", limit: 10 },
+      }),
+    );
+    assert.ok(
+      searchRecent.results.some((result) =>
+        ["recent", "canonical"].includes(result.result_type)
+      ),
+    );
 
-    const barcode = assertOk(await invokeUser(userA, "barcode-resolve", {
-      body: { barcode: "8901719101018", timezone: "Asia/Kolkata" },
-    }));
+    const barcode = assertOk(
+      await invokeUser(userA, "barcode-resolve", {
+        body: { barcode: "8901719101018", timezone: "Asia/Kolkata" },
+      }),
+    );
     assertResponseMatchesContract("barcodeResolve", 200, barcode);
     assert.equal(barcode.status, "matched");
     assert.ok(barcode.draft.components.length >= 1);
 
-    const missBarcode = `99${String(Math.trunc(Math.random() * 1_000_000_000)).padStart(9, "0")}`;
-    const { error: missSeedError } = await admin.from("barcode_lookup_misses").upsert({
-      barcode: missBarcode,
-      provider: "open_food_facts",
-      reason: "not_found",
-      checked_at: new Date().toISOString(),
-      expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-    }, { onConflict: "barcode" });
+    const missBarcode = `99${
+      String(Math.trunc(Math.random() * 1_000_000_000)).padStart(9, "0")
+    }`;
+    const { error: missSeedError } = await admin.from("barcode_lookup_misses")
+      .upsert({
+        barcode: missBarcode,
+        provider: "open_food_facts",
+        reason: "not_found",
+        checked_at: new Date().toISOString(),
+        expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+      }, { onConflict: "provider,barcode" });
     if (missSeedError) throw missSeedError;
-    const barcodeMiss = assertOk(await invokeUser(userA, "barcode-resolve", {
-      body: { barcode: missBarcode, timezone: "Asia/Kolkata" },
-    }));
+    const barcodeMiss = assertOk(
+      await invokeUser(userA, "barcode-resolve", {
+        body: { barcode: missBarcode, timezone: "Asia/Kolkata" },
+      }),
+    );
     assert.equal(barcodeMiss.status, "not_found");
     assert.equal(barcodeMiss.product, null);
 
     const textRequestId = crypto.randomUUID();
-    const textAnalysis = assertOk(await invokeUser(userA, "analysis-text-create", {
-      body: {
-        client_request_id: textRequestId,
-        text: "2 rotis and dal",
-        locale: "en-IN",
-        timezone: "Asia/Kolkata",
-        meal_type_hint: "lunch",
-        cuisine_hints: ["Indian"],
-      },
-    }));
+    const textAnalysis = assertOk(
+      await invokeUser(userA, "analysis-text-create", {
+        body: {
+          client_request_id: textRequestId,
+          text: "2 rotis and dal",
+          locale: "en-IN",
+          timezone: "Asia/Kolkata",
+          meal_type_hint: "lunch",
+          cuisine_hints: ["Indian"],
+        },
+      }),
+    );
     assertResponseMatchesContract("analysisTextCreate", 200, textAnalysis);
     assert.equal(textAnalysis.status, "completed");
     assert.ok(textAnalysis.result.components.length >= 2);
 
-    const textReplay = assertOk(await invokeUser(userA, "analysis-text-create", {
-      body: {
-        client_request_id: textRequestId,
-        text: "2 rotis and dal",
-        locale: "en-IN",
-        timezone: "Asia/Kolkata",
-        meal_type_hint: "lunch",
-        cuisine_hints: ["Indian"],
-      },
-    }));
+    const textReplay = assertOk(
+      await invokeUser(userA, "analysis-text-create", {
+        body: {
+          client_request_id: textRequestId,
+          text: "2 rotis and dal",
+          locale: "en-IN",
+          timezone: "Asia/Kolkata",
+          meal_type_hint: "lunch",
+          cuisine_hints: ["Indian"],
+        },
+      }),
+    );
     assert.equal(textReplay.analysis_id, textAnalysis.analysis_id);
 
-    const labelAnalysis = assertOk(await invokeUser(userA, "analysis-label-create", {
-      body: {
-        client_request_id: crypto.randomUUID(),
-        ocr_text: "Product Name API Bar Serving Size 40 g Calories 160 Protein 5 Carbohydrate 22 Total Fat 6",
-        product_name_hint: "API Bar",
-        barcode: "1234567890123",
-        locale: "en-IN",
-        timezone: "Asia/Kolkata",
-        raw_image_opt_in: false,
-      },
-    }));
+    const labelAnalysis = assertOk(
+      await invokeUser(userA, "analysis-label-create", {
+        body: {
+          client_request_id: crypto.randomUUID(),
+          ocr_text:
+            "Product Name API Bar Serving Size 40 g Calories 160 Protein 5 Carbohydrate 22 Total Fat 6",
+          product_name_hint: "API Bar",
+          barcode: "1234567890123",
+          locale: "en-IN",
+          timezone: "Asia/Kolkata",
+          raw_image_opt_in: false,
+        },
+      }),
+    );
     assertResponseMatchesContract("analysisLabelCreate", 200, labelAnalysis);
     assert.equal(labelAnalysis.result.title, "API Bar");
 
-    const voiceAnalysis = assertOk(await invokeUser(userA, "analysis-voice-create", {
-      body: {
-        client_request_id: crypto.randomUUID(),
-        transcript: "one bowl rice and curd",
-        transcript_confidence: 0.5,
-        locale: "en-IN",
-        timezone: "Asia/Kolkata",
-      },
-    }));
+    const voiceAnalysis = assertOk(
+      await invokeUser(userA, "analysis-voice-create", {
+        body: {
+          client_request_id: crypto.randomUUID(),
+          transcript: "one bowl rice and curd",
+          transcript_confidence: 0.5,
+          locale: "en-IN",
+          timezone: "Asia/Kolkata",
+        },
+      }),
+    );
     assertResponseMatchesContract("analysisVoiceCreate", 200, voiceAnalysis);
-    assert.ok(voiceAnalysis.result.confidence.warnings.some((warning) => warning.code === "low_transcript_confidence"));
+    assert.ok(
+      voiceAnalysis.result.confidence.warnings.some((warning) =>
+        warning.code === "low_transcript_confidence"
+      ),
+    );
 
     const { data: invocation, error: invocationError } = await admin
       .from("model_invocations")
@@ -398,25 +507,33 @@ test("backend API E2E covers critical Supabase Edge Function surface", async (t)
 
   await t.test("photo analysis API and photo meal save protections", async () => {
     const storagePath = `${userA.id}/${crypto.randomUUID()}.jpg`;
-    await uploadUserObject(userA, "meal-originals-private", storagePath, onePixelJpeg, "image/jpeg");
+    await uploadUserObject(
+      userA,
+      "meal-originals-private",
+      storagePath,
+      onePixelJpeg,
+      "image/jpeg",
+    );
 
-    const photoAnalysis = assertOk(await invokeUser(userA, "analysis-photo-create", {
-      body: {
-        client_request_id: crypto.randomUUID(),
-        storage_bucket: "meal-originals-private",
-        storage_path: storagePath,
-        asset_sha256: crypto.randomUUID().replaceAll("-", ""),
-        mime_type: "image/jpeg",
-        width: 1,
-        height: 1,
-        size_bytes: onePixelJpeg.length,
-        locale: "en-IN",
-        timezone: "Asia/Kolkata",
-        meal_type_hint: "lunch",
-        cuisine_hints: ["Indian"],
-        user_hint_text: "dal and roti",
-      },
-    }));
+    const photoAnalysis = assertOk(
+      await invokeUser(userA, "analysis-photo-create", {
+        body: {
+          client_request_id: crypto.randomUUID(),
+          storage_bucket: "meal-originals-private",
+          storage_path: storagePath,
+          asset_sha256: crypto.randomUUID().replaceAll("-", ""),
+          mime_type: "image/jpeg",
+          width: 1,
+          height: 1,
+          size_bytes: onePixelJpeg.length,
+          locale: "en-IN",
+          timezone: "Asia/Kolkata",
+          meal_type_hint: "lunch",
+          cuisine_hints: ["Indian"],
+          user_hint_text: "dal and roti",
+        },
+      }),
+    );
     assertResponseMatchesContract("analysisPhotoCreate", 200, photoAnalysis);
     assert.equal(photoAnalysis.status, "completed");
     assert.ok(photoAnalysis.asset_id);
@@ -424,7 +541,11 @@ test("backend API E2E covers critical Supabase Edge Function surface", async (t)
     state.photoAnalysisId = photoAnalysis.analysis_id;
     state.photoAssetId = photoAnalysis.asset_id;
 
-    const recovered = assertOk(await invokeUser(userA, `analysis-get/${photoAnalysis.analysis_id}`, { method: "GET" }));
+    const recovered = assertOk(
+      await invokeUser(userA, `analysis-get/${photoAnalysis.analysis_id}`, {
+        method: "GET",
+      }),
+    );
     assertResponseMatchesContract("analysisGet", 200, recovered);
     assert.equal(recovered.analysis_id, photoAnalysis.analysis_id);
     assert.equal(recovered.result.title, photoAnalysis.result.title);
@@ -447,10 +568,12 @@ test("backend API E2E covers critical Supabase Edge Function surface", async (t)
         position: index,
       })),
     };
-    const photoMeal = assertOk(await invokeUser(userA, "meals", {
-      headers: { "Idempotency-Key": photoMealBody.client_request_id },
-      body: photoMealBody,
-    }));
+    const photoMeal = assertOk(
+      await invokeUser(userA, "meals", {
+        headers: { "Idempotency-Key": photoMealBody.client_request_id },
+        body: photoMealBody,
+      }),
+    );
     assert.equal(photoMeal.meal.source, "photo");
     assert.equal(photoMeal.meal.analysis_job_id, photoAnalysis.analysis_id);
 
@@ -486,7 +609,11 @@ test("backend API E2E covers critical Supabase Edge Function surface", async (t)
     });
     assertError(badBucket, 400, "INVALID_INPUT");
 
-    const crossUserAnalysis = await invokeUser(userB, `analysis-get/${photoAnalysis.analysis_id}`, { method: "GET" });
+    const crossUserAnalysis = await invokeUser(
+      userB,
+      `analysis-get/${photoAnalysis.analysis_id}`,
+      { method: "GET" },
+    );
     assertError(crossUserAnalysis, 404, "NOT_FOUND");
   });
 
@@ -500,23 +627,32 @@ test("backend API E2E covers critical Supabase Edge Function surface", async (t)
       assertOk(await invokeUser(userA, "meals", { body }));
     }
 
-    const insight = assertOk(await invokeService("weekly-insights-generate", {
-      body: { user_id: userA.id, week_start: "2026-05-18" },
-    }));
+    const insight = assertOk(
+      await invokeService("weekly-insights-generate", {
+        body: { user_id: userA.id, week_start: "2026-05-18" },
+      }),
+    );
     assertResponseMatchesContract("weeklyInsightsGenerate", 200, insight);
     assert.equal(insight.weekly_insights.length, 6);
 
-    const dueUser = await trackedUser("api-e2e-due", { profile: true, displayName: "API E2E Due" });
-    assertOk(await invokeUser(dueUser, "meals", {
-      body: mealBody({
-        title: "API E2E due insight meal",
-        loggedAt: "2026-05-25T07:30:00.000Z",
-        calories: 350,
+    const dueUser = await trackedUser("api-e2e-due", {
+      profile: true,
+      displayName: "API E2E Due",
+    });
+    assertOk(
+      await invokeUser(dueUser, "meals", {
+        body: mealBody({
+          title: "API E2E due insight meal",
+          loggedAt: "2026-05-25T07:30:00.000Z",
+          calories: 350,
+        }),
       }),
-    }));
-    const batchInsight = assertOk(await invokeService("weekly-insights-generate", {
-      body: { week_start: "2026-05-25", limit: 10 },
-    }));
+    );
+    const batchInsight = assertOk(
+      await invokeService("weekly-insights-generate", {
+        body: { week_start: "2026-05-25", limit: 10 },
+      }),
+    );
     assert.equal(typeof batchInsight.processed_users, "number");
     assert.ok(batchInsight.processed_users >= 1);
     assert.ok(testUsers.has(dueUser.id));
@@ -528,31 +664,56 @@ test("backend API E2E covers critical Supabase Edge Function surface", async (t)
     });
     assert.equal(fakeService.status, 401, JSON.stringify(fakeService.body));
     assert.ok(
-      fakeService.body?.code === "AUTH_REQUIRED" || /Invalid JWT/i.test(String(fakeService.body?.msg)),
+      fakeService.body?.code === "AUTH_REQUIRED" ||
+        /Invalid JWT/i.test(String(fakeService.body?.msg)),
       JSON.stringify(fakeService.body),
     );
 
     const exportRequestId = crypto.randomUUID();
-    const nutritionExport = assertOk(await invokeUser(userA, "exports-create", {
-      headers: { "Idempotency-Key": exportRequestId },
-      body: { client_request_id: exportRequestId, export_type: "nutrition_json" },
-    }), 202);
+    const nutritionExport = assertOk(
+      await invokeUser(userA, "exports-create", {
+        headers: { "Idempotency-Key": exportRequestId },
+        body: {
+          client_request_id: exportRequestId,
+          export_type: "nutrition_json",
+        },
+      }),
+      202,
+    );
     assertResponseMatchesContract("exportCreate", 202, nutritionExport);
     assert.equal(nutritionExport.export_request.status, "completed");
     assert.ok(nutritionExport.export_request.signed_url);
     assert.ok(nutritionExport.export_request.row_counts.meals >= 1);
 
-    const exportPoll = assertOk(await invokeUser(userA, `exports-create/${nutritionExport.export_request.id}`, {
-      method: "GET",
-    }));
+    const exportPoll = assertOk(
+      await invokeUser(
+        userA,
+        `exports-create/${nutritionExport.export_request.id}`,
+        {
+          method: "GET",
+        },
+      ),
+    );
     assertResponseMatchesContract("exportGet", 200, exportPoll);
-    assert.equal(exportPoll.export_request.id, nutritionExport.export_request.id);
+    assert.equal(
+      exportPoll.export_request.id,
+      nutritionExport.export_request.id,
+    );
 
-    const exportReplay = assertOk(await invokeUser(userA, "exports-create", {
-      headers: { "Idempotency-Key": exportRequestId },
-      body: { client_request_id: exportRequestId, export_type: "nutrition_json" },
-    }), 202);
-    assert.equal(exportReplay.export_request.id, nutritionExport.export_request.id);
+    const exportReplay = assertOk(
+      await invokeUser(userA, "exports-create", {
+        headers: { "Idempotency-Key": exportRequestId },
+        body: {
+          client_request_id: exportRequestId,
+          export_type: "nutrition_json",
+        },
+      }),
+      202,
+    );
+    assert.equal(
+      exportReplay.export_request.id,
+      nutritionExport.export_request.id,
+    );
 
     const exportConflict = await invokeUser(userA, "exports-create", {
       headers: { "Idempotency-Key": exportRequestId },
@@ -561,10 +722,13 @@ test("backend API E2E covers critical Supabase Edge Function surface", async (t)
     assertError(exportConflict, 409, "IDEMPOTENCY_CONFLICT");
 
     const csvRequestId = crypto.randomUUID();
-    const csvExport = assertOk(await invokeUser(userA, "exports-create", {
-      headers: { "Idempotency-Key": csvRequestId },
-      body: { client_request_id: csvRequestId, export_type: "journal_csv" },
-    }), 202);
+    const csvExport = assertOk(
+      await invokeUser(userA, "exports-create", {
+        headers: { "Idempotency-Key": csvRequestId },
+        body: { client_request_id: csvRequestId, export_type: "journal_csv" },
+      }),
+      202,
+    );
     assert.equal(csvExport.export_request.content_type, "text/csv");
 
     const { data: artifact, error: artifactError } = await admin.storage
@@ -573,19 +737,30 @@ test("backend API E2E covers critical Supabase Edge Function surface", async (t)
     if (artifactError) throw artifactError;
     assert.match(await artifact.text(), /API E2E/);
 
-    const crossUserExport = await invokeUser(userB, `exports-create/${nutritionExport.export_request.id}`, {
-      method: "GET",
-    });
+    const crossUserExport = await invokeUser(
+      userB,
+      `exports-create/${nutritionExport.export_request.id}`,
+      {
+        method: "GET",
+      },
+    );
     assertError(crossUserExport, 404, "NOT_FOUND");
 
     const expiredExportPath = `${userA.id}/${crypto.randomUUID()}/expired.json`;
-    await admin.storage
+    const { error: expiredExportUploadError } = await admin.storage
       .from("exports-private")
-      .upload(expiredExportPath, new Blob(["{}"], { type: "application/json" }), {
-        contentType: "application/json",
-        upsert: true,
-      });
-    const { data: expiredExport, error: expiredExportError } = await admin.from("export_requests").insert({
+      .upload(
+        expiredExportPath,
+        new Blob(["{}"], { type: "application/json" }),
+        {
+          contentType: "application/json",
+          upsert: true,
+        },
+      );
+    if (expiredExportUploadError) throw expiredExportUploadError;
+    const { data: expiredExport, error: expiredExportError } = await admin.from(
+      "export_requests",
+    ).insert({
       user_id: userA.id,
       client_request_id: crypto.randomUUID(),
       export_type: "nutrition_json",
@@ -598,15 +773,31 @@ test("backend API E2E covers critical Supabase Edge Function surface", async (t)
 
     const expiredAssetPath = `${userA.id}/${crypto.randomUUID()}.jpg`;
     const expiredThumbPath = `${userA.id}/${crypto.randomUUID()}.jpg`;
-    await admin.storage.from("meal-originals-private").upload(expiredAssetPath, new Blob([onePixelJpeg], { type: "image/jpeg" }), {
-      contentType: "image/jpeg",
-      upsert: true,
-    });
-    await admin.storage.from("meal-thumbnails-private").upload(expiredThumbPath, new Blob([onePixelJpeg], { type: "image/jpeg" }), {
-      contentType: "image/jpeg",
-      upsert: true,
-    });
-    const { data: expiredAsset, error: expiredAssetError } = await admin.from("meal_assets").insert({
+    const { error: expiredAssetUploadError } = await admin.storage.from(
+      "meal-originals-private",
+    ).upload(
+      expiredAssetPath,
+      new Blob([onePixelJpeg], { type: "image/jpeg" }),
+      {
+        contentType: "image/jpeg",
+        upsert: true,
+      },
+    );
+    if (expiredAssetUploadError) throw expiredAssetUploadError;
+    const { error: expiredThumbUploadError } = await admin.storage.from(
+      "meal-thumbnails-private",
+    ).upload(
+      expiredThumbPath,
+      new Blob([onePixelJpeg], { type: "image/jpeg" }),
+      {
+        contentType: "image/jpeg",
+        upsert: true,
+      },
+    );
+    if (expiredThumbUploadError) throw expiredThumbUploadError;
+    const { data: expiredAsset, error: expiredAssetError } = await admin.from(
+      "meal_assets",
+    ).insert({
       user_id: userA.id,
       storage_bucket: "meal-originals-private",
       storage_path: expiredAssetPath,
@@ -618,7 +809,9 @@ test("backend API E2E covers critical Supabase Edge Function surface", async (t)
     }).select("id").single();
     if (expiredAssetError) throw expiredAssetError;
 
-    const cleanup = assertOk(await invokeService("media-retention-cleanup", { body: { limit: 100 } }));
+    const cleanup = assertOk(
+      await invokeService("media-retention-cleanup", { body: { limit: 100 } }),
+    );
     assert.ok(cleanup.export_cleanup.expired_requests >= 1);
     assert.ok(cleanup.media_cleanup.expired_assets >= 1);
     const { data: markedExport, error: markedExportError } = await admin
@@ -636,7 +829,10 @@ test("backend API E2E covers critical Supabase Edge Function surface", async (t)
     if (markedAssetError) throw markedAssetError;
     assert.ok(markedAsset.deleted_at);
 
-    const deleteUser = await trackedUser("api-e2e-delete", { profile: true, displayName: "API E2E Delete" });
+    const deleteUser = await trackedUser("api-e2e-delete", {
+      profile: true,
+      displayName: "API E2E Delete",
+    });
     const nestedPath = `${deleteUser.id}/nested/${crypto.randomUUID()}.json`;
     await admin.storage
       .from("exports-private")
@@ -648,9 +844,11 @@ test("backend API E2E covers critical Supabase Edge Function surface", async (t)
       body: { confirmation: "WRONG" },
     });
     assertError(invalidDelete, 400, "INVALID_INPUT");
-    const deletion = assertOk(await invokeUser(deleteUser, "account-delete", {
-      body: { confirmation: "DELETE" },
-    }));
+    const deletion = assertOk(
+      await invokeUser(deleteUser, "account-delete", {
+        body: { confirmation: "DELETE" },
+      }),
+    );
     assertResponseMatchesContract("accountDelete", 200, deletion);
     assert.equal(deletion.account_deletion.status, "completed");
     testUsers.delete(deleteUser.id);
@@ -671,7 +869,9 @@ async function trackedUser(prefix, options) {
   return user;
 }
 
-function mealBody({ title, loggedAt = "2026-05-20T07:30:00.000Z", calories = 450 }) {
+function mealBody(
+  { title, loggedAt = "2026-05-20T07:30:00.000Z", calories = 450 },
+) {
   return {
     client_request_id: crypto.randomUUID(),
     client_id: crypto.randomUUID(),

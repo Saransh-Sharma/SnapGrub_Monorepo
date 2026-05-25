@@ -1,18 +1,23 @@
 import assert from "node:assert/strict";
 import { createClient } from "@supabase/supabase-js";
 
-export const supabaseUrl =
-  process.env.SUPABASE_URL ?? process.env.API_URL ?? "http://127.0.0.1:54321";
-export const functionsUrl =
-  process.env.FUNCTIONS_URL ?? `${supabaseUrl}/functions/v1`;
+export const supabaseUrl = process.env.SUPABASE_URL ?? process.env.API_URL ??
+  "http://127.0.0.1:54321";
+export const functionsUrl = process.env.FUNCTIONS_URL ??
+  `${supabaseUrl}/functions/v1`;
 export const anonKey = process.env.SUPABASE_ANON_KEY ?? process.env.ANON_KEY;
-export const serviceRoleKey =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SERVICE_ROLE_KEY;
+export const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY ??
+  process.env.SERVICE_ROLE_KEY;
 
 if (!anonKey) throw new Error("SUPABASE_ANON_KEY is required.");
 if (!serviceRoleKey) throw new Error("SUPABASE_SERVICE_ROLE_KEY is required.");
 
 if (process.env.SNAPGRUB_ALLOW_REMOTE_BACKEND_E2E !== "1") {
+  assert.match(
+    functionsUrl,
+    /^http:\/\/(127\.0\.0\.1|localhost|0\.0\.0\.0)(:|\/|$)/,
+    "Backend API E2E is destructive and must target local Functions unless SNAPGRUB_ALLOW_REMOTE_BACKEND_E2E=1 is set.",
+  );
   assert.match(
     supabaseUrl,
     /^http:\/\/(127\.0\.0\.1|localhost|0\.0\.0\.0)(:|\/|$)/,
@@ -33,8 +38,8 @@ export function anonClient() {
 export async function createSignedInUser(prefix, options = {}) {
   const email = `${prefix}-${crypto.randomUUID()}@snapgrub.test`;
   const password = `Pass-${crypto.randomUUID()}`;
-  const { data: created, error: createError } =
-    await admin.auth.admin.createUser({
+  const { data: created, error: createError } = await admin.auth.admin
+    .createUser({
       email,
       password,
       email_confirm: true,
@@ -145,11 +150,13 @@ export async function deleteUsers(userIds) {
 }
 
 export async function removeUserStorage(userId) {
-  for (const bucket of [
-    "meal-originals-private",
-    "meal-thumbnails-private",
-    "exports-private",
-  ]) {
+  for (
+    const bucket of [
+      "meal-originals-private",
+      "meal-thumbnails-private",
+      "exports-private",
+    ]
+  ) {
     const paths = await listStoragePaths(bucket, userId);
     for (const batch of chunks(paths, 100)) {
       if (batch.length > 0) await admin.storage.from(bucket).remove(batch);
@@ -165,7 +172,7 @@ export async function listStoragePaths(bucket, prefix) {
 
 async function collectStoragePaths(bucket, prefix, paths) {
   const limit = 1000;
-  for (let offset = 0; ; offset += limit) {
+  for (let offset = 0;; offset += limit) {
     const { data, error } = await admin.storage.from(bucket).list(prefix, {
       limit,
       offset,
@@ -186,18 +193,86 @@ async function collectStoragePaths(bucket, prefix, paths) {
 
 function chunks(values, size) {
   const batches = [];
-  for (let index = 0; index < values.length; index += size)
+  for (let index = 0; index < values.length; index += size) {
     batches.push(values.slice(index, index + size));
+  }
   return batches;
 }
 
 export const onePixelJpeg = Uint8Array.from([
-  0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01, 0x01,
-  0x01, 0x00, 0x48, 0x00, 0x48, 0x00, 0x00, 0xff, 0xdb, 0x00, 0x43, 0x00, 0xff,
-  0xc0, 0x00, 0x0b, 0x08, 0x00, 0x01, 0x00, 0x01, 0x01, 0x01, 0x11, 0x00, 0xff,
-  0xc4, 0x00, 0x14, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xda, 0x00, 0x08, 0x01, 0x01, 0x00,
-  0x00, 0x3f, 0x00, 0xd2, 0xcf, 0x20, 0xff, 0xd9,
+  0xff,
+  0xd8,
+  0xff,
+  0xe0,
+  0x00,
+  0x10,
+  0x4a,
+  0x46,
+  0x49,
+  0x46,
+  0x00,
+  0x01,
+  0x01,
+  0x01,
+  0x00,
+  0x48,
+  0x00,
+  0x48,
+  0x00,
+  0x00,
+  0xff,
+  0xdb,
+  0x00,
+  0x43,
+  0x00,
+  0xff,
+  0xc0,
+  0x00,
+  0x0b,
+  0x08,
+  0x00,
+  0x01,
+  0x00,
+  0x01,
+  0x01,
+  0x01,
+  0x11,
+  0x00,
+  0xff,
+  0xc4,
+  0x00,
+  0x14,
+  0x00,
+  0x01,
+  0x00,
+  0x00,
+  0x00,
+  0x00,
+  0x00,
+  0x00,
+  0x00,
+  0x00,
+  0x00,
+  0x00,
+  0x00,
+  0x00,
+  0x00,
+  0x00,
+  0xff,
+  0xda,
+  0x00,
+  0x08,
+  0x01,
+  0x01,
+  0x00,
+  0x00,
+  0x3f,
+  0x00,
+  0xd2,
+  0xcf,
+  0x20,
+  0xff,
+  0xd9,
 ]);
 
 export async function uploadUserObject(user, bucket, path, bytes, contentType) {
@@ -213,5 +288,7 @@ export async function uploadUserObject(user, bucket, path, bytes, contentType) {
 export function fakeServiceRoleJwt() {
   const encode = (value) =>
     Buffer.from(JSON.stringify(value)).toString("base64url");
-  return `${encode({ alg: "none", typ: "JWT" })}.${encode({ role: "service_role" })}.fake`;
+  return `${encode({ alg: "none", typ: "JWT" })}.${
+    encode({ role: "service_role" })
+  }.fake`;
 }

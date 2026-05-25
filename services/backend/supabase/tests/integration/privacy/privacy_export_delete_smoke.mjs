@@ -1,9 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
 
-const url =
-  process.env.SUPABASE_URL ?? process.env.API_URL ?? "http://127.0.0.1:54321";
-const serviceRoleKey =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SERVICE_ROLE_KEY;
+const url = process.env.SUPABASE_URL ?? process.env.API_URL ??
+  "http://127.0.0.1:54321";
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY ??
+  process.env.SERVICE_ROLE_KEY;
 const anonKey = process.env.SUPABASE_ANON_KEY ?? process.env.ANON_KEY;
 
 if (!serviceRoleKey) throw new Error("SUPABASE_SERVICE_ROLE_KEY is required.");
@@ -26,13 +26,16 @@ async function invokeOrThrow(client, functionName, options) {
     if (error.context && typeof error.context.json === "function") {
       const body = await error.context.json().catch(() => null);
       throw new Error(
-        `${functionName} returned ${error.context.status}: ${JSON.stringify(body)}`,
+        `${functionName} returned ${error.context.status}: ${
+          JSON.stringify(body)
+        }`,
       );
     }
     throw error;
   }
-  if (data?.error)
+  if (data?.error) {
     throw new Error(`${functionName} failed: ${JSON.stringify(data.error)}`);
+  }
   return data;
 }
 
@@ -51,15 +54,17 @@ async function invokeExpectError(client, functionName, options, expectedCode) {
   }
   assert(
     body?.code === expectedCode,
-    `${functionName} should fail with ${expectedCode}, got ${JSON.stringify({ body, error: error?.message })}`,
+    `${functionName} should fail with ${expectedCode}, got ${
+      JSON.stringify({ body, error: error?.message })
+    }`,
   );
 }
 
 async function createSignedInUser(prefix) {
   const email = `${prefix}-${crypto.randomUUID()}@snapgrub.test`;
   const password = `Pass-${crypto.randomUUID()}`;
-  const { data: created, error: createError } =
-    await admin.auth.admin.createUser({
+  const { data: created, error: createError } = await admin.auth.admin
+    .createUser({
       email,
       password,
       email_confirm: true,
@@ -195,7 +200,8 @@ try {
   const deleteUser = await createSignedInUser("privacy-delete");
   deleteUserId = deleteUser.id;
   const storagePath = `${deleteUserId}/${crypto.randomUUID()}.json`;
-  const nestedStoragePath = `${deleteUserId}/nested/${crypto.randomUUID()}.json`;
+  const nestedStoragePath =
+    `${deleteUserId}/nested/${crypto.randomUUID()}.json`;
   const { error: uploadError } = await admin.storage
     .from("exports-private")
     .upload(storagePath, new Blob(["{}"], { type: "application/json" }), {
@@ -237,15 +243,17 @@ try {
   if (profileReadError) throw profileReadError;
   assert(deletedProfile == null, "account deletion should remove profile rows");
 
-  const { data: nestedArtifact, error: nestedArtifactError } =
-    await admin.storage.from("exports-private").download(nestedStoragePath);
+  const { data: nestedArtifact, error: nestedArtifactError } = await admin
+    .storage.from("exports-private").download(nestedStoragePath);
   assert(
     nestedArtifact == null &&
-      (nestedArtifactError?.status === 404 ||
-        nestedArtifactError?.statusCode === 404 ||
+      (String(nestedArtifactError?.status) === "404" ||
+        String(nestedArtifactError?.statusCode) === "404" ||
         nestedArtifactError?.error === "not_found" ||
         nestedArtifactError?.code === "not_found"),
-    `account deletion should recursively remove nested user storage objects, got ${JSON.stringify({ nestedArtifact, nestedArtifactError })}`,
+    `account deletion should recursively remove nested user storage objects, got ${
+      JSON.stringify({ nestedArtifact, nestedArtifactError })
+    }`,
   );
 
   const cleanup = await invokeOrThrow(admin, "media-retention-cleanup", {

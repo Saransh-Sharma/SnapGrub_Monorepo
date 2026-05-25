@@ -44,6 +44,7 @@ npm run backend:test:multimodal
 npm run backend:test:offline-sync
 npm run backend:test:insights
 npm run backend:test:privacy
+npm run backend:test:remediation-unit
 npm run backend:test:remediation
 ```
 
