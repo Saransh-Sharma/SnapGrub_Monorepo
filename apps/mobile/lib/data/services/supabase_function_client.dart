@@ -22,7 +22,16 @@ class SnapGrubFunctionClient {
     Object? body,
   }) async {
     final client = _client;
-    if (client == null) throw StateError('Supabase is not configured.');
+    if (client == null) {
+      throw SnapGrubApiException(
+        status: 503,
+        code: 'NOT_CONFIGURED',
+        message: 'Supabase is not configured.',
+        userMessage: 'This feature is unavailable in this build.',
+        retryable: false,
+        requestId: '',
+      );
+    }
     try {
       final response = await client.functions.invoke(
         functionName,

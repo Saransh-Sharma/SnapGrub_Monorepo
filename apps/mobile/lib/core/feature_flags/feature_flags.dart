@@ -1,5 +1,6 @@
 class FeatureFlags {
-  const FeatureFlags(this._values);
+  FeatureFlags(Map<String, Object?> values)
+      : _values = Map.unmodifiable(values);
 
   final Map<String, Object?> _values;
 
