@@ -16,7 +16,7 @@ class PrivacyRemoteService {
   final SnapGrubFunctionClient _functions;
   final bool e2eMock;
 
-  bool get isConfigured => _functions.isConfigured;
+  bool get isConfigured => e2eMock || _functions.isConfigured;
 
   Future<Map<String, dynamic>> createExport({
     required String clientRequestId,

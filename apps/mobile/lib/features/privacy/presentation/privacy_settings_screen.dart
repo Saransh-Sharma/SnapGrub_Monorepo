@@ -368,8 +368,26 @@ class _ExportStatusCard extends StatelessWidget {
                   spacing: 8,
                   children: [
                     TextButton.icon(
-                      onPressed: () => launchUrl(Uri.parse(signedUrl),
-                          mode: LaunchMode.externalApplication),
+                      onPressed: () async {
+                        final uri = Uri.tryParse(signedUrl);
+                        if (uri == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('Export link is invalid.')),
+                          );
+                          return;
+                        }
+                        final launched = await launchUrl(
+                          uri,
+                          mode: LaunchMode.externalApplication,
+                        );
+                        if (!launched && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('Could not open export link.')),
+                          );
+                        }
+                      },
                       icon: const Icon(Icons.open_in_new),
                       label: const Text('Open'),
                     ),

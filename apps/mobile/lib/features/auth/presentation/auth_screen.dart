@@ -147,7 +147,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       });
     } catch (error) {
       if (!mounted) return;
-      setState(() => _error = error.toString());
+      setState(() {
+        _message = null;
+        _error = error.toString();
+      });
     }
   }
 }

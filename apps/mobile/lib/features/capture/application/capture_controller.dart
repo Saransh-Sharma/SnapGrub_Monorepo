@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:snapgrub/app/env/app_config_provider.dart';
 import 'package:snapgrub/core/feature_flags/feature_flags.dart';
 import 'package:snapgrub/data/repositories/analytics_repository.dart';
 import 'package:snapgrub/features/capture/application/camera_controller_adapter.dart';
@@ -32,7 +33,8 @@ class CaptureController extends Notifier<CaptureState> {
   CaptureState build() {
     final profile = ref.watch(profileControllerProvider).valueOrNull;
     final flags = FeatureFlags(profile?.featureFlags ?? const {});
-    if (!flags.isEnabled(FeatureFlag.snapstrip)) {
+    final isE2e = ref.watch(appConfigProvider).isE2e;
+    if (!isE2e && !flags.isEnabled(FeatureFlag.snapstrip)) {
       return const CaptureState(status: CaptureStatus.featureDisabled);
     }
     return const CaptureState(status: CaptureStatus.permissionNeeded);
@@ -129,6 +131,7 @@ class CaptureController extends Notifier<CaptureState> {
   }
 
   bool _flagEnabled(FeatureFlag key) {
+    if (ref.read(appConfigProvider).isE2e) return true;
     final profile = ref.read(profileControllerProvider).valueOrNull;
     return FeatureFlags(profile?.featureFlags ?? const {}).isEnabled(key);
   }

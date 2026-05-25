@@ -108,6 +108,19 @@ class MealRepository {
         eventType: existing == null ? 'meal_created' : 'meal_updated',
         afterValue: _draftPayload(draft),
       );
+      if (existing != null &&
+          _rollupWindowChanged(
+            existing.loggedAt,
+            existing.timezone,
+            draft.loggedAt,
+            draft.timezone,
+          )) {
+        await _refreshLocalRollup(
+          existing.userId,
+          existing.loggedAt,
+          existing.timezone,
+        );
+      }
       await _refreshLocalRollup(draft.userId, draft.loggedAt, draft.timezone);
     });
 
@@ -403,6 +416,17 @@ class MealRepository {
             updatedAt: Value(DateTime.now().toUtc()),
           ),
         );
+  }
+
+  bool _rollupWindowChanged(
+    DateTime oldLoggedAt,
+    String oldTimezone,
+    DateTime newLoggedAt,
+    String newTimezone,
+  ) {
+    final oldWindow = userDayFor(oldLoggedAt, oldTimezone);
+    final newWindow = userDayFor(newLoggedAt, newTimezone);
+    return oldWindow.day != newWindow.day || oldTimezone != newTimezone;
   }
 
   Future<domain.Meal> _mealFromRow(dynamic row) async {

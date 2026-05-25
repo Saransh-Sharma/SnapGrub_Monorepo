@@ -63,7 +63,7 @@ class _CustomFoodTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return E2eId(
-      id: 'custom_foods.item',
+      id: 'custom_foods.item.${food.id}',
       child: Card(
         child: ListTile(
           title: Text(food.name),

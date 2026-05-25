@@ -49,8 +49,11 @@ final userDayTickProvider = Provider.family<DateTime, String>((ref, timezone) {
   final window = userDayWindow(day, timezone);
   final now = DateTime.now().toUtc();
   final delay = window.endUtc.difference(now);
+  final nextTickDelay = delay.isNegative
+      ? const Duration(seconds: 1)
+      : delay + const Duration(seconds: 1);
   final timer = Timer(
-    delay.isNegative ? Duration.zero : delay + const Duration(seconds: 1),
+    nextTickDelay,
     ref.invalidateSelf,
   );
   ref.onDispose(timer.cancel);

@@ -466,7 +466,7 @@ class _ItemEditorState extends State<_ItemEditor> {
                         id: 'meal.item.${widget.index}.qty',
                         label: 'Qty',
                         initial: item.quantity,
-                        onChanged: (v) => item.quantity = v)),
+                        onChanged: (v) => item.quantity = v ?? 0)),
                 const SizedBox(width: 8),
                 Expanded(
                   child: E2eId(
@@ -498,14 +498,14 @@ class _ItemEditorState extends State<_ItemEditor> {
                         id: 'meal.item.${widget.index}.kcal',
                         label: 'Kcal',
                         initial: item.caloriesKcal,
-                        onChanged: (v) => item.caloriesKcal = v)),
+                        onChanged: (v) => item.caloriesKcal = v ?? 0)),
                 const SizedBox(width: 8),
                 Expanded(
                     child: _NumberField(
                         id: 'meal.item.${widget.index}.protein',
                         label: 'Protein',
                         initial: item.proteinG,
-                        onChanged: (v) => item.proteinG = v)),
+                        onChanged: (v) => item.proteinG = v ?? 0)),
               ],
             ),
             const SizedBox(height: 8),
@@ -516,14 +516,14 @@ class _ItemEditorState extends State<_ItemEditor> {
                         id: 'meal.item.${widget.index}.carbs',
                         label: 'Carbs',
                         initial: item.carbsG,
-                        onChanged: (v) => item.carbsG = v)),
+                        onChanged: (v) => item.carbsG = v ?? 0)),
                 const SizedBox(width: 8),
                 Expanded(
                     child: _NumberField(
                         id: 'meal.item.${widget.index}.fat',
                         label: 'Fat',
                         initial: item.fatG,
-                        onChanged: (v) => item.fatG = v)),
+                        onChanged: (v) => item.fatG = v ?? 0)),
               ],
             ),
             if (item.confidence != null) ...[
@@ -570,7 +570,7 @@ class _NumberField extends StatelessWidget {
   final String id;
   final String label;
   final double? initial;
-  final ValueChanged<double> onChanged;
+  final ValueChanged<double?> onChanged;
   final bool nullable;
 
   @override
@@ -585,7 +585,10 @@ class _NumberField extends StatelessWidget {
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
         inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))],
         onChanged: (value) {
-          if (nullable && value.trim().isEmpty) return;
+          if (nullable && value.trim().isEmpty) {
+            onChanged(null);
+            return;
+          }
           onChanged(double.tryParse(value) ?? 0);
         },
       ),
