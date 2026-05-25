@@ -62,7 +62,7 @@ tags:
 - tapOn:
     id: "custom_foods.save"
 - assertVisible:
-    id: "custom_foods.item"
+    text: "${E2E_CUSTOM_FOOD_NAME}"
 - tapOn:
     id: "nav.home"
 - tapOn:

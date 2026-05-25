@@ -39,32 +39,28 @@ class SyncController extends AsyncNotifier<SyncStatus> {
 
   Future<void> syncNow({SyncTrigger trigger = SyncTrigger.manual}) async {
     if (_syncInFlight) return;
-    final auth = await ref.read(authControllerProvider.future);
-    final userId = auth.userId;
-    if (auth.status != AuthStatus.signedIn || userId == null) return;
+    _syncInFlight = true;
+    try {
+      final auth = await ref.read(authControllerProvider.future);
+      final userId = auth.userId;
+      if (auth.status != AuthStatus.signedIn || userId == null) return;
 
-    if (ref.read(appConfigProvider).isE2eMock) {
-      state = const AsyncData(SyncStatus.syncing);
-      try {
+      if (ref.read(appConfigProvider).isE2eMock) {
+        state = const AsyncData(SyncStatus.syncing);
         await ref
             .read(outboxRepositoryProvider)
             .markAllUserCommandsSynced(userId);
         state = const AsyncData(SyncStatus.synced);
-      } catch (_) {
-        state = const AsyncData(SyncStatus.failed);
+        return;
       }
-      return;
-    }
 
-    final connectivity = await Connectivity().checkConnectivity();
-    if (!_hasNetwork(connectivity)) {
-      state = const AsyncData(SyncStatus.pending);
-      return;
-    }
+      final connectivity = await Connectivity().checkConnectivity();
+      if (!_hasNetwork(connectivity)) {
+        state = const AsyncData(SyncStatus.pending);
+        return;
+      }
 
-    _syncInFlight = true;
-    state = const AsyncData(SyncStatus.syncing);
-    try {
+      state = const AsyncData(SyncStatus.syncing);
       await ref.read(syncCommandRepositoryProvider).drainEarlyCommands(userId);
       await ref
           .read(profileRepositoryProvider)

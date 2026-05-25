@@ -272,6 +272,7 @@ class SyncCommandRepository {
           .select('*, meal_items(*)')
           .eq('user_id', userId)
           .order('logged_at', ascending: false)
+          .order('id', ascending: false)
           .range(offset, offset + pageSize - 1);
       final rows = List<Map<String, dynamic>>.from(meals as List);
       for (final raw in rows) {
