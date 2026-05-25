@@ -116,10 +116,16 @@ class SnapStrip extends ConsumerWidget {
                 id: 'snapstrip.fixture_photo',
                 child: OutlinedButton.icon(
                   onPressed: () async {
-                    final asset =
-                        await E2eData.fixtureAsset(userContext.userId);
-                    if (context.mounted) {
+                    try {
+                      final asset =
+                          await E2eData.fixtureAsset(userContext.userId);
+                      if (!context.mounted) return;
                       context.go('/photo-analysis', extra: asset);
+                    } catch (error) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(error.toString())),
+                      );
                     }
                   },
                   icon: const Icon(Icons.image_outlined),
