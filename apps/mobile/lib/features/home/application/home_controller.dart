@@ -20,6 +20,8 @@ final homeUserContextProvider = FutureProvider<HomeUserContext?>((ref) async {
     proteinGoal: profile.activeGoal?.proteinG,
     carbsGoal: profile.activeGoal?.carbsG,
     fatGoal: profile.activeGoal?.fatG,
+    smartFoodsV2Enabled:
+        FeatureFlags(profile.featureFlags).isEnabled(FeatureFlag.smartFoodsV2),
     weeklyInsightsEnabled: FeatureFlags(profile.featureFlags)
         .isEnabled(FeatureFlag.weeklyInsights),
   );
@@ -68,6 +70,7 @@ class HomeUserContext {
     this.proteinGoal,
     this.carbsGoal,
     this.fatGoal,
+    this.smartFoodsV2Enabled = false,
     this.weeklyInsightsEnabled = false,
   });
 
@@ -77,5 +80,6 @@ class HomeUserContext {
   final double? proteinGoal;
   final double? carbsGoal;
   final double? fatGoal;
+  final bool smartFoodsV2Enabled;
   final bool weeklyInsightsEnabled;
 }

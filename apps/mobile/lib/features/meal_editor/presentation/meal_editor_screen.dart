@@ -606,8 +606,10 @@ class _Totals extends StatelessWidget {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(12),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          spacing: 12,
+          runSpacing: 8,
           children: [
             Text('${draft.caloriesKcal.round()} kcal'),
             Text('P ${draft.proteinG.round()}g'),

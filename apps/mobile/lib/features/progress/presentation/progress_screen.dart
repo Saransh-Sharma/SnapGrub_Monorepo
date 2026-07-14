@@ -1,17 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:snapgrub/core/time/user_day.dart';
 import 'package:snapgrub/core/widgets/app_scaffold.dart';
 import 'package:snapgrub/features/home/application/home_controller.dart';
+import 'package:snapgrub/features/insights/application/weekly_checkin_summary_mapper.dart';
 import 'package:snapgrub/features/insights/data/insights_repository.dart';
 import 'package:snapgrub/features/insights/domain/weekly_insight.dart';
+import 'package:snapgrub/features/insights/presentation/smart_foods_section.dart';
+import 'package:snapgrub/features/insights/presentation/weekly_checkin_card.dart';
 import 'package:snapgrub/features/meal_editor/data/meal_repository.dart';
 import 'package:snapgrub/features/meal_editor/domain/meal.dart';
 
-class ProgressScreen extends ConsumerWidget {
+class ProgressScreen extends ConsumerStatefulWidget {
   const ProgressScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProgressScreen> createState() => _ProgressScreenState();
+}
+
+class _ProgressScreenState extends ConsumerState<ProgressScreen> {
+  final _repeatsSectionKey = GlobalKey();
+
+  void _scrollToRepeatsSection() {
+    final sectionContext = _repeatsSectionKey.currentContext;
+    if (sectionContext == null) return;
+    Scrollable.ensureVisible(
+      sectionContext,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final contextData = ref.watch(homeUserContextProvider);
     return AppScaffold(
       title: 'Progress',
@@ -22,7 +43,19 @@ class ProgressScreen extends ConsumerWidget {
           if (data == null) return const Text('Sign in to continue.');
           final rollup = ref.watch(todayRollupProvider);
           final insights = ref.watch(latestWeeklyInsightsProvider(data.userId));
-          final defaults = ref.watch(frequentFoodDefaultsProvider(data.userId));
+          final defaults = data.smartFoodsV2Enabled
+              ? null
+              : ref.watch(frequentFoodDefaultsProvider(data.userId));
+          final smartSuggestions = data.smartFoodsV2Enabled
+              ? ref.watch(smartFoodSuggestionsProvider(
+                  SmartFoodSuggestionsRequest(
+                    userId: data.userId,
+                    currentMealType:
+                        _mealTypeForNow(DateTime.now(), data.timezone),
+                    timezone: data.timezone,
+                  ),
+                ))
+              : null;
           return rollup.when(
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (error, _) => Text(error.toString()),
@@ -34,17 +67,33 @@ class ProgressScreen extends ConsumerWidget {
                   insights.when(
                     loading: () => const LinearProgressIndicator(),
                     error: (error, _) => Text(error.toString()),
-                    data: (items) => WeeklyInsightCard(insights: items),
+                    data: (items) => WeeklyCheckInCard(
+                      summary: const WeeklyCheckInSummaryMapper()
+                          .fromInsights(items),
+                      onReviewRepeatFoods: _scrollToRepeatsSection,
+                    ),
                   ),
                 if (!data.weeklyInsightsEnabled) const _InsightDisabledCard(),
                 const SizedBox(height: 16),
-                StreakCard(insights: insights.valueOrNull ?? const []),
-                const SizedBox(height: 16),
-                defaults.when(
-                  loading: () => const LinearProgressIndicator(),
-                  error: (error, _) => Text(error.toString()),
-                  data: (items) =>
-                      FrequentMealsSection(defaults: items, contextData: data),
+                KeyedSubtree(
+                  key: _repeatsSectionKey,
+                  child: data.smartFoodsV2Enabled
+                      ? smartSuggestions!.when(
+                          loading: () => const LinearProgressIndicator(),
+                          error: (error, _) => Text(error.toString()),
+                          data: (items) => SmartFoodsSection(
+                            suggestions: items,
+                            contextData: data,
+                          ),
+                        )
+                      : defaults!.when(
+                          loading: () => const LinearProgressIndicator(),
+                          error: (error, _) => Text(error.toString()),
+                          data: (items) => FrequentMealsSection(
+                            defaults: items,
+                            contextData: data,
+                          ),
+                        ),
                 ),
               ],
             ),
@@ -145,77 +194,6 @@ class _ProgressTile extends StatelessWidget {
   }
 }
 
-class WeeklyInsightCard extends StatelessWidget {
-  const WeeklyInsightCard({required this.insights, super.key});
-
-  final List<WeeklyInsight> insights;
-
-  @override
-  Widget build(BuildContext context) {
-    if (insights.isEmpty) {
-      return const Card(
-        child: ListTile(
-          leading: Icon(Icons.insights_outlined),
-          title: Text('Weekly check-in'),
-          subtitle: Text('A weekly view appears after a few logged meals.'),
-        ),
-      );
-    }
-    final primary = insights.firstWhere(
-      (item) => item.insightType == 'next_week_suggestion',
-      orElse: () => insights.first,
-    );
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.insights_outlined),
-                const SizedBox(width: 8),
-                Text('Weekly check-in',
-                    style: Theme.of(context).textTheme.titleMedium),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(primary.title, style: Theme.of(context).textTheme.titleSmall),
-            const SizedBox(height: 4),
-            Text(primary.summary),
-            const SizedBox(height: 12),
-            for (final insight
-                in insights.where((item) => item.id != primary.id).take(3))
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text('${insight.title}: ${insight.summary}'),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class StreakCard extends StatelessWidget {
-  const StreakCard({required this.insights, super.key});
-
-  final List<WeeklyInsight> insights;
-
-  @override
-  Widget build(BuildContext context) {
-    final streak = _firstInsightOfType(insights, 'logging_streak');
-    return Card(
-      child: ListTile(
-        leading: const Icon(Icons.calendar_month_outlined),
-        title: const Text('Logging rhythm'),
-        subtitle: Text(
-            streak?.summary ?? 'Log a few meals to see your weekly rhythm.'),
-      ),
-    );
-  }
-}
-
 class FrequentMealsSection extends ConsumerWidget {
   const FrequentMealsSection({
     required this.defaults,
@@ -294,16 +272,17 @@ class FrequentMealsSection extends ConsumerWidget {
   }
 }
 
-WeeklyInsight? _firstInsightOfType(List<WeeklyInsight> insights, String type) {
-  for (final insight in insights) {
-    if (insight.insightType == type) return insight;
-  }
-  return null;
-}
-
 String _formatQuantity(double value) {
   if (value == value.roundToDouble()) return value.round().toString();
   return value.toStringAsFixed(1);
+}
+
+MealType _mealTypeForNow(DateTime now, String timezone) {
+  final local = userLocalTimeFor(now, timezone);
+  if (local.hour < 11) return MealType.breakfast;
+  if (local.hour < 16) return MealType.lunch;
+  if (local.hour < 21) return MealType.dinner;
+  return MealType.snack;
 }
 
 class _InsightDisabledCard extends StatelessWidget {
