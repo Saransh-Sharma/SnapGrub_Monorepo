@@ -96,6 +96,15 @@ This function is intended for staging/prod scheduling. Local smoke only verifies
 
 Batch mode is the intended scheduled-job path after staging validation.
 
+Generated rows keep the existing six `insight_type` values and enrich `payload` for the V1.5 mobile check-in:
+
+- `logging_streak`: logged days, meal count, longest streak, and missing weekdays.
+- `average_intake_vs_target`: average calories, target calories, calorie delta, and target band.
+- `protein_target_hit_rate`: hit rate, logged-day count, and target grams.
+- `most_repeated_meal`: repeated title, count, and inferred meal type.
+- `highest_variance_meal_slot`: meal type, variance, and sample count.
+- `next_week_suggestion`: deterministic action id, action title/body, and `based_on` context.
+
 ## Photo Analysis Provider Env
 
 Backend-only AI/provider configuration lives in Supabase/Vercel runtime secrets, never in mobile:

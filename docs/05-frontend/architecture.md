@@ -39,7 +39,7 @@ SnapStrip capture uses the `camera` plugin through the capture adapter, then `fe
 
 Barcode, OCR label assist, typed meal entry, and edited voice transcript entry call backend parser/resolver functions and map the results into editable meal drafts. Confirmed meals use the same local-first meal outbox as manual/photo meals.
 
-Phase 6 sync status is visible from Home when commands fail or enter conflict and from the Sync status screen for detailed recovery. Phase 7 weekly insights and frequent-food defaults are cached locally and shown only when `weekly_insights.enabled` is active.
+Phase 6 sync status is visible from Home when commands fail or enter conflict and from the Sync status screen for detailed recovery. Phase 7 weekly insights and frequent-food defaults are cached locally. `weekly_insights.enabled` controls the Weekly Check-In surface, while `smart_foods_v2.enabled` controls ranked Smart repeats computed locally from `user_food_defaults_local`, recent `meals_local`/`meal_items_local`, and `meal_templates_local`.
 
 ## Phase 8 Privacy Flow
 

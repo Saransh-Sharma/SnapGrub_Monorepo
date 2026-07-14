@@ -46,7 +46,7 @@ Every logging path converges on **Meal Editor** before anything is saved. Nothin
 **Code:** [`apps/mobile/lib/features/auth/`](../../apps/mobile/lib/features/auth/)
 
 - Supabase sign-in gate
-- Production: email magic link
+- Production: email/password, email OTP fallback, email OTP sign-up, and email-code password recovery
 - Dev/E2E: email + password
 - Signed-out users are redirected here from the router
 
@@ -80,6 +80,7 @@ Home is the main dashboard after onboarding. It combines capture, summary, and n
 | **MacroSummaryCard** | Protein / carbs / fat breakdown |
 | **QuickActionsRow** | Manual, Journal, Templates, Foods, Progress |
 | **RecentMealsCarousel** | Tap any today meal to edit |
+| **Smart repeats** | Feature-flagged recent/frequent/template suggestions that open Meal Editor for review |
 | **Sync toolbar + pull-to-refresh** | Background sync; conflict banner links to Sync screen |
 
 ---
@@ -116,7 +117,7 @@ All paths produce a **MealDraft** and route to Meal Editor for user confirmation
 
 - Quick Actions "Manual" or Journal "+" → Meal Editor with empty draft
 
-**Feature flags** ([`apps/mobile/lib/core/feature_flags/feature_flags.dart`](../../apps/mobile/lib/core/feature_flags/feature_flags.dart)): `photo_analysis`, `barcode`, `ocr_assist`, `voice_capture`, `weekly_insights` can be toggled per user/server.
+**Feature flags** ([`apps/mobile/lib/core/feature_flags/feature_flags.dart`](../../apps/mobile/lib/core/feature_flags/feature_flags.dart)): `photo_analysis`, `barcode`, `ocr_assist`, `voice_capture`, `smart_foods_v2`, and `weekly_insights` can be toggled per user/server.
 
 ---
 
@@ -126,7 +127,7 @@ All paths produce a **MealDraft** and route to Meal Editor for user confirmation
 
 Central hub for all meal creation and editing:
 
-- Accept drafts from photo / barcode / text / voice / templates / frequent foods
+- Accept drafts from photo / barcode / text / voice / templates / frequent foods / Smart repeats
 - Edit title, meal type, time, line items, macros
 - Add items or insert from custom foods
 - Save locally + enqueue outbox sync
@@ -151,9 +152,9 @@ Central hub for all meal creation and editing:
 **Code:** [`apps/mobile/lib/features/progress/`](../../apps/mobile/lib/features/progress/)
 
 - Daily macro progress vs onboarding goals
-- **Weekly check-in** (feature-flagged insights from backend)
+- **Weekly check-in** (feature-flagged deterministic insights from backend)
 - **Logging rhythm** streak card
-- **Frequent foods** — quick-add learned defaults without opening full editor
+- **Smart repeats** — feature-flagged ranked suggestions from learned defaults, recent meals, and templates; each opens Meal Editor before save
 
 ### Templates
 
@@ -222,7 +223,8 @@ See also: [Offline sync architecture](../02-architecture/offline-sync.md) and [F
 | Photo analysis | `analysis-photo-create`, `analysis-get` |
 | Barcode / label OCR / text / voice | `barcode-resolve`, `analysis-label-create`, `analysis-text-create`, `analysis-voice-create` |
 | Custom foods / templates | `custom-foods`, `meal-templates` |
-| Weekly insights | `weekly-insights-generate` |
+| Smart repeats | Local cache of meals, templates, and `user_food_defaults`; confirmed saves use `meals` |
+| Weekly check-in | `weekly-insights-generate` |
 | Export / delete account | `exports-create`, `account-delete` |
 | Media retention | `media-retention-cleanup` (scheduled) |
 

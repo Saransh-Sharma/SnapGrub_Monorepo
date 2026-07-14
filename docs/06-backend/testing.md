@@ -13,7 +13,7 @@ npm run backend:test:rls
 npm run backend:test:meal-core
 npm run backend:test:multimodal
 npm run backend:test:offline-sync
-npm run backend:test:insights
+npm run backend:test:insights:local
 npm run backend:test:privacy
 npm run backend:test:remediation
 ```
@@ -107,6 +107,8 @@ The API E2E suite does not replace the existing narrower checks. Keep them becau
   Offline sync readiness and idempotency support primitives.
 - `npm run backend:test:insights`:
   Insights/defaults smoke coverage.
+- `npm run backend:test:insights:local`:
+  Preferred local insights/defaults smoke entrypoint. It starts and resets local Supabase, exports local anon and service-role keys, waits for Auth readiness, and then runs `backend:test:insights`.
 - `npm run backend:test:privacy`:
   Privacy/export/delete smoke coverage, including export artifact generation, signed URL polling, storage download, account deletion cascade, and cleanup endpoint counts.
 - `npm run backend:test:remediation` and `npm run backend:test:remediation-unit`:
@@ -143,6 +145,8 @@ Recommended rerun flow:
 ## Required Environment
 
 `npm run backend:test:e2e:api:local` starts and resets local Supabase, loads values from `supabase status -o env`, sets `NODE_OPTIONS=--experimental-websocket`, and runs the API E2E suite.
+
+`npm run backend:test:insights:local` performs the same local Supabase env bootstrap for the focused insights smoke. Use it when validating weekly insights/defaults locally from a clean checkout.
 
 Load values from `supabase status -o env` before running individual integration tests:
 
