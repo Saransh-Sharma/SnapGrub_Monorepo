@@ -65,6 +65,10 @@ void main() {
         'items': [
           {
             'name': 'Dal',
+            'food_ref_kind': 'canonical',
+            'canonical_food_id': 'canonical-dal',
+            'branded_product_id': 'brand-dal',
+            'custom_food_id': 'custom-dal',
             'quantity': 1,
             'unit': 'bowl',
             'calories_kcal': 220,
@@ -80,6 +84,9 @@ void main() {
 
     expect(draft.source, MealSource.duplicate);
     expect(draft.items.single.name, 'Dal');
+    expect(draft.items.single.canonicalFoodId, 'canonical-dal');
+    expect(draft.items.single.brandedProductId, 'brand-dal');
+    expect(draft.items.single.customFoodId, 'custom-dal');
     expect(draft.caloriesKcal, 220);
   });
 }
