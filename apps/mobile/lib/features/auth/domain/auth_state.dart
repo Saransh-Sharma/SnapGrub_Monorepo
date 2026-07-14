@@ -2,6 +2,7 @@ enum AuthStatus {
   checking,
   configurationMissing,
   signedOut,
+  passwordRecovery,
   signedIn,
 }
 
@@ -21,6 +22,9 @@ class AuthState {
         );
 
   const AuthState.signedOut() : this(status: AuthStatus.signedOut);
+
+  const AuthState.passwordRecovery(String userId)
+      : this(status: AuthStatus.passwordRecovery, userId: userId);
 
   const AuthState.signedIn(String userId)
       : this(status: AuthStatus.signedIn, userId: userId);
