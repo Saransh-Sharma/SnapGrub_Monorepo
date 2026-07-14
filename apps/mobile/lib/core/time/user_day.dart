@@ -21,6 +21,21 @@ UserDay userDayFor(DateTime instant, String timezone) {
   );
 }
 
+DateTime userLocalTimeFor(DateTime instant, String timezone) {
+  final location = _locationOrUtc(timezone);
+  final local = tz.TZDateTime.from(instant.toUtc(), location);
+  return DateTime(
+    local.year,
+    local.month,
+    local.day,
+    local.hour,
+    local.minute,
+    local.second,
+    local.millisecond,
+    local.microsecond,
+  );
+}
+
 UserDay userDayWindow(DateTime day, String timezone) {
   final location = _locationOrUtc(timezone);
   final start = tz.TZDateTime(location, day.year, day.month, day.day);

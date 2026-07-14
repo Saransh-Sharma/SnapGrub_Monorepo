@@ -16,6 +16,7 @@ enum FeatureFlag {
   barcode('barcode.enabled'),
   ocrAssist('ocr_assist.enabled'),
   voiceCapture('voice_capture.enabled'),
+  smartFoodsV2('smart_foods_v2.enabled', defaultEnabled: false),
   weeklyInsights('weekly_insights.enabled', defaultEnabled: false);
 
   const FeatureFlag(this.key, {this.defaultEnabled = true});

@@ -16,6 +16,7 @@ class E2eData {
     'barcode.enabled': true,
     'ocr_assist.enabled': true,
     'voice_capture.enabled': true,
+    'smart_foods_v2.enabled': true,
     'weekly_insights.enabled': true,
   };
 

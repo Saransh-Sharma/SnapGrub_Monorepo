@@ -131,13 +131,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final auth = ref.read(authControllerProvider);
       final profile = ref.read(profileControllerProvider);
       final authState = auth.valueOrNull;
-      if (auth.isLoading || authState == null || profile.isLoading) {
+      if (auth.isLoading || authState == null) {
+        if (location == '/auth') return null;
         return location == '/splash' ? null : '/splash';
       }
 
-      if (authState.status == AuthStatus.configurationMissing ||
-          authState.status == AuthStatus.signedOut) {
+      if (authState.status != AuthStatus.signedIn) {
         return location == '/auth' ? null : '/auth';
+      }
+
+      if (profile.isLoading) {
+        return location == '/splash' ? null : '/splash';
       }
 
       final profileState = profile.valueOrNull;
