@@ -1119,6 +1119,120 @@ class MultimodalAnalysisResponseDto {
       );
 }
 
+class DailyThreadDto {
+  const DailyThreadDto({required this.id, required this.userId, required this.day, required this.timezone});
+  final String id;
+  final String userId;
+  final DateTime day;
+  final String timezone;
+  factory DailyThreadDto.fromJson(JsonMap json) => DailyThreadDto(
+        id: json['id'] as String,
+        userId: json['user_id'] as String,
+        day: DateTime.parse(json['day'] as String),
+        timezone: json['timezone'] as String,
+      );
+}
+
+class ThreadMessageDto {
+  const ThreadMessageDto({required this.id, required this.threadId, required this.clientId, required this.role, required this.kind, required this.sequence, required this.deliveryState, required this.payload, this.text});
+  final String id;
+  final String threadId;
+  final String clientId;
+  final String role;
+  final String kind;
+  final String? text;
+  final int sequence;
+  final String deliveryState;
+  final JsonMap payload;
+  factory ThreadMessageDto.fromJson(JsonMap json) => ThreadMessageDto(
+        id: json['id'] as String,
+        threadId: json['thread_id'] as String,
+        clientId: json['client_id'] as String,
+        role: json['role'] as String,
+        kind: json['kind'] as String,
+        text: json['text_content'] as String?,
+        sequence: (json['sequence'] as num).toInt(),
+        deliveryState: json['delivery_state'] as String,
+        payload: Map<String, dynamic>.from(json['payload'] as Map? ?? const {}),
+      );
+}
+
+class AgentRunDto {
+  const AgentRunDto({required this.id, required this.threadId, required this.status, required this.cursor, this.provider, this.modelName});
+  final String id;
+  final String threadId;
+  final String status;
+  final int cursor;
+  final String? provider;
+  final String? modelName;
+  factory AgentRunDto.fromJson(JsonMap json) => AgentRunDto(
+        id: json['id'] as String,
+        threadId: json['thread_id'] as String,
+        status: json['status'] as String,
+        cursor: (json['cursor'] as num).toInt(),
+        provider: json['provider'] as String?,
+        modelName: json['model_name'] as String?,
+      );
+}
+
+class AgentStreamEventDto {
+  const AgentStreamEventDto({required this.event, required this.runId, required this.sequence, required this.data, this.messageId});
+  final String event;
+  final String runId;
+  final int sequence;
+  final String? messageId;
+  final JsonMap data;
+  factory AgentStreamEventDto.fromJson(JsonMap json) => AgentStreamEventDto(
+        event: json['event'] as String,
+        runId: json['run_id'] as String,
+        sequence: (json['sequence'] as num).toInt(),
+        messageId: json['message_id'] as String?,
+        data: Map<String, dynamic>.from(json['data'] as Map? ?? const {}),
+      );
+}
+
+class MealChangeProposalDto {
+  const MealChangeProposalDto({required this.id, required this.threadId, required this.operation, required this.status, required this.draftPayload, this.targetMealId, this.expectedRevision});
+  final String id;
+  final String threadId;
+  final String operation;
+  final String status;
+  final JsonMap draftPayload;
+  final String? targetMealId;
+  final int? expectedRevision;
+  factory MealChangeProposalDto.fromJson(JsonMap json) => MealChangeProposalDto(
+        id: json['id'] as String,
+        threadId: json['thread_id'] as String,
+        operation: json['operation'] as String,
+        status: json['status'] as String,
+        draftPayload: Map<String, dynamic>.from(json['draft_payload'] as Map? ?? const {}),
+        targetMealId: json['target_meal_id'] as String?,
+        expectedRevision: (json['expected_revision'] as num?)?.toInt(),
+      );
+}
+
+class MealVisualDto {
+  const MealVisualDto({required this.id, required this.mealId, required this.promptSignature, required this.styleVersion, required this.status, this.signedUrl, this.thumbSignedUrl, this.signedUrlExpiresAt});
+  final String id;
+  final String mealId;
+  final String promptSignature;
+  final String styleVersion;
+  final String status;
+  final String? signedUrl;
+  final String? thumbSignedUrl;
+  final DateTime? signedUrlExpiresAt;
+  factory MealVisualDto.fromJson(JsonMap json) => MealVisualDto(
+        id: json['id'] as String,
+        mealId: json['meal_id'] as String,
+        promptSignature: json['prompt_signature'] as String,
+        styleVersion: json['style_version'] as String,
+        status: json['status'] as String,
+        signedUrl: json['signed_url'] as String?,
+        thumbSignedUrl: json['thumb_signed_url'] as String?,
+        signedUrlExpiresAt: _dateOrNull(json['signed_url_expires_at']),
+      );
+}
+
 MealItemWriteDto _mealItemWriteFromJson(JsonMap json) => MealItemWriteDto(
       clientId: json['client_id'] as String,
       position: (json['position'] as num).toInt(),
