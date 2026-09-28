@@ -65,14 +65,14 @@ void main() {
 
     harness.container.read(appRouterProvider).go('/settings/privacy');
     await tester.pump(const Duration(milliseconds: 500));
-    expect(find.text('Privacy'), findsOneWidget);
+    expect(find.text('Privacy & data'), findsOneWidget);
     expect(find.text('Export data'), findsOneWidget);
 
     harness.container
         .read(appRouterProvider)
         .go('/settings/privacy/clear-local-data');
     await tester.pump(const Duration(milliseconds: 500));
-    await tester.tap(find.widgetWithText(FilledButton, 'Clear local data'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Clear this phone'));
     await tester.pump(const Duration(milliseconds: 500));
     expect(find.byKey(const ValueKey('screen.auth')), findsOneWidget);
   });
