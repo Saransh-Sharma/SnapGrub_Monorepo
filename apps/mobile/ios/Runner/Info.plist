@@ -22,8 +22,6 @@
 	<string>SnapGrub uses the microphone when you log a meal by voice.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>SnapGrub turns what you say into text so you can log meals by voice.</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>SnapGrub saves meal photos so they’re not lost if an upload fails.</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
