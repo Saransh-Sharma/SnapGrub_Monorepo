@@ -18,21 +18,21 @@ void main() {
       (tester) async {
     await _pumpAuthScreen(tester);
 
-    expect(find.text('Sign in to continue.'), findsOneWidget);
+    expect(find.text('Welcome back'), findsOneWidget);
     expect(find.widgetWithText(TextField, 'Email'), findsOneWidget);
     expect(find.widgetWithText(TextField, 'Password'), findsOneWidget);
     expect(find.widgetWithText(FilledButton, 'Sign in'), findsOneWidget);
 
-    await tester.tap(find.widgetWithText(TextButton, 'Create account'));
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Create account'));
     await tester.pump();
 
-    expect(find.text('Create your account.'), findsOneWidget);
+    expect(find.text('Create your account'), findsOneWidget);
     expect(find.widgetWithText(TextField, 'Confirm password'), findsOneWidget);
 
-    await tester.tap(find.widgetWithText(TextButton, 'Sign in instead'));
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Sign in instead'));
     await tester.pump();
 
-    expect(find.text('Sign in to continue.'), findsOneWidget);
+    expect(find.text('Welcome back'), findsOneWidget);
   });
 
   testWidgets('sign-up validates password setup before sending code',
@@ -44,7 +44,7 @@ void main() {
       find.widgetWithText(TextField, 'Email'),
       'new@example.com',
     );
-    await tester.tap(find.widgetWithText(TextButton, 'Create account'));
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Create account'));
     await tester.pump();
 
     await tester.enterText(find.widgetWithText(TextField, 'Password'), 'short');
@@ -69,7 +69,7 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Create account'));
     await tester.pump();
 
-    expect(find.text('Passwords do not match.'), findsOneWidget);
+    expect(find.text('Passwords don’t match.'), findsOneWidget);
     expect(FakeAuthController.calls, isEmpty);
 
     await tester.enterText(
@@ -78,14 +78,14 @@ void main() {
     );
     await tester.tap(find.widgetWithText(FilledButton, 'Create account'));
     await tester.pump();
-    expect(find.text('Create your account.'), findsOneWidget);
+    expect(find.text('Create your account'), findsOneWidget);
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
     await tester.pumpAndSettle();
 
     expect(FakeAuthController.calls, ['signUpWithPassword:new@example.com']);
-    expect(find.text('Confirm your email.'), findsOneWidget);
+    expect(find.text('Confirm your email'), findsOneWidget);
     expect(
-      find.text('Check your email for a confirmation code.'),
+      find.text('Code sent. Check your email.'),
       findsOneWidget,
     );
   });
@@ -98,18 +98,20 @@ void main() {
       find.widgetWithText(TextField, 'Email'),
       'user@example.com',
     );
-    await tester.tap(find.widgetWithText(TextButton, 'Email me a code'));
+    await _openMoreOptions(tester);
+    await _tapText(tester, 'Email me a code');
     await tester.pump();
-    expect(find.text('Sign in to continue.'), findsOneWidget);
+    expect(find.text('Welcome back'), findsOneWidget);
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
     await tester.pumpAndSettle();
 
     expect(FakeAuthController.calls, ['requestSignInOtp:user@example.com']);
-    expect(find.text('Enter the code sent to your email.'), findsOneWidget);
-    expect(find.widgetWithText(TextField, 'Email code'), findsOneWidget);
+    expect(find.text('Check your email'), findsOneWidget);
+    expect(_otpField, findsOneWidget);
 
-    await tester.enterText(
-        find.widgetWithText(TextField, 'Email code'), '123456');
+    // Six digits auto-submit; a manual tap afterwards never double-sends.
+    await tester.enterText(_otpField, '123456');
+    await tester.pump();
     await tester.tap(find.widgetWithText(FilledButton, 'Verify code'));
     await tester.pump();
 
@@ -131,14 +133,15 @@ void main() {
       find.widgetWithText(TextField, 'Email'),
       'recover@example.com',
     );
-    await tester.tap(find.widgetWithText(TextButton, 'Forgot password'));
+    await _openMoreOptions(tester);
+    await _tapText(tester, 'Forgot password?');
     await tester.pump();
 
-    expect(find.text('Reset your password.'), findsOneWidget);
+    expect(find.text('Reset your password'), findsOneWidget);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Send recovery code'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Send code'));
     await tester.pump();
-    expect(find.text('Reset your password.'), findsOneWidget);
+    expect(find.text('Reset your password'), findsOneWidget);
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
     await tester.pumpAndSettle();
 
@@ -146,14 +149,12 @@ void main() {
       FakeAuthController.calls,
       ['requestPasswordRecovery:recover@example.com'],
     );
-    expect(find.text('Enter the recovery code.'), findsOneWidget);
+    expect(find.text('Enter recovery code'), findsOneWidget);
 
-    await tester.enterText(
-        find.widgetWithText(TextField, 'Email code'), '654321');
-    await tester.tap(find.widgetWithText(FilledButton, 'Verify code'));
+    await tester.enterText(_otpField, '654321');
     await tester.pumpAndSettle();
 
-    expect(find.text('Set a new password.'), findsOneWidget);
+    expect(find.text('Set a new password'), findsOneWidget);
     expect(find.widgetWithText(TextField, 'New password'), findsOneWidget);
 
     await tester.enterText(
@@ -177,7 +178,7 @@ void main() {
     );
   });
 
-  testWidgets('auth failures show generic non-enumerating error',
+  testWidgets('auth failures show friendly non-enumerating error',
       (tester) async {
     FakeAuthController.throwOnPasswordSignIn = true;
     await _pumpAuthScreen(tester);
@@ -195,10 +196,11 @@ void main() {
 
     expect(
       find.text(
-        'Couldn\'t complete that request. Check your details or try another sign-in option.',
+        'Couldn’t sign in. Check your details and try again.',
       ),
       findsOneWidget,
     );
+    expect(find.text('raw auth failure'), findsNothing);
   });
 
   testWidgets('canceling after recovery verification signs out',
@@ -209,17 +211,16 @@ void main() {
       find.widgetWithText(TextField, 'Email'),
       'recover@example.com',
     );
-    await tester.tap(find.widgetWithText(TextButton, 'Forgot password'));
+    await _openMoreOptions(tester);
+    await _tapText(tester, 'Forgot password?');
     await tester.pump();
-    await tester.tap(find.widgetWithText(FilledButton, 'Send recovery code'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Send code'));
     await tester.pump();
-    await tester.enterText(
-        find.widgetWithText(TextField, 'Email code'), '654321');
-    await tester.tap(find.widgetWithText(FilledButton, 'Verify code'));
+    await tester.enterText(_otpField, '654321');
     await tester.pumpAndSettle();
 
-    expect(find.text('Set a new password.'), findsOneWidget);
-    final signInInstead = find.widgetWithText(TextButton, 'Sign in instead');
+    expect(find.text('Set a new password'), findsOneWidget);
+    final signInInstead = find.widgetWithText(OutlinedButton, 'Sign in instead');
     await tester.ensureVisible(signInInstead);
     await tester.tap(signInInstead);
     await tester.pumpAndSettle();
@@ -232,7 +233,164 @@ void main() {
         'cancelPasswordRecovery',
       ],
     );
-    expect(find.text('Sign in to continue.'), findsOneWidget);
+    expect(find.text('Welcome back'), findsOneWidget);
+  });
+
+  testWidgets('email validation rejects malformed addresses', (tester) async {
+    await _pumpAuthScreen(tester);
+
+    await tester.enterText(find.widgetWithText(TextField, 'Email'), 'a@b');
+    await tester.enterText(
+        find.widgetWithText(TextField, 'Password'), 'password123');
+    await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
+    await tester.pump();
+
+    expect(
+      find.text('That email doesn’t look right.'),
+      findsOneWidget,
+    );
+    expect(FakeAuthController.calls, isEmpty);
+  });
+
+  testWidgets('password visibility toggles', (tester) async {
+    await _pumpAuthScreen(tester);
+
+    EditableText editable() => tester.widget<EditableText>(find.descendant(
+          of: find.widgetWithText(TextField, 'Password'),
+          matching: find.byType(EditableText),
+        ));
+
+    expect(editable().obscureText, isTrue);
+    await tester.tap(find.byTooltip('Show password'));
+    await tester.pump();
+    expect(editable().obscureText, isFalse);
+    await tester.tap(find.byTooltip('Hide password'));
+    await tester.pump();
+    expect(editable().obscureText, isTrue);
+  });
+
+  testWidgets('more options folds secondary sign-in paths', (tester) async {
+    await _pumpAuthScreen(tester);
+
+    expect(find.text('Email me a code'), findsNothing);
+    expect(find.text('Forgot password?'), findsNothing);
+
+    await _openMoreOptions(tester);
+
+    expect(find.text('Email me a code'), findsOneWidget);
+    expect(find.text('Forgot password?'), findsOneWidget);
+    expect(
+        find.byKey(const ValueKey('auth.signin_send_code')), findsOneWidget);
+    expect(find.byKey(const ValueKey('auth.forgot_password')), findsOneWidget);
+  });
+
+  testWidgets('wrong code shows specific error and clears the boxes',
+      (tester) async {
+    FakeAuthController.verifyError = StateError('otp_expired');
+    await _pumpAuthScreen(tester);
+
+    await tester.enterText(
+        find.widgetWithText(TextField, 'Email'), 'user@example.com');
+    await _openMoreOptions(tester);
+    await _tapText(tester, 'Email me a code');
+    await tester.pumpAndSettle();
+
+    await tester.enterText(_otpField, '111111');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Code expired. Get a new one.'),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey('auth.error')), findsOneWidget);
+    expect(tester.widget<TextField>(_otpField).controller!.text, isEmpty);
+
+    // A corrected code can be submitted again.
+    FakeAuthController.verifyError = null;
+    await tester.enterText(_otpField, '222222');
+    await tester.pumpAndSettle();
+    expect(
+      FakeAuthController.calls.where((c) => c.startsWith('verifySignInOtp')),
+      hasLength(2),
+    );
+  });
+
+  testWidgets('pasting a formatted code keeps only six digits',
+      (tester) async {
+    await _pumpAuthScreen(tester);
+    await tester.enterText(
+        find.widgetWithText(TextField, 'Email'), 'user@example.com');
+    await _openMoreOptions(tester);
+    await _tapText(tester, 'Email me a code');
+    await tester.pumpAndSettle();
+
+    await tester.enterText(_otpField, '123-456 789');
+    await tester.pump();
+
+    expect(tester.widget<TextField>(_otpField).controller!.text, '123456');
+    expect(FakeAuthController.calls.last,
+        'verifySignInOtp:user@example.com:123456');
+  });
+
+  testWidgets('resend is disabled for 30 seconds after sending',
+      (tester) async {
+    await _pumpAuthScreen(tester);
+    await tester.enterText(
+        find.widgetWithText(TextField, 'Email'), 'user@example.com');
+    await _openMoreOptions(tester);
+    await _tapText(tester, 'Email me a code');
+    await tester.pumpAndSettle();
+
+    final resend = find.descendant(
+      of: find.byKey(const ValueKey('auth.resend_code')),
+      matching: find.byWidgetPredicate((w) => w is TextButton),
+    );
+    final countdown = find.textContaining(RegExp(r'^Resend in \d+s$'));
+    expect(countdown, findsOneWidget);
+    expect(tester.widget<TextButton>(resend).onPressed, isNull);
+
+    await tester.pump(const Duration(seconds: 10));
+    expect(countdown, findsOneWidget);
+    expect(tester.widget<TextButton>(resend).onPressed, isNull);
+
+    await tester.pump(const Duration(seconds: 21));
+    await tester.pumpAndSettle();
+    expect(find.text('Resend code'), findsOneWidget);
+    expect(tester.widget<TextButton>(resend).onPressed, isNotNull);
+
+    await tester.ensureVisible(resend);
+    await tester.tap(resend);
+    await tester.pump();
+    expect(
+      FakeAuthController.calls,
+      [
+        'requestSignInOtp:user@example.com',
+        'requestSignInOtp:user@example.com',
+      ],
+    );
+    expect(find.text('Resend in 30s'), findsOneWidget);
+  });
+
+  testWidgets('auth screen meets tap target and label guidelines',
+      (tester) async {
+    final handle = tester.ensureSemantics();
+    await _pumpAuthScreen(tester);
+
+    await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+    await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+    handle.dispose();
+  });
+
+  testWidgets('auth screen fits at 2x text scale', (tester) async {
+    tester.view.physicalSize = const Size(360, 740);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(_authScreen(textScale: 2));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    final signIn = find.widgetWithText(FilledButton, 'Sign in');
+    await tester.ensureVisible(signIn);
+    expect(signIn, findsOneWidget);
   });
 
   testWidgets('e2e mock password sign-in stores a signed-in user',
@@ -282,7 +440,7 @@ void main() {
 
     expect(
       find.text(
-        'Supabase is not configured. Launch with SUPABASE_URL and SUPABASE_ANON_KEY dart defines.',
+        'Supabase isn’t configured. Run with SUPABASE_URL and SUPABASE_ANON_KEY dart defines.',
       ),
       findsOneWidget,
     );
@@ -292,12 +450,29 @@ void main() {
   });
 }
 
+final _otpField = find.descendant(
+  of: find.byKey(const ValueKey('auth.email_otp')),
+  matching: find.byType(TextField),
+);
+
+Future<void> _openMoreOptions(WidgetTester tester) async {
+  await _tapText(tester, 'More options');
+  await tester.pumpAndSettle();
+}
+
+Future<void> _tapText(WidgetTester tester, String text) async {
+  final finder = find.text(text);
+  await tester.ensureVisible(finder);
+  await tester.pumpAndSettle();
+  await tester.tap(finder);
+}
+
 Future<void> _pumpAuthScreen(WidgetTester tester) async {
   await tester.pumpWidget(_authScreen());
   await tester.pumpAndSettle();
 }
 
-Widget _authScreen() {
+Widget _authScreen({double textScale = 1}) {
   return ProviderScope(
     overrides: [
       appConfigProvider.overrideWithValue(
@@ -313,7 +488,14 @@ Widget _authScreen() {
       authControllerProvider.overrideWith(FakeAuthController.new),
       syncControllerProvider.overrideWith(IdleSyncController.new),
     ],
-    child: const MaterialApp(home: AuthScreen()),
+    child: MaterialApp(
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context)
+            .copyWith(textScaler: TextScaler.linear(textScale)),
+        child: child!,
+      ),
+      home: const AuthScreen(),
+    ),
   );
 }
 
@@ -321,8 +503,10 @@ class FakeAuthController extends AuthController {
   static final calls = <String>[];
   static bool throwOnPasswordSignIn = false;
   static bool emitLoadingDuringCodeRequests = false;
+  static Object? verifyError;
 
   static void reset() {
+    verifyError = null;
     calls.clear();
     throwOnPasswordSignIn = false;
     emitLoadingDuringCodeRequests = false;
@@ -356,6 +540,7 @@ class FakeAuthController extends AuthController {
     required String token,
   }) async {
     calls.add('verifySignInOtp:$email:$token');
+    if (verifyError != null) throw verifyError!;
   }
 
   @override

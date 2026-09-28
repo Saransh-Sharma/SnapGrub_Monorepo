@@ -24,7 +24,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(FilledButton, 'Review'));
     await tester.pump();
-    expect(find.text('Enter a meal first.'), findsOneWidget);
+    expect(find.text('Describe your meal first.'), findsOneWidget);
 
     await tester.enterText(
       find.widgetWithText(TextField, 'Meal'),
@@ -33,10 +33,13 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Review'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Meal Editor'), findsOneWidget);
-    expect(find.widgetWithText(TextFormField, '2 rotis and dal'), findsWidgets);
-    expect(find.text('Estimate ready for review.'), findsOneWidget);
-    expect(find.textContaining('text_parser'), findsOneWidget);
+    expect(find.text('Review meal'), findsOneWidget);
+    expect(find.widgetWithText(TextField, '2 rotis and dal'), findsWidgets);
+    // Provenance is shown in human words, never the raw id.
+    expect(find.textContaining('Text estimate', skipOffstage: false),
+        findsOneWidget);
+    expect(find.textContaining('text_parser', skipOffstage: false),
+        findsNothing);
   });
 
   testWidgets('barcode miss offers manual fallback into Meal Editor',
@@ -61,11 +64,11 @@ void main() {
     await tester.enterText(find.widgetWithText(TextField, 'Carbs'), '24');
     await tester.enterText(find.widgetWithText(TextField, 'Fat'), '8');
     await tester
-        .tap(find.widgetWithText(FilledButton, 'Review custom product'));
+        .tap(find.widgetWithText(FilledButton, 'Review product'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Meal Editor'), findsOneWidget);
-    expect(find.widgetWithText(TextFormField, 'Unknown bar'), findsWidgets);
+    expect(find.text('Review meal'), findsOneWidget);
+    expect(find.widgetWithText(TextField, 'Unknown bar'), findsWidgets);
   });
 
   testWidgets('voice permission denial keeps text fallback available',
@@ -93,11 +96,11 @@ void main() {
     harness.container.read(appRouterProvider).go('/voice-entry');
     await tester.pumpAndSettle();
 
-    expect(find.text('Microphone permission is unavailable. Use text instead.'),
+    expect(find.text('Microphone access is off. Type instead.'),
         findsOneWidget);
-    await tester.tap(find.widgetWithText(TextButton, 'Use text instead'));
+    await tester.tap(find.widgetWithText(TextButton, 'Type instead'));
     await tester.pumpAndSettle();
-    expect(find.text('Text meal'), findsOneWidget);
+    expect(find.text('Describe a meal'), findsOneWidget);
   });
 
   testWidgets('privacy export, delete, and clear-local flows are guarded',
@@ -114,11 +117,11 @@ void main() {
 
     harness.container.read(appRouterProvider).go('/settings/privacy');
     await tester.pumpAndSettle();
-    expect(find.text('AI consent'), findsOneWidget);
+    expect(find.text('Improve food analysis'), findsOneWidget);
     expect(find.text('Export data'), findsOneWidget);
     expect(find.text('Delete account'), findsOneWidget);
 
-    await tester.tap(find.text('AI consent'));
+    await tester.tap(find.text('Improve food analysis'));
     await tester.pumpAndSettle();
     await tester.tap(find.byType(SwitchListTile));
     await tester.pumpAndSettle();
@@ -130,7 +133,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(FilledButton, 'Create export'));
     await tester.pumpAndSettle();
-    expect(find.text('Status: completed'), findsOneWidget);
+    expect(find.text('Export ready'), findsOneWidget);
     expect(find.text('Copy link'), findsOneWidget);
 
     harness.container
@@ -155,7 +158,7 @@ void main() {
         .read(appRouterProvider)
         .go('/settings/privacy/clear-local-data');
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'Clear local data'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Clear this phone'));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('screen.auth')), findsOneWidget);
   });

@@ -120,7 +120,9 @@ void main() {
 
     await _pumpRouter(tester);
 
-    expect(find.text('Today'), findsOneWidget);
+    // "Today" is both the tab label and the page title in the app shell.
+    expect(find.text('Today'), findsWidgets);
+    expect(find.byKey(const ValueKey('screen.auth')), findsNothing);
     expect(find.byKey(const ValueKey('screen.auth')), findsNothing);
     expect(find.byKey(const ValueKey('screen.onboarding')), findsNothing);
   });
@@ -142,14 +144,22 @@ void main() {
     container.read(appRouterProvider).go('/auth');
     await tester.pumpAndSettle();
 
-    expect(find.text('Today'), findsOneWidget);
+    expect(find.text('Today'), findsWidgets);
+    expect(find.byKey(const ValueKey('screen.auth')), findsNothing);
     expect(find.byKey(const ValueKey('screen.auth')), findsNothing);
   });
 }
 
 Future<ProviderContainer> _pumpRouter(WidgetTester tester) async {
   final db = AppDatabase(NativeDatabase.memory());
-  addTearDown(db.close);
+  addTearDown(() async {
+    // Unmount first and let pending stream-query timers (streaks,
+    // milestones, rollups) drain; closing drift with in-flight fake-async
+    // queries otherwise never completes.
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 1));
+    await db.close();
+  });
   final container = ProviderContainer(
     overrides: [
       appConfigProvider.overrideWithValue(

@@ -25,14 +25,14 @@ void main() {
     await _expectVisible(tester, 'Sign in');
 
     await _pumpLargeText(tester, harness, const OnboardingFlowScreen());
-    await _expectVisible(tester, 'Next');
+    await _expectVisible(tester, 'Get started');
 
     await _pumpLargeText(
       tester,
       harness,
       MealEditorScreen(initialDraft: testMealDraft()),
     );
-    await _expectVisible(tester, 'Save meal');
+    await _expectVisible(tester, 'Log meal');
 
     await _pumpLargeText(tester, harness, const ExportDataScreen());
     await _expectVisible(tester, 'Create export');

@@ -7,9 +7,14 @@ void main() {
     final db = AppDatabase(NativeDatabase.memory());
     addTearDown(db.close);
 
-    expect(db.schemaVersion, 5);
+    expect(db.schemaVersion, 6);
     expect(await db.select(db.weeklyInsightsLocal).get(), isEmpty);
     expect(await db.select(db.userFoodDefaultsLocal).get(), isEmpty);
     expect(await db.select(db.outboxCommands).get(), isEmpty);
+    expect(await db.select(db.dailyThreadsLocal).get(), isEmpty);
+    expect(await db.select(db.threadMessagesLocal).get(), isEmpty);
+    expect(await db.select(db.agentRunsLocal).get(), isEmpty);
+    expect(await db.select(db.mealChangeProposalsLocal).get(), isEmpty);
+    expect(await db.select(db.mealVisualsLocal).get(), isEmpty);
   });
 }

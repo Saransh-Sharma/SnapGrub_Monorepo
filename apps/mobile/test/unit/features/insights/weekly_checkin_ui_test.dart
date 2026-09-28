@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:snapgrub/data/db/drift/app_database.dart';
 import 'package:snapgrub/features/progress/presentation/progress_screen.dart';
@@ -15,49 +16,57 @@ void main() {
     await _seedInsight(
       harness.db,
       type: 'logging_streak',
-      title: 'Logging rhythm',
-      summary: '4 days had meals logged this week.',
+      title: 'Logging',
+      summary: 'Logged 4 days this week.',
       payload: {'logged_days': 4, 'meal_count': 12},
     );
     await _seedInsight(
       harness.db,
       type: 'average_intake_vs_target',
-      title: 'Average intake',
-      summary: 'Average was below target.',
+      title: 'Calories',
+      summary: '120 kcal below target.',
       payload: {'delta_kcal': -120},
     );
     await _seedInsight(
       harness.db,
       type: 'protein_target_hit_rate',
-      title: 'Protein consistency',
-      summary: 'Protein landed near target.',
+      title: 'Protein',
+      summary: 'Protein was near target on 75% of days.',
       payload: {'hit_rate': 0.75},
     );
     await _seedInsight(
       harness.db,
       type: 'most_repeated_meal',
-      title: 'Reliable repeat',
-      summary: 'Dal repeated.',
+      title: 'Top repeat',
+      summary: 'Dal came up 3 times.',
       payload: {'title': 'Dal', 'count': 3},
     );
     await _seedInsight(
       harness.db,
       type: 'next_week_suggestion',
       title: 'Next week',
-      summary: 'Keep Dal handy.',
+      summary: 'Log Dal again when the week gets busy.',
       payload: {
         'action_id': 'reuse_repeat_meal',
-        'action_title': 'Keep a reliable repeat handy',
-        'action_body': 'Keep Dal handy.',
+        'action_title': 'Keep a go-to handy',
+        'action_body': 'Log Dal again when the week gets busy.',
       },
     );
 
     await harness.pumpScreen(tester, const ProgressScreen());
+    // The check-in sits below the charts; scroll the lazy list to it.
+    await tester.scrollUntilVisible(
+      find.text('See repeats'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
 
     expect(find.text('Weekly check-in'), findsOneWidget);
-    expect(find.text('Keep a reliable repeat handy'), findsOneWidget);
-    expect(find.text('4 logged days · 12 meals'), findsOneWidget);
-    expect(find.text('Review repeat foods'), findsOneWidget);
+    expect(find.text('Keep a go-to handy'), findsOneWidget);
+    expect(find.text('4 days · 12 meals'), findsOneWidget);
+    expect(find.text('Logging'), findsOneWidget);
+    expect(find.text('See repeats'), findsOneWidget);
   });
 }
 

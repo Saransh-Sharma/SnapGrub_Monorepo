@@ -27,7 +27,7 @@ void main() {
     );
 
     expect(ranked.first.title, 'lunch');
-    expect(ranked.first.reasonLabel, 'Often at lunch');
+    expect(ranked.first.reasonLabel, 'Usual for lunch');
   });
 
   test('use count affects frequent default ordering', () {
@@ -41,7 +41,7 @@ void main() {
     );
 
     expect(ranked.first.title, 'Dal');
-    expect(ranked.first.reasonLabel, 'Used 6 times');
+    expect(ranked.first.reasonLabel, 'Logged 6 times');
   });
 
   test('recent and template suggestions are included and scored', () {
@@ -64,6 +64,8 @@ void main() {
     expect(ranked.map((item) => item.title),
         containsAll(['Recent dal', 'Template oats']));
     expect(ranked.first.title, 'Recent dal');
+    expect(ranked.first.reasonLabel, 'Recent');
+    expect(ranked.last.reasonLabel, 'Saved meal');
   });
 
   test('duplicates collapse to the highest scoring suggestion', () {
@@ -164,7 +166,7 @@ SmartFoodSuggestion _suggestion(
     mealTypeHint: mealType,
     origin: origin,
     score: useCount.toDouble(),
-    reasonLabel: 'Used $useCount times',
+    reasonLabel: 'Logged $useCount times',
     lastUsedAt: lastUsedAt,
     useCount: useCount,
     items: [

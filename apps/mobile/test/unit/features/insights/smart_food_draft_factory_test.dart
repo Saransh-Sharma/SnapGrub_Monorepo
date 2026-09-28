@@ -55,7 +55,7 @@ SmartFoodSuggestion _suggestion({
     mealTypeHint: mealTypeHint,
     origin: origin,
     score: 10,
-    reasonLabel: 'From template',
+    reasonLabel: 'Saved meal',
     items: const [
       SmartFoodSuggestionItem(
         name: 'Paneer',
