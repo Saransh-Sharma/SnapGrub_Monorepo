@@ -1,0 +1,48 @@
+{
+  "01_today": {
+    "headline": "Your day,\nat a glance.",
+    "subline": "Calories and macros that update the moment you eat."
+  },
+  "02_snap": {
+    "headline": "Just snap it.",
+    "subline": "SnapGrub reads your plate in seconds — in the background.",
+    "accent": "titanium"
+  },
+  "03_chat": {
+    "headline": "Or just say it.",
+    "subline": "“Salmon, rice and greens” becomes a meal you can confirm."
+  },
+  "04_review": {
+    "headline": "Every estimate is\nyours to adjust.",
+    "subline": "Tweak a portion and the macros follow."
+  },
+  "05_plan": {
+    "headline": "A plan built\naround you.",
+    "subline": "Personal targets and a realistic goal date.",
+    "accent": "holo"
+  },
+  "06_progress": {
+    "headline": "See the trend,\nnot the noise.",
+    "subline": "A smoothed weight line and honest averages.",
+    "accent": "titanium"
+  },
+  "07_consistency": {
+    "headline": "Consistency,\ncelebrated.",
+    "subline": "Streaks reward showing up — never perfection.",
+    "accent": "copper"
+  },
+  "08_milestones": {
+    "headline": "Milestones\nworth keeping.",
+    "subline": "Light-catching medals for the moments that matter.",
+    "accent": "gold"
+  },
+  "09_recap": {
+    "headline": "Your week,\nwrapped.",
+    "subline": "A recap you’ll actually want to share.",
+    "accent": "holo"
+  },
+  "10_atlas": {
+    "headline": "A visual diary\nof how you eat.",
+    "subline": "Every meal, beautifully kept."
+  }
+}

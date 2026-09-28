@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>SnapGrub illustration</title>
+<style>html,body{margin:0;padding:0;overflow:hidden;background:#EFE6D8}canvas{display:block}</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script src="lib.js"></script>
+<script src="dishes.js"></script>
+<script>
+  // Usage: index.html?dish=<id>&size=<px>
+  const params = new URLSearchParams(location.search);
+  const id = params.get('dish') || 'hero-plate';
+  const size = Number(params.get('size') || 1200);
+  const canvas = document.getElementById('c');
+  canvas.width = canvas.height = size;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  const dish = window.DISHES[id];
+  const r = SG.rng(SG.hashSeed(id));
+  ctx.save();
+  ctx.scale(size / 1000, size / 1000);
+  SG.table(ctx, r, dish.surface);
+  dish.draw(ctx, r);
+  ctx.restore();
+  SG.finish(ctx, r, size);
+  document.title = 'done:' + id;
+</script>
+</body>
+</html>

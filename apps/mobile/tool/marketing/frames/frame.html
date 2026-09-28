@@ -1,0 +1,84 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: 'Geist'; src: url('{{FONTS}}/Geist-500.ttf'); font-weight: 500; }
+  @font-face { font-family: 'Geist'; src: url('{{FONTS}}/Geist-600.ttf'); font-weight: 600; }
+  @font-face { font-family: 'Instrument Serif'; src: url('{{FONTS}}/InstrumentSerif-Regular.ttf'); }
+  :root {
+    --w: {{W}}px; --h: {{H}}px; --u: calc(var(--w) / 1320);
+    --ink: #201E1A; --muted: #6D675E; --bezel: #1B1C1A;
+    --bg1: #F7F2E9; --bg2: #E7EFE6; --bg3: #FBF7F0; --bg4: #EDE5D8;
+    --glow: rgba(255,255,255,0);
+  }
+  body.dark {
+    --ink: #F3F0E8; --muted: #AFAEA4; --bezel: #2B2E29;
+    --bg1: #121613; --bg2: #18211B; --bg3: #0D0F0C; --bg4: #1A1F21;
+  }
+  body.titanium { --glow: rgba(160, 178, 164, .45); }
+  body.gold { --glow: rgba(214, 170, 74, .42); }
+  body.copper { --glow: rgba(214, 120, 82, .38); }
+  body.holo { --glow: rgba(196, 170, 236, .40); }
+  html, body { margin: 0; width: var(--w); height: var(--h); overflow: hidden; }
+  body {
+    background:
+      radial-gradient(calc(900 * var(--u)) calc(900 * var(--u)) at 88% 12%, var(--glow), transparent 70%),
+      radial-gradient(calc(1100 * var(--u)) calc(1100 * var(--u)) at 10% 8%, var(--bg2), transparent 70%),
+      radial-gradient(calc(1200 * var(--u)) calc(1200 * var(--u)) at 90% 70%, var(--bg4), transparent 70%),
+      linear-gradient(160deg, var(--bg1), var(--bg3));
+    font-family: 'Geist', -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    position: relative;
+  }
+  body.holo::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(115deg, rgba(255,190,220,.18), rgba(180,230,255,.16) 35%, rgba(255,240,180,.16) 65%, rgba(255,190,220,.14));
+    mix-blend-mode: soft-light;
+  }
+  .brand {
+    position: absolute; left: calc(110 * var(--u)); top: calc(118 * var(--u));
+    display: flex; align-items: center; gap: calc(18 * var(--u));
+    font-weight: 600; font-size: calc(38 * var(--u)); color: var(--ink); letter-spacing: -0.02em;
+  }
+  .mark { position: relative; width: calc(52 * var(--u)); height: calc(52 * var(--u)); }
+  .mark i { position: absolute; border-radius: 50%; }
+  .mark .a { inset: 0; background: #405D49; }
+  .mark .b { width: 36%; height: 36%; right: 12%; top: 16%; background: #E27852; }
+  .mark .c { width: 26%; height: 26%; left: 20%; top: 50%; background: rgba(255,255,255,.9); }
+  h1 {
+    position: absolute; left: calc(110 * var(--u)); right: calc(110 * var(--u)); top: calc(210 * var(--u));
+    margin: 0; font-family: 'Instrument Serif', serif; font-weight: 400;
+    font-size: calc(132 * var(--u)); line-height: 1.0; letter-spacing: -0.02em; color: var(--ink);
+    white-space: pre-line;
+  }
+  p {
+    position: absolute; left: calc(112 * var(--u)); right: calc(90 * var(--u));
+    top: calc({{SUB_TOP}} * var(--u));
+    margin: 0; font-size: calc(44 * var(--u)); line-height: 1.3; text-wrap: balance; color: var(--muted); font-weight: 500;
+  }
+  .phone {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    top: calc({{PHONE_TOP}} * var(--u));
+    width: calc(1120 * var(--u)); aspect-ratio: {{SHOT_W}} / {{SHOT_H}};
+    padding: calc(22 * var(--u)); box-sizing: content-box;
+    background: var(--bezel);
+    border-radius: calc(140 * var(--u));
+    box-shadow:
+      0 calc(80 * var(--u)) calc(160 * var(--u)) rgba(30, 22, 12, .28),
+      0 calc(10 * var(--u)) calc(30 * var(--u)) rgba(30, 22, 12, .18),
+      inset 0 0 0 calc(3 * var(--u)) rgba(255,255,255,.08);
+  }
+  .phone img {
+    display: block; width: 100%; height: 100%;
+    border-radius: calc(118 * var(--u)); object-fit: cover;
+  }
+</style>
+</head>
+<body class="{{CLASSES}}">
+  <div class="brand"><div class="mark"><i class="a"></i><i class="b"></i><i class="c"></i></div>SnapGrub</div>
+  <h1>{{HEADLINE}}</h1>
+  <p>{{SUBLINE}}</p>
+  <div class="phone"><img src="{{SHOT}}"></div>
+</body>
+</html>
