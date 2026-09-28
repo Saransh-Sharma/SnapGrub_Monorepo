@@ -43,3 +43,8 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Generated App Store / marketing screenshots (reproducible via tool/marketing/capture.sh)
+marketing/out/
+marketing/illustrations/contact-sheet.png
+marketing/illustrations/.contact.html
