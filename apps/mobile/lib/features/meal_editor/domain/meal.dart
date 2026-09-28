@@ -247,23 +247,23 @@ class MealDraft {
 
   void validate() {
     if (title.trim().isEmpty) {
-      throw ArgumentError('Meal title is required.');
+      throw ArgumentError('Add a meal name.');
     }
     if (items.isEmpty) {
       throw ArgumentError('Add at least one item.');
     }
     for (final item in items) {
       if (item.name.trim().isEmpty) {
-        throw ArgumentError('Item name is required.');
+        throw ArgumentError('Add an item name.');
       }
       if (item.quantity <= 0) {
-        throw ArgumentError('Quantity must be greater than zero.');
+        throw ArgumentError('Amount must be more than 0.');
       }
       if (item.caloriesKcal < 0 ||
           item.proteinG < 0 ||
           item.carbsG < 0 ||
           item.fatG < 0) {
-        throw ArgumentError('Nutrition values cannot be negative.');
+        throw ArgumentError('Nutrition can’t be negative.');
       }
     }
   }
