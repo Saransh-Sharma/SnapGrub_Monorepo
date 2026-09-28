@@ -1,10 +1,13 @@
+import 'package:camera/camera.dart' show CameraException;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:snapgrub/app/env/app_config_provider.dart';
 import 'package:snapgrub/core/feature_flags/feature_flags.dart';
+import 'package:snapgrub/core/feedback/friendly_error.dart';
 import 'package:snapgrub/data/repositories/analytics_repository.dart';
 import 'package:snapgrub/features/capture/application/camera_controller_adapter.dart';
 import 'package:snapgrub/features/capture/data/capture_asset_repository.dart';
 import 'package:snapgrub/features/capture/domain/capture_asset.dart';
+import 'package:snapgrub/features/capture/domain/capture_exception.dart';
 import 'package:snapgrub/features/capture/domain/capture_state.dart';
 import 'package:snapgrub/features/profile/application/profile_controller.dart';
 
@@ -16,6 +19,17 @@ final cameraControllerAdapterProvider =
   });
   return adapter;
 });
+
+/// User-facing copy for a capture failure. Never shows raw exception text.
+String captureErrorMessage(Object error) {
+  if (error is CaptureException) return error.message;
+  if (error is CameraException) {
+    return error.code.startsWith('CameraAccess')
+        ? 'Camera access is off. Turn it on in Settings.'
+        : 'Try again, or choose a photo.';
+  }
+  return friendlyError(error).message;
+}
 
 final captureControllerProvider =
     NotifierProvider<CaptureController, CaptureState>(
@@ -43,7 +57,14 @@ class CaptureController extends Notifier<CaptureState> {
   Future<void> requestPermission() async {
     await _analytics.track('snapstrip_permission_requested');
     state = const CaptureState(status: CaptureStatus.loading);
-    final granted = await _camera.requestPermission();
+    bool granted;
+    try {
+      granted = await _camera.requestPermission();
+    } catch (error) {
+      state =
+          CaptureState(status: CaptureStatus.error, message: captureErrorMessage(error));
+      return;
+    }
     if (!granted) {
       await _analytics.track('snapstrip_permission_denied');
       state = const CaptureState(status: CaptureStatus.permissionNeeded);
@@ -80,7 +101,7 @@ class CaptureController extends Notifier<CaptureState> {
       state = const CaptureState(status: CaptureStatus.cameraReady);
     } catch (error) {
       state =
-          CaptureState(status: CaptureStatus.error, message: error.toString());
+          CaptureState(status: CaptureStatus.error, message: captureErrorMessage(error));
     }
   }
 
@@ -112,7 +133,7 @@ class CaptureController extends Notifier<CaptureState> {
       return asset;
     } catch (error) {
       state =
-          CaptureState(status: CaptureStatus.error, message: error.toString());
+          CaptureState(status: CaptureStatus.error, message: captureErrorMessage(error));
       return null;
     }
   }

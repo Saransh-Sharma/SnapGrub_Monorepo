@@ -1,5 +1,5 @@
 import 'package:camera/camera.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:snapgrub/features/capture/domain/capture_exception.dart';
 
 class CameraControllerAdapter {
   CameraController? _controller;
@@ -11,23 +11,29 @@ class CameraControllerAdapter {
   CameraController? get controller => _controller;
 
   Future<bool> refreshPermissionStatus() async {
-    final status = await Permission.camera.status;
-    _hasPermission = status.isGranted || status.isLimited;
-    return _hasPermission;
+    return _hasPermission || isInitialized;
   }
 
   Future<bool> requestPermission() async {
-    final status = await Permission.camera.request();
-    _hasPermission = status.isGranted || status.isLimited;
-    return _hasPermission;
+    try {
+      await initialize();
+      return true;
+    } on CameraException catch (error) {
+      if (error.code == 'CameraAccessDenied' ||
+          error.code == 'CameraAccessDeniedWithoutPrompt' ||
+          error.code == 'CameraAccessRestricted') {
+        _hasPermission = false;
+        return false;
+      }
+      rethrow;
+    }
   }
 
   Future<void> initialize() async {
-    await refreshPermissionStatus();
-    if (!_hasPermission) return;
+    if (isInitialized) return;
     _cameras ??= await availableCameras();
     if (_cameras == null || _cameras!.isEmpty) {
-      throw StateError('No camera is available on this device.');
+      throw const CaptureException('No camera found on this device.');
     }
     final camera = _cameras!.firstWhere(
       (description) => description.lensDirection == CameraLensDirection.back,
@@ -42,6 +48,7 @@ class CameraControllerAdapter {
     );
     await previous?.dispose();
     await _controller!.initialize();
+    _hasPermission = true;
   }
 
   Future<void> pause() async {
@@ -56,7 +63,7 @@ class CameraControllerAdapter {
   Future<XFile> takePicture() async {
     final controller = _controller;
     if (controller == null || !controller.value.isInitialized) {
-      throw StateError('Camera preview is not ready.');
+      throw const CaptureException('Camera isn’t ready yet.');
     }
     return controller.takePicture();
   }

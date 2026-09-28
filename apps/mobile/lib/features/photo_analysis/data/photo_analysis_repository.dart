@@ -19,6 +19,9 @@ final photoAnalysisRepositoryProvider =
   );
 });
 
+/// Coarse stages reported while a photo is analysed.
+enum PhotoAnalysisStage { uploading, analyzing }
+
 class PhotoAnalysisRepository {
   const PhotoAnalysisRepository({
     required PhotoAnalysisRemoteService remote,
@@ -36,8 +39,11 @@ class PhotoAnalysisRepository {
     required UserProfile profile,
     String? mealTypeHint,
     String? userHintText,
+    void Function(PhotoAnalysisStage stage)? onStage,
   }) async {
+    onStage?.call(PhotoAnalysisStage.uploading);
     if (e2eMock) {
+      onStage?.call(PhotoAnalysisStage.analyzing);
       await _assets.markUploaded(asset.id);
       return E2eData.mockDraft(
         userId: asset.userId,
@@ -54,6 +60,7 @@ class PhotoAnalysisRepository {
     // Photo analysis performs a foreground upload so the user can continue immediately.
     // Mark the queued asset command synced to avoid a duplicate upload on the next outbox drain.
     await _assets.markUploaded(asset.id);
+    onStage?.call(PhotoAnalysisStage.analyzing);
     final response = await _remote.createAnalysis(
       PhotoAnalysisCreateRequestDto(
         clientRequestId: const Uuid().v4(),
@@ -74,10 +81,10 @@ class PhotoAnalysisRepository {
     );
     if (response.status != 'completed' || response.result == null) {
       throw StateError(
-          response.errorCode ?? 'Photo analysis did not complete.');
+          response.errorCode ?? 'Photo analysis didn’t finish.');
     }
     if (response.assetId == null) {
-      throw StateError('Photo analysis did not return an asset id.');
+      throw StateError('Photo analysis didn’t return a result.');
     }
     return mealDraftFromEditableDto(
       userId: asset.userId,

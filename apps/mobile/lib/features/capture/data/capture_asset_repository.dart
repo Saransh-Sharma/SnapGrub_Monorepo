@@ -11,6 +11,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:snapgrub/data/db/drift/app_database.dart';
 import 'package:snapgrub/data/db/drift/database_provider.dart';
 import 'package:snapgrub/features/capture/domain/capture_asset.dart';
+import 'package:snapgrub/features/capture/domain/capture_exception.dart';
 import 'package:snapgrub/offline/outbox/outbox_repository.dart';
 import 'package:uuid/uuid.dart';
 
@@ -39,7 +40,7 @@ class CaptureAssetRepository {
     final originalBytes = await file.readAsBytes();
     final decoded = img.decodeImage(originalBytes);
     if (decoded == null) {
-      throw StateError('Captured image could not be decoded.');
+      throw const CaptureException('Couldn’t read that image. Try another.');
     }
 
     final normalized = img.bakeOrientation(decoded);
