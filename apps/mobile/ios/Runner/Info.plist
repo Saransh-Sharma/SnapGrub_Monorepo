@@ -17,13 +17,13 @@
 	<key>CFBundleName</key>
 	<string>snapgrub</string>
 	<key>NSCameraUsageDescription</key>
-	<string>SnapGrub uses the camera to capture meal photos, scan barcodes, and read nutrition labels.</string>
+	<string>SnapGrub uses your camera to photograph meals, scan barcodes, and read nutrition labels.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>SnapGrub uses the microphone only while you record a short meal phrase.</string>
+	<string>SnapGrub uses the microphone when you log a meal by voice.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>SnapGrub uses speech recognition to turn short meal phrases into editable logs.</string>
+	<string>SnapGrub turns what you say into text so you can log meals by voice.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>SnapGrub may save captured meal images locally for retry and sync recovery.</string>
+	<string>SnapGrub saves meal photos so they’re not lost if an upload fails.</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
