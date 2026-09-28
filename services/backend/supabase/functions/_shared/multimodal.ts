@@ -37,7 +37,9 @@ export type EditableMealDraft = {
     item_identification: number;
     portion_estimation: number;
     nutrition_source_quality: number;
-    warnings: Array<{ code: string; message: string; severity: "info" | "review" | "high" }>;
+    warnings: Array<
+      { code: string; message: string; severity: "info" | "review" | "high" }
+    >;
   };
   components: MealItemWrite[];
   alternatives: Record<string, unknown>[];
@@ -66,20 +68,269 @@ export type FoodResult = {
   };
 };
 
-const localFoods: Record<string, { name: string; quantity: number; unit: string; grams: number; calories: number; protein: number; carbs: number; fat: number }> = {
-  roti: { name: "Roti", quantity: 1, unit: "roti", grams: 40, calories: 119, protein: 3.9, carbs: 18.4, fat: 3.0 },
-  chapati: { name: "Chapati", quantity: 1, unit: "piece", grams: 40, calories: 119, protein: 3.9, carbs: 18.4, fat: 3.0 },
-  phulka: { name: "Phulka", quantity: 1, unit: "piece", grams: 35, calories: 91, protein: 3.0, carbs: 14.7, fat: 1.9 },
-  dal: { name: "Dal tadka", quantity: 1, unit: "katori", grams: 180, calories: 212, protein: 10.8, carbs: 28.8, fat: 6.1 },
-  rajma: { name: "Rajma curry", quantity: 1, unit: "katori", grams: 180, calories: 225, protein: 11.7, carbs: 36.0, fat: 4.5 },
-  chawal: { name: "Steamed rice", quantity: 1, unit: "bowl", grams: 150, calories: 195, protein: 4.1, carbs: 42.0, fat: 0.5 },
-  rice: { name: "Steamed rice", quantity: 1, unit: "bowl", grams: 150, calories: 195, protein: 4.1, carbs: 42.0, fat: 0.5 },
-  paneer: { name: "Paneer tikka", quantity: 1, unit: "serving", grams: 120, calories: 300, protein: 16.8, carbs: 9.6, fat: 21.6 },
-  idli: { name: "Idli", quantity: 1, unit: "piece", grams: 40, calories: 58, protein: 1.7, carbs: 11.6, fat: 0.3 },
-  sambar: { name: "Sambar", quantity: 1, unit: "katori", grams: 180, calories: 126, protein: 6.3, carbs: 18.0, fat: 3.6 },
-  poha: { name: "Poha", quantity: 1, unit: "bowl", grams: 180, calories: 324, protein: 6.3, carbs: 57.6, fat: 9.0 },
-  curd: { name: "Curd", quantity: 1, unit: "katori", grams: 120, calories: 73, protein: 4.2, carbs: 5.6, fat: 4.0 },
-  biryani: { name: "Chicken biryani", quantity: 1, unit: "plate", grams: 300, calories: 510, protein: 24.0, carbs: 60.0, fat: 18.0 },
+const localFoods: Record<
+  string,
+  {
+    name: string;
+    quantity: number;
+    unit: string;
+    grams: number;
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+  }
+> = {
+  egg: {
+    name: "Egg",
+    quantity: 1,
+    unit: "piece",
+    grams: 50,
+    calories: 72,
+    protein: 6.3,
+    carbs: 0.4,
+    fat: 4.8,
+  },
+  eggs: {
+    name: "Egg",
+    quantity: 1,
+    unit: "piece",
+    grams: 50,
+    calories: 72,
+    protein: 6.3,
+    carbs: 0.4,
+    fat: 4.8,
+  },
+  toast: {
+    name: "Whole wheat toast",
+    quantity: 1,
+    unit: "slice",
+    grams: 32,
+    calories: 81,
+    protein: 4.0,
+    carbs: 13.8,
+    fat: 1.1,
+  },
+  oats: {
+    name: "Cooked oats",
+    quantity: 1,
+    unit: "bowl",
+    grams: 240,
+    calories: 166,
+    protein: 5.9,
+    carbs: 28.1,
+    fat: 3.6,
+  },
+  oatmeal: {
+    name: "Cooked oatmeal",
+    quantity: 1,
+    unit: "bowl",
+    grams: 240,
+    calories: 166,
+    protein: 5.9,
+    carbs: 28.1,
+    fat: 3.6,
+  },
+  banana: {
+    name: "Banana",
+    quantity: 1,
+    unit: "piece",
+    grams: 118,
+    calories: 105,
+    protein: 1.3,
+    carbs: 27.0,
+    fat: 0.4,
+  },
+  apple: {
+    name: "Apple",
+    quantity: 1,
+    unit: "piece",
+    grams: 182,
+    calories: 95,
+    protein: 0.5,
+    carbs: 25.0,
+    fat: 0.3,
+  },
+  yogurt: {
+    name: "Plain yogurt",
+    quantity: 1,
+    unit: "cup",
+    grams: 170,
+    calories: 104,
+    protein: 9.0,
+    carbs: 11.0,
+    fat: 2.6,
+  },
+  chicken: {
+    name: "Grilled chicken",
+    quantity: 1,
+    unit: "serving",
+    grams: 150,
+    calories: 248,
+    protein: 46.5,
+    carbs: 0,
+    fat: 5.4,
+  },
+  salad: {
+    name: "Mixed salad",
+    quantity: 1,
+    unit: "bowl",
+    grams: 180,
+    calories: 95,
+    protein: 3.0,
+    carbs: 14.0,
+    fat: 4.0,
+  },
+  coffee: {
+    name: "Coffee with milk",
+    quantity: 1,
+    unit: "cup",
+    grams: 240,
+    calories: 48,
+    protein: 2.5,
+    carbs: 5.0,
+    fat: 2.0,
+  },
+  milk: {
+    name: "Milk",
+    quantity: 1,
+    unit: "cup",
+    grams: 244,
+    calories: 122,
+    protein: 8.1,
+    carbs: 12.0,
+    fat: 4.8,
+  },
+  roti: {
+    name: "Roti",
+    quantity: 1,
+    unit: "roti",
+    grams: 40,
+    calories: 119,
+    protein: 3.9,
+    carbs: 18.4,
+    fat: 3.0,
+  },
+  chapati: {
+    name: "Chapati",
+    quantity: 1,
+    unit: "piece",
+    grams: 40,
+    calories: 119,
+    protein: 3.9,
+    carbs: 18.4,
+    fat: 3.0,
+  },
+  phulka: {
+    name: "Phulka",
+    quantity: 1,
+    unit: "piece",
+    grams: 35,
+    calories: 91,
+    protein: 3.0,
+    carbs: 14.7,
+    fat: 1.9,
+  },
+  dal: {
+    name: "Dal tadka",
+    quantity: 1,
+    unit: "katori",
+    grams: 180,
+    calories: 212,
+    protein: 10.8,
+    carbs: 28.8,
+    fat: 6.1,
+  },
+  rajma: {
+    name: "Rajma curry",
+    quantity: 1,
+    unit: "katori",
+    grams: 180,
+    calories: 225,
+    protein: 11.7,
+    carbs: 36.0,
+    fat: 4.5,
+  },
+  chawal: {
+    name: "Steamed rice",
+    quantity: 1,
+    unit: "bowl",
+    grams: 150,
+    calories: 195,
+    protein: 4.1,
+    carbs: 42.0,
+    fat: 0.5,
+  },
+  rice: {
+    name: "Steamed rice",
+    quantity: 1,
+    unit: "bowl",
+    grams: 150,
+    calories: 195,
+    protein: 4.1,
+    carbs: 42.0,
+    fat: 0.5,
+  },
+  paneer: {
+    name: "Paneer tikka",
+    quantity: 1,
+    unit: "serving",
+    grams: 120,
+    calories: 300,
+    protein: 16.8,
+    carbs: 9.6,
+    fat: 21.6,
+  },
+  idli: {
+    name: "Idli",
+    quantity: 1,
+    unit: "piece",
+    grams: 40,
+    calories: 58,
+    protein: 1.7,
+    carbs: 11.6,
+    fat: 0.3,
+  },
+  sambar: {
+    name: "Sambar",
+    quantity: 1,
+    unit: "katori",
+    grams: 180,
+    calories: 126,
+    protein: 6.3,
+    carbs: 18.0,
+    fat: 3.6,
+  },
+  poha: {
+    name: "Poha",
+    quantity: 1,
+    unit: "bowl",
+    grams: 180,
+    calories: 324,
+    protein: 6.3,
+    carbs: 57.6,
+    fat: 9.0,
+  },
+  curd: {
+    name: "Curd",
+    quantity: 1,
+    unit: "katori",
+    grams: 120,
+    calories: 73,
+    protein: 4.2,
+    carbs: 5.6,
+    fat: 4.0,
+  },
+  biryani: {
+    name: "Chicken biryani",
+    quantity: 1,
+    unit: "plate",
+    grams: 300,
+    calories: 510,
+    protein: 24.0,
+    carbs: 60.0,
+    fat: 18.0,
+  },
 };
 
 export function buildDraftFromText(input: {
@@ -93,7 +344,12 @@ export function buildDraftFromText(input: {
 }): EditableMealDraft {
   const components = parseMealPhrase(input.text, input.source);
   if (components.length === 0) {
-    throw new ApiError("INVALID_INPUT", "Could not identify any meal items", 422, false);
+    throw new ApiError(
+      "INVALID_INPUT",
+      "Could not identify any meal items",
+      422,
+      false,
+    );
   }
   const warnings = [{
     code: "review_estimate",
@@ -105,7 +361,8 @@ export function buildDraftFromText(input: {
   if (input.transcriptConfidence != null && input.transcriptConfidence < 0.75) {
     warnings.push({
       code: "low_transcript_confidence",
-      message: "Transcript confidence was low. Edit the meal if any words were misheard.",
+      message:
+        "Transcript confidence was low. Edit the meal if any words were misheard.",
       severity: "review",
     });
   }
@@ -155,7 +412,9 @@ export function buildDraftFromLabel(input: {
     confidence: parsed.complete ? 0.74 : 0.48,
     source_type: "label_ocr",
     source_id: input.barcode,
-    notes: parsed.complete ? null : "Nutrition label was incomplete. Review all fields before saving.",
+    notes: parsed.complete
+      ? null
+      : "Nutrition label was incomplete. Review all fields before saving.",
   };
   return draftFromComponents({
     title: name,
@@ -164,9 +423,11 @@ export function buildDraftFromLabel(input: {
     components: [component],
     source: "label_ocr",
     confidenceOverall: parsed.complete ? 0.74 : 0.5,
-    warnings: parsed.complete
-      ? []
-      : [{ code: "incomplete_label", message: "Some nutrition fields were not found in the label text.", severity: "review" }],
+    warnings: parsed.complete ? [] : [{
+      code: "incomplete_label",
+      message: "Some nutrition fields were not found in the label text.",
+      severity: "review",
+    }],
     provenance: {
       source_type: "label_ocr",
       parser: "phase5_label_parser",
@@ -177,12 +438,20 @@ export function buildDraftFromLabel(input: {
   });
 }
 
-export function draftFromFoodResult(food: FoodResult, timezone: string, source: "barcode" | "text" | "voice" = "barcode"): EditableMealDraft {
+export function draftFromFoodResult(
+  food: FoodResult,
+  timezone: string,
+  source: "barcode" | "text" | "voice" = "barcode",
+): EditableMealDraft {
   const component: MealItemWrite = {
     client_id: crypto.randomUUID(),
     position: 0,
     name: food.name,
-    food_ref_kind: food.result_type === "canonical" ? "canonical" : food.result_type === "branded" ? "branded" : "manual",
+    food_ref_kind: food.result_type === "canonical"
+      ? "canonical"
+      : food.result_type === "branded"
+      ? "branded"
+      : "manual",
     canonical_food_id: food.result_type === "canonical" ? food.id : null,
     branded_product_id: food.result_type === "branded" ? food.id : null,
     custom_food_id: food.result_type === "custom" ? food.id : null,
@@ -210,7 +479,9 @@ export function draftFromFoodResult(food: FoodResult, timezone: string, source: 
   });
 }
 
-export function brandedProductToFoodResult(product: Record<string, unknown>): FoodResult {
+export function brandedProductToFoodResult(
+  product: Record<string, unknown>,
+): FoodResult {
   const servingQuantity = numberOrNull(product.serving_quantity) ?? 1;
   const servingUnit = stringOrNull(product.serving_unit) ?? "serving";
   const servingGrams = numberOrNull(product.serving_grams);
@@ -222,10 +493,14 @@ export function brandedProductToFoodResult(product: Record<string, unknown>): Fo
     serving_quantity: servingQuantity,
     serving_unit: servingUnit,
     serving_grams: servingGrams,
-    calories_kcal: numberOrNull(product.calories_kcal_per_serving) ?? perServing(product.calories_kcal_per_100g, servingGrams),
-    protein_g: numberOrNull(product.protein_g_per_serving) ?? perServing(product.protein_g_per_100g, servingGrams),
-    carbs_g: numberOrNull(product.carbs_g_per_serving) ?? perServing(product.carbs_g_per_100g, servingGrams),
-    fat_g: numberOrNull(product.fat_g_per_serving) ?? perServing(product.fat_g_per_100g, servingGrams),
+    calories_kcal: numberOrNull(product.calories_kcal_per_serving) ??
+      perServing(product.calories_kcal_per_100g, servingGrams),
+    protein_g: numberOrNull(product.protein_g_per_serving) ??
+      perServing(product.protein_g_per_100g, servingGrams),
+    carbs_g: numberOrNull(product.carbs_g_per_serving) ??
+      perServing(product.carbs_g_per_100g, servingGrams),
+    fat_g: numberOrNull(product.fat_g_per_serving) ??
+      perServing(product.fat_g_per_100g, servingGrams),
     confidence: product.source_type === "open_food_facts" ? 0.72 : 0.86,
     provenance: {
       source_type: String(product.source_type ?? "branded_product"),
@@ -236,7 +511,10 @@ export function brandedProductToFoodResult(product: Record<string, unknown>): Fo
   };
 }
 
-function parseMealPhrase(text: string, source: "text" | "voice"): MealItemWrite[] {
+function parseMealPhrase(
+  text: string,
+  source: "text" | "voice",
+): MealItemWrite[] {
   const normalized = normalize(text);
   const chunks = normalized
     .replace(/\bwith\b/g, ",")
@@ -246,10 +524,23 @@ function parseMealPhrase(text: string, source: "text" | "voice"): MealItemWrite[
     .filter(Boolean);
   const items: MealItemWrite[] = [];
   for (const chunk of chunks.length ? chunks : [normalized]) {
-    const keysInChunk = Object.keys(localFoods).filter((candidate) => chunk.includes(candidate));
-    if (keysInChunk.length > 1 && !/(\d+(?:\.\d+)?)\s*(g|gram|grams)\b/.test(chunk)) {
+    const keysInChunk = Object.keys(localFoods).filter((candidate) =>
+      chunk.includes(candidate)
+    );
+    if (
+      keysInChunk.length > 1 &&
+      !/(\d+(?:\.\d+)?)\s*(g|gram|grams)\b/.test(chunk)
+    ) {
       for (const key of keysInChunk) {
-        const parsed = itemFromFood(localFoods[key], key, 1, null, null, source, items.length);
+        const parsed = itemFromFood(
+          localFoods[key],
+          key,
+          1,
+          null,
+          null,
+          source,
+          items.length,
+        );
         if (parsed) items.push(parsed);
       }
       continue;
@@ -260,29 +551,56 @@ function parseMealPhrase(text: string, source: "text" | "voice"): MealItemWrite[
   return items;
 }
 
-function parseChunk(chunk: string, source: "text" | "voice", position: number): MealItemWrite | null {
+function parseChunk(
+  chunk: string,
+  source: "text" | "voice",
+  position: number,
+): MealItemWrite | null {
   const tokens = chunk.split(/\s+/).filter(Boolean);
   let quantity = 1;
   let grams: number | null = null;
   let unit: string | null = null;
   const numeric = tokens.find((token) => /^\d+(\.\d+)?$/.test(token));
   if (numeric) quantity = Number(numeric);
+  const wordQuantity: Record<string, number> = {
+    one: 1,
+    two: 2,
+    three: 3,
+    four: 4,
+    five: 5,
+    half: 0.5,
+  };
+  const word = tokens.find((token) => token in wordQuantity);
+  if (!numeric && word) quantity = wordQuantity[word];
   const gramMatch = chunk.match(/(\d+(?:\.\d+)?)\s*(g|gram|grams)\b/);
   if (gramMatch) {
     grams = Number(gramMatch[1]);
     quantity = grams;
     unit = "g";
   }
-  const unitMatch = chunk.match(/\b(katori|bowl|cup|piece|pieces|plate|serving|roti|rotis)\b/);
+  const unitMatch = chunk.match(
+    /\b(katori|bowl|cup|piece|pieces|plate|serving|roti|rotis)\b/,
+  );
   if (unitMatch && unit == null) unit = unitMatch[1].replace(/s$/, "");
-  const key = Object.keys(localFoods).find((candidate) => chunk.includes(candidate));
+  const key = Object.keys(localFoods).find((candidate) =>
+    chunk.includes(candidate)
+  );
   if (!key) return null;
   const food = localFoods[key];
   return itemFromFood(food, key, quantity, grams, unit, source, position);
 }
 
 function itemFromFood(
-  food: { name: string; quantity: number; unit: string; grams: number; calories: number; protein: number; carbs: number; fat: number },
+  food: {
+    name: string;
+    quantity: number;
+    unit: string;
+    grams: number;
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+  },
   key: string,
   quantity: number,
   grams: number | null,
@@ -290,7 +608,9 @@ function itemFromFood(
   source: "text" | "voice",
   position: number,
 ): MealItemWrite {
-  const multiplier = grams != null ? grams / food.grams : quantity / food.quantity;
+  const multiplier = grams != null
+    ? grams / food.grams
+    : quantity / food.quantity;
   return {
     client_id: crypto.randomUUID(),
     position,
@@ -315,22 +635,35 @@ function itemFromFood(
 
 function parseLabel(text: string) {
   const normalized = text.replace(/\s+/g, " ");
-  const calories = numberAfter(normalized, /(?:calories|energy)\D+(\d+(?:\.\d+)?)/i);
+  const calories = numberAfter(
+    normalized,
+    /(?:calories|energy)\D+(\d+(?:\.\d+)?)/i,
+  );
   const protein = numberAfter(normalized, /protein\D+(\d+(?:\.\d+)?)/i);
-  const carbs = numberAfter(normalized, /(?:carbohydrate|carbs)\D+(\d+(?:\.\d+)?)/i);
+  const carbs = numberAfter(
+    normalized,
+    /(?:carbohydrate|carbs)\D+(\d+(?:\.\d+)?)/i,
+  );
   const fat = numberAfter(normalized, /(?:total\s+fat|fat)\D+(\d+(?:\.\d+)?)/i);
-  const serving = normalized.match(/serving\s+size\D+(\d+(?:\.\d+)?)\s*(g|ml|cup|serving|pack)/i);
-  const name = normalized.match(/(?:product\s+name|name)\D+([A-Za-z][A-Za-z0-9 &'-]{2,40})/i)?.[1]?.trim();
+  const serving = normalized.match(
+    /serving\s+size\D+(\d+(?:\.\d+)?)\s*(g|ml|cup|serving|pack)/i,
+  );
+  const name = normalized.match(
+    /(?:product\s+name|name)\D+([A-Za-z][A-Za-z0-9 &'-]{2,40})/i,
+  )?.[1]?.trim();
   return {
     name,
     servingQuantity: serving ? Number(serving[1]) : 1,
     servingUnit: serving?.[2]?.toLowerCase() ?? "serving",
-    grams: serving && serving[2].toLowerCase() === "g" ? Number(serving[1]) : null,
+    grams: serving && serving[2].toLowerCase() === "g"
+      ? Number(serving[1])
+      : null,
     calories,
     protein,
     carbs,
     fat,
-    complete: calories != null && protein != null && carbs != null && fat != null,
+    complete: calories != null && protein != null && carbs != null &&
+      fat != null,
   };
 }
 
@@ -376,14 +709,23 @@ function titleFromComponents(components: MealItemWrite[]) {
 }
 
 function mealTypeOr(value: string | null): EditableMealDraft["meal_type"] {
-  return value === "breakfast" || value === "lunch" || value === "dinner" || value === "snack" ? value : "unknown";
+  return value === "breakfast" || value === "lunch" || value === "dinner" ||
+      value === "snack"
+    ? value
+    : "unknown";
 }
 
 function normalize(value: string) {
-  return value.toLowerCase().replace(/[^\p{L}\p{N}\s,.]/gu, " ").replace(/\s+/g, " ").trim();
+  return value.toLowerCase().replace(/[^\p{L}\p{N}\s,.]/gu, " ").replace(
+    /\s+/g,
+    " ",
+  ).trim();
 }
 
-function sum(items: MealItemWrite[], key: "calories_kcal" | "protein_g" | "carbs_g" | "fat_g") {
+function sum(
+  items: MealItemWrite[],
+  key: "calories_kcal" | "protein_g" | "carbs_g" | "fat_g",
+) {
   return round(items.reduce((total, item) => total + item[key], 0));
 }
 

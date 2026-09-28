@@ -41,7 +41,7 @@ export function buildInsights(input: {
     insight(
       input,
       "protein_target_hit_rate",
-      "Protein consistency",
+      "Protein",
       proteinSummary(proteinHitRate, input.proteinGoal),
       {
         hit_rate: proteinHitRate,
@@ -53,7 +53,7 @@ export function buildInsights(input: {
     insight(
       input,
       "most_repeated_meal",
-      "Reliable repeat",
+      "Top repeat",
       repeated.summary,
       repeated.payload,
       status,
@@ -61,7 +61,7 @@ export function buildInsights(input: {
     insight(
       input,
       "highest_variance_meal_slot",
-      "Most flexible meal slot",
+      "Most varied meal",
       slot.summary,
       slot.payload,
       status,
@@ -69,10 +69,8 @@ export function buildInsights(input: {
     insight(
       input,
       "logging_streak",
-      "Logging rhythm",
-      `${days.size} day${
-        days.size === 1 ? "" : "s"
-      } had meals logged this week.`,
+      "Logging",
+      `Logged ${count(days.size, "day")} this week.`,
       {
         logged_days: days.size,
         meal_count: input.meals.length,
@@ -84,7 +82,7 @@ export function buildInsights(input: {
     insight(
       input,
       "average_intake_vs_target",
-      "Average intake",
+      "Calories",
       calorieSummary(avgCalories, input.calorieGoal),
       {
         average_calories_kcal: round(avgCalories),
@@ -149,7 +147,7 @@ function mostRepeatedMeal(meals: MealRow[]) {
   if (!top) {
     return {
       title: null,
-      summary: "No repeated meal stood out yet.",
+      summary: "No repeat stood out yet.",
       payload: { title: null, count: 0, meal_type: null },
     };
   }
@@ -157,9 +155,7 @@ function mostRepeatedMeal(meals: MealRow[]) {
     ?.[0] ?? null;
   return {
     title: top.title,
-    summary: `${top.title} appeared ${top.count} time${
-      top.count === 1 ? "" : "s"
-    } this week.`,
+    summary: `${top.title} came up ${count(top.count, "time")}.`,
     payload: { title: top.title, count: top.count, meal_type: mealType },
   };
 }
@@ -180,8 +176,7 @@ function highestVarianceSlot(meals: MealRow[]) {
     .sort((a, b) => b.variance - a.variance)[0];
   if (!top || top.count < 2) {
     return {
-      summary:
-        "Meal timing is still settling; a pattern will appear with more logs.",
+      summary: "Log more to see a pattern.",
       payload: {
         meal_type: null,
         variance: null,
@@ -190,9 +185,7 @@ function highestVarianceSlot(meals: MealRow[]) {
     };
   }
   return {
-    summary: `${
-      label(top.slotName)
-    } varied the most this week, which is a good place to review portions first.`,
+    summary: `${mealTypeLabel(top.slotName)} varied most. Start there.`,
     payload: {
       meal_type: top.slotName,
       variance: round(top.variance),
@@ -222,26 +215,24 @@ function targetHitRate(
 
 function proteinSummary(hitRate: number | null, target: number | null) {
   if (!target || hitRate == null) {
-    return "Set a protein target to unlock this weekly check.";
+    return "Set a protein target to unlock this.";
   }
   const pct = Math.round(hitRate * 100);
-  return `Protein landed near target on ${pct}% of logged days.`;
+  return `Protein was near target on ${pct}% of days.`;
 }
 
 function calorieSummary(avgCalories: number, target: number | null) {
   if (!target) {
-    return `${round(avgCalories)} kcal average across logged meals this week.`;
+    return `Averaged ${formatKcal(avgCalories)} a day.`;
   }
   const delta = round(avgCalories - target);
   if (Math.abs(delta) < 75) {
-    return "Average intake stayed close to your target this week.";
+    return "Close to your target.";
   }
   if (delta > 0) {
-    return `Average intake was ${delta} kcal above target on logged days.`;
+    return `${formatKcal(delta)} above target.`;
   }
-  return `Average intake was ${
-    Math.abs(delta)
-  } kcal below target on logged days.`;
+  return `${formatKcal(Math.abs(delta))} below target.`;
 }
 
 function nextWeekSuggestion(
@@ -258,9 +249,8 @@ function nextWeekPayload(
   if (hitRate != null && hitRate < 0.5) {
     return {
       action_id: "anchor_protein",
-      action_title: "Anchor one meal with protein",
-      action_body:
-        "Try anchoring one regular meal with a protein you already like.",
+      action_title: "Add protein to one meal",
+      action_body: "Add a protein you like to one regular meal.",
       based_on: {
         protein_hit_rate: hitRate,
         repeated_meal: repeatedTitle,
@@ -270,9 +260,8 @@ function nextWeekPayload(
   if (repeatedTitle) {
     return {
       action_id: "reuse_repeat_meal",
-      action_title: "Keep a reliable repeat handy",
-      action_body:
-        `Keep ${repeatedTitle} handy as a quick repeat log when the week gets busy.`,
+      action_title: "Keep a go-to handy",
+      action_body: `Log ${repeatedTitle} again when the week gets busy.`,
       based_on: {
         protein_hit_rate: hitRate,
         repeated_meal: repeatedTitle,
@@ -281,9 +270,8 @@ function nextWeekPayload(
   }
   return {
     action_id: "create_repeat_pattern",
-    action_title: "Create one repeatable meal",
-    action_body:
-      "Log one familiar meal a few times next week to make repeat tracking faster.",
+    action_title: "Make one meal a go-to",
+    action_body: "Log one familiar meal a few times next week.",
     based_on: {
       protein_hit_rate: hitRate,
       repeated_meal: repeatedTitle,
@@ -343,7 +331,32 @@ function round(value: number) {
   return Math.round(value * 100) / 100;
 }
 
-function label(value: string) {
+/** "1 day" / "3 days". Keep in step with the app's `Labels.count`. */
+function count(n: number, singular: string, plural = `${singular}s`) {
+  return `${formatNumber(n)} ${n === 1 ? singular : plural}`;
+}
+
+/** 1840.4 -> "1,840". */
+function formatNumber(value: number) {
+  return String(Math.round(value)).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function formatKcal(value: number) {
+  return `${formatNumber(value)} kcal`;
+}
+
+const MEAL_TYPE_LABELS: Record<string, string> = {
+  breakfast: "Breakfast",
+  lunch: "Lunch",
+  dinner: "Dinner",
+  snack: "Snack",
+  unknown: "Other",
+};
+
+/** Human label for a meal slot. Matches the app's `Labels.mealType`. */
+function mealTypeLabel(value: string) {
+  const known = MEAL_TYPE_LABELS[value.trim().toLowerCase()];
+  if (known) return known;
   return value.replaceAll("_", " ").replace(
     /^\w/,
     (char) => char.toUpperCase(),
