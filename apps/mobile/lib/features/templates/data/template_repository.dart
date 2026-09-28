@@ -69,7 +69,7 @@ class TemplateRepository {
     String? sourceMealId,
   }) async {
     if (title.trim().isEmpty) {
-      throw ArgumentError('Template title is required.');
+      throw ArgumentError('Add a name.');
     }
     final id = const Uuid().v4();
     final clientId = const Uuid().v4();
