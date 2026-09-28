@@ -2,10 +2,12 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:snapgrub/core/feedback/labels.dart';
 import 'package:snapgrub/core/time/user_day.dart';
 import 'package:snapgrub/data/db/drift/app_database.dart';
 import 'package:snapgrub/data/db/drift/database_provider.dart';
 import 'package:snapgrub/features/insights/application/smart_food_suggestions.dart';
+import 'package:snapgrub/features/insights/domain/food_portion.dart';
 import 'package:snapgrub/features/insights/domain/smart_food_suggestion.dart';
 import 'package:snapgrub/features/insights/domain/weekly_insight.dart';
 import 'package:snapgrub/features/meal_editor/domain/meal.dart';
@@ -210,15 +212,15 @@ class InsightsRepository {
     return SmartFoodSuggestion(
       id: 'default:${row.id}',
       title: row.foodName as String,
-      subtitle: '${_formatQuantity(row.preferredQuantity as double)} '
-          '${row.preferredUnit as String}',
+      subtitle: foodPortionLabel(
+          row.preferredQuantity as double, row.preferredUnit as String),
       caloriesKcal: row.caloriesKcal as double,
       proteinG: row.proteinG as double,
       carbsG: row.carbsG as double,
       fatG: row.fatG as double,
       origin: SmartFoodSuggestionOrigin.frequentDefault,
       score: useCount.toDouble(),
-      reasonLabel: 'Used $useCount times',
+      reasonLabel: 'Logged ${Labels.count(useCount, 'time')}',
       lastUsedAt: row.lastUsedAt as DateTime?,
       useCount: useCount,
       items: [item],
@@ -252,7 +254,7 @@ class InsightsRepository {
     return SmartFoodSuggestion(
       id: 'meal:${row.id}',
       title: row.title as String,
-      subtitle: '${items.length} item${items.length == 1 ? '' : 's'}',
+      subtitle: Labels.count(items.length, 'item'),
       caloriesKcal: row.caloriesKcal as double,
       proteinG: row.proteinG as double,
       carbsG: row.carbsG as double,
@@ -260,7 +262,7 @@ class InsightsRepository {
       mealTypeHint: _parseMealType(row.mealType as String),
       origin: SmartFoodSuggestionOrigin.recentMeal,
       score: 0,
-      reasonLabel: 'Logged recently',
+      reasonLabel: 'Recent',
       lastUsedAt: row.loggedAt as DateTime,
       items: items,
     );
@@ -298,7 +300,7 @@ class InsightsRepository {
     return SmartFoodSuggestion(
       id: 'template:${row.id}',
       title: row.title as String,
-      subtitle: '${items.length} item${items.length == 1 ? '' : 's'}',
+      subtitle: Labels.count(items.length, 'item'),
       caloriesKcal: calories,
       proteinG: protein,
       carbsG: carbs,
@@ -306,7 +308,7 @@ class InsightsRepository {
       mealTypeHint: _parseMealType(snapshot['meal_type'] as String? ?? ''),
       origin: SmartFoodSuggestionOrigin.template,
       score: 0,
-      reasonLabel: 'From template',
+      reasonLabel: 'Saved meal',
       lastUsedAt: row.updatedAt as DateTime?,
       items: items,
     );
@@ -318,9 +320,4 @@ class InsightsRepository {
       orElse: () => MealType.unknown,
     );
   }
-}
-
-String _formatQuantity(double value) {
-  if (value == value.roundToDouble()) return value.round().toString();
-  return value.toStringAsFixed(1);
 }

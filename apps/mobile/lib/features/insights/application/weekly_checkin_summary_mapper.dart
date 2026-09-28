@@ -1,4 +1,6 @@
+import 'package:snapgrub/core/feedback/labels.dart';
 import 'package:snapgrub/features/insights/domain/weekly_insight.dart';
+import 'package:snapgrub/features/meal_editor/domain/meal.dart';
 
 class WeeklyCheckInSummary {
   const WeeklyCheckInSummary({
@@ -60,7 +62,7 @@ class WeeklyCheckInSummaryMapper {
           'Next week',
       primaryActionBody: _string(action?.payload['action_body']) ??
           action?.summary ??
-          'Log one familiar meal a few times next week.',
+          'Try logging one go-to meal a few times.',
       actionId: _string(action?.payload['action_id']) ?? 'review_repeat_foods',
       loggingRhythm: _loggingLabel(logging),
       calorieDelta: _calorieLabel(calories),
@@ -70,34 +72,38 @@ class WeeklyCheckInSummaryMapper {
   }
 
   String _loggingLabel(WeeklyInsight? insight) {
-    if (insight == null) return 'Log a few meals to see your weekly rhythm.';
+    if (insight == null) return 'Log a few meals to see your week.';
     final loggedDays = _number(insight.payload['logged_days'])?.round();
     final mealCount = _number(insight.payload['meal_count'])?.round();
     if (loggedDays != null && mealCount != null) {
-      return '$loggedDays logged day${loggedDays == 1 ? '' : 's'} · '
-          '$mealCount meal${mealCount == 1 ? '' : 's'}';
+      return '${Labels.count(loggedDays, 'day')} · '
+          '${Labels.count(mealCount, 'meal')}';
     }
     return insight.summary;
   }
 
   String _calorieLabel(WeeklyInsight? insight) {
-    if (insight == null) return 'Calorie trend appears after more logs.';
+    if (insight == null) return 'Log more to see your calorie trend.';
     final delta = _number(insight.payload['delta_kcal']);
-    final band = _string(insight.payload['band']);
     if (delta != null) {
-      if (delta.abs() < 75) return 'Average stayed close to target';
+      if (delta.abs() < 75) return 'Close to target';
       final direction = delta > 0 ? 'above' : 'below';
-      return '${delta.abs().round()} kcal $direction target';
+      return '${Labels.kcal(delta.abs())} $direction target';
     }
-    if (band != null) return 'Average was $band target';
-    return insight.summary;
+    // `band` is a machine value from the server: near | above | below.
+    return switch (_string(insight.payload['band'])) {
+      'near' => 'Close to target',
+      'above' => 'Above target',
+      'below' => 'Below target',
+      _ => insight.summary,
+    };
   }
 
   String _proteinLabel(WeeklyInsight? insight) {
-    if (insight == null) return 'Set a protein target to see consistency.';
+    if (insight == null) return 'Set a protein target to track this.';
     final hitRate = _number(insight.payload['hit_rate']);
     if (hitRate != null) {
-      return '${(hitRate * 100).round()}% of logged days near target';
+      return 'Near target on ${(hitRate * 100).round()}% of days';
     }
     return insight.summary;
   }
@@ -106,15 +112,13 @@ class WeeklyCheckInSummaryMapper {
     final repeatTitle = _string(repeat?.payload['title']);
     final repeatCount = _number(repeat?.payload['count'])?.round();
     if (repeatTitle != null && repeatCount != null && repeatCount > 1) {
-      return '$repeatTitle repeated $repeatCount times';
+      return '$repeatTitle logged ${Labels.count(repeatCount, 'time')}';
     }
-    final mealType = _string(variance?.payload['meal_type']);
-    if (mealType != null && mealType.isNotEmpty) {
-      return '${_label(mealType)} varied most';
-    }
+    final slot = _string(variance?.payload['meal_type']);
+    if (slot != null) return '${_slotLabel(slot)} varied most';
     return repeat?.summary ??
         variance?.summary ??
-        'Patterns appear after more logged meals.';
+        'Log more meals to see patterns.';
   }
 
   bool _sameDay(DateTime a, DateTime b) {
@@ -131,10 +135,12 @@ class WeeklyCheckInSummaryMapper {
     return null;
   }
 
-  String _label(String value) {
+  /// The server sends meal slots as raw names ("dinner"). Known slots go
+  /// through [Labels.mealType]; anything else is humanized, never printed raw.
+  String _slotLabel(String value) {
+    final type = MealType.values.asNameMap()[value.toLowerCase()];
+    if (type != null) return Labels.mealType(type);
     final spaced = value.replaceAll('_', ' ');
-    return spaced.isEmpty
-        ? value
-        : spaced[0].toUpperCase() + spaced.substring(1);
+    return spaced[0].toUpperCase() + spaced.substring(1);
   }
 }

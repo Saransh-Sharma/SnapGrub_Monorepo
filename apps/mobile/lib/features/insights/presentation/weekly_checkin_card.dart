@@ -1,17 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:snapgrub/app/e2e/e2e_ids.dart';
+import 'package:snapgrub/core/design_system/design_system.dart';
 import 'package:snapgrub/data/repositories/analytics_repository.dart';
 import 'package:snapgrub/features/insights/application/weekly_checkin_summary_mapper.dart';
 
+/// Weekly check-in as a written, editorial summary: a serif headline for the
+/// one suggestion that matters, then a compact visual metric row.
 class WeeklyCheckInCard extends ConsumerStatefulWidget {
   const WeeklyCheckInCard({
     required this.summary,
     this.onReviewRepeatFoods,
+    this.onSeeWeek,
     super.key,
   });
 
   final WeeklyCheckInSummary? summary;
   final VoidCallback? onReviewRepeatFoods;
+
+  /// Opens the weekly recap story.
+  final VoidCallback? onSeeWeek;
 
   @override
   ConsumerState<WeeklyCheckInCard> createState() => _WeeklyCheckInCardState();
@@ -36,61 +45,152 @@ class _WeeklyCheckInCardState extends ConsumerState<WeeklyCheckInCard> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final summary = widget.summary;
-    if (summary == null) {
-      return const Card(
-        child: ListTile(
-          leading: Icon(Icons.insights_outlined),
-          title: Text('Weekly check-in'),
-          subtitle: Text('A weekly view appears after a few logged meals.'),
-        ),
-      );
-    }
-    if (!summary.hasEnoughData) {
-      return Card(
-        child: ListTile(
-          leading: const Icon(Icons.insights_outlined),
-          title: const Text('Weekly check-in'),
-          subtitle: Text(summary.loggingRhythm),
-        ),
-      );
-    }
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+
+    Widget header({String? trailing}) => Row(
           children: [
-            Row(
-              children: [
-                const Icon(Icons.insights_outlined),
-                const SizedBox(width: 8),
-                Text(
-                  'Weekly check-in',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
+            Icon(Icons.auto_stories_outlined,
+                size: 18, color: theme.colorScheme.onSurfaceVariant),
+            const SizedBox(width: 8),
+            Text('Weekly check-in',
+                style: theme.textTheme.labelLarge
+                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+            const Spacer(),
+            if (trailing != null)
+              Text(trailing,
+                  style: theme.textTheme.labelMedium
+                      ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+          ],
+        );
+
+    final seeWeek = widget.onSeeWeek == null
+        ? null
+        : E2eId(
+            id: 'progress.recap',
+            child: FilledButton.tonalIcon(
+              onPressed: widget.onSeeWeek,
+              icon: const Icon(Icons.auto_awesome_rounded, size: 18),
+              label: const Text('See your week'),
             ),
+          );
+
+    if (summary == null || !summary.hasEnoughData) {
+      return SgCard(
+        padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            header(),
             const SizedBox(height: 12),
             Text(
-              summary.primaryActionTitle,
-              style: Theme.of(context).textTheme.titleSmall,
+              'Your first check-in is coming',
+              style: theme.textTheme.headlineSmall,
             ),
-            const SizedBox(height: 4),
-            Text(summary.primaryActionBody),
-            const SizedBox(height: 12),
-            _MetricRow(label: 'Rhythm', value: summary.loggingRhythm),
-            _MetricRow(label: 'Calories', value: summary.calorieDelta),
-            _MetricRow(label: 'Protein', value: summary.proteinConsistency),
-            _MetricRow(label: 'Pattern', value: summary.repeatPattern),
-            const SizedBox(height: 12),
-            OutlinedButton.icon(
-              onPressed: _reviewRepeatFoods,
-              icon: const Icon(Icons.repeat),
-              label: const Text('Review repeat foods'),
+            const SizedBox(height: 6),
+            Text(
+              summary?.loggingRhythm ??
+                  'Log a few days and we’ll summarize your week here.',
+              style: theme.textTheme.bodyMedium
+                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
             ),
+            if (seeWeek != null) ...[
+              const SizedBox(height: 14),
+              Align(alignment: Alignment.centerLeft, child: seeWeek),
+            ],
           ],
         ),
+      );
+    }
+
+    final tokens = context.sg;
+    return SgCard(
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          header(trailing: 'Week of ${DateFormat('d MMM').format(summary.weekStart)}'),
+          const SizedBox(height: 12),
+          Text(summary.primaryActionTitle, style: theme.textTheme.headlineSmall),
+          const SizedBox(height: 6),
+          Text(
+            summary.primaryActionBody,
+            style: theme.textTheme.bodyMedium
+                ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+          ),
+          const SizedBox(height: 16),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final twoUp = constraints.maxWidth >= 300;
+              final tiles = [
+                _MetricTile(
+                  icon: Icons.event_available_rounded,
+                  label: 'Logging',
+                  value: summary.loggingRhythm,
+                  palette: tokens.energy,
+                ),
+                _MetricTile(
+                  icon: Icons.local_fire_department_outlined,
+                  label: 'Calories',
+                  value: summary.calorieDelta,
+                  palette: tokens.carbs,
+                ),
+                _MetricTile(
+                  icon: Icons.egg_alt_outlined,
+                  label: 'Protein',
+                  value: summary.proteinConsistency,
+                  palette: tokens.protein,
+                ),
+                _MetricTile(
+                  icon: Icons.repeat_rounded,
+                  label: 'Pattern',
+                  value: summary.repeatPattern,
+                  palette: tokens.fat,
+                ),
+              ];
+              if (!twoUp) {
+                return Column(
+                  children: [
+                    for (final t in tiles)
+                      Padding(padding: const EdgeInsets.only(bottom: 8), child: t),
+                  ],
+                );
+              }
+              return Column(
+                children: [
+                  for (var i = 0; i < tiles.length; i += 2)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: IntrinsicHeight(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(child: tiles[i]),
+                            const SizedBox(width: 8),
+                            Expanded(child: tiles[i + 1]),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              if (seeWeek != null) seeWeek,
+              TextButton.icon(
+                onPressed: _reviewRepeatFoods,
+                icon: const Icon(Icons.repeat_rounded, size: 18),
+                label: const Text('See repeats'),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -125,28 +225,47 @@ class _WeeklyCheckInCardState extends ConsumerState<WeeklyCheckInCard> {
   }
 }
 
-class _MetricRow extends StatelessWidget {
-  const _MetricRow({required this.label, required this.value});
+class _MetricTile extends StatelessWidget {
+  const _MetricTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.palette,
+  });
 
+  final IconData icon;
   final String label;
   final String value;
+  final MacroPalette palette;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 72,
-            child: Text(
-              label,
-              style: Theme.of(context).textTheme.labelLarge,
+    final theme = Theme.of(context);
+    return Semantics(
+      label: '$label: $value',
+      excludeSemantics: true,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+        decoration: BoxDecoration(
+          color: palette.soft.withValues(alpha: .7),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, size: 16, color: palette.onSoft),
+                const SizedBox(width: 6),
+                Text(label,
+                    style: theme.textTheme.labelMedium
+                        ?.copyWith(color: palette.onSoft)),
+              ],
             ),
-          ),
-          Expanded(child: Text(value)),
-        ],
+            const SizedBox(height: 6),
+            Text(value, style: theme.textTheme.bodyMedium),
+          ],
+        ),
       ),
     );
   }

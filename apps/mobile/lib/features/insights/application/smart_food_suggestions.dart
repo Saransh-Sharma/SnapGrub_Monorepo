@@ -1,3 +1,4 @@
+import 'package:snapgrub/core/feedback/labels.dart';
 import 'package:snapgrub/features/insights/domain/smart_food_suggestion.dart';
 import 'package:snapgrub/features/meal_editor/domain/meal.dart';
 
@@ -20,17 +21,17 @@ class SmartFoodSuggestionRanker {
       if (suggestion.mealTypeHint == currentMealType &&
           currentMealType != MealType.unknown) {
         score += 40;
-        reasons.add('Often at ${currentMealType.name}');
+        reasons.add('Usual for ${Labels.mealType(currentMealType).toLowerCase()}');
       }
       if (suggestion.origin == SmartFoodSuggestionOrigin.frequentDefault &&
           (suggestion.useCount ?? 0) >= 3) {
         score += 25;
-        reasons.add('Used ${suggestion.useCount} times');
+        reasons.add('Logged ${Labels.count(suggestion.useCount!, 'time')}');
       }
       final lastUsedAt = suggestion.lastUsedAt;
       if (lastUsedAt != null && lastUsedAt.isAfter(recentCutoff)) {
         score += 15;
-        reasons.add('Logged recently');
+        reasons.add('Recent');
       }
       if (suggestion.caloriesKcal > 0 &&
           (suggestion.proteinG > 0 ||
@@ -40,7 +41,7 @@ class SmartFoodSuggestionRanker {
       }
       if (suggestion.origin == SmartFoodSuggestionOrigin.template) {
         score += 5;
-        reasons.add('From template');
+        reasons.add('Saved meal');
       }
 
       scored.add(suggestion.copyWith(

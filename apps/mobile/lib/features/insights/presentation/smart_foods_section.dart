@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:snapgrub/core/design_system/design_system.dart';
+import 'package:snapgrub/core/feedback/labels.dart';
 import 'package:snapgrub/data/repositories/analytics_repository.dart';
 import 'package:snapgrub/features/home/application/home_controller.dart';
 import 'package:snapgrub/features/insights/application/smart_food_draft_factory.dart';
@@ -47,30 +49,39 @@ class _SmartFoodsSectionState extends ConsumerState<SmartFoodsSection> {
         .take(widget.maxItems ?? widget.suggestions.length)
         .toList(growable: false);
     if (visible.isEmpty) {
-      return const Card(
-        child: ListTile(
-          leading: Icon(Icons.repeat),
-          title: Text('Smart repeats'),
-          subtitle:
-              Text('Repeat foods will appear here after a few logged meals.'),
+      return const SgCard(
+        child: EmptyState(
+          compact: true,
+          illustration: SgIllustrationKind.notebook,
+          title: 'Go-to foods',
+          message: 'Foods you log often will show up here.',
         ),
       );
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (widget.showHeader) ...[
-          Text('Smart repeats', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 8),
-        ],
-        for (var i = 0; i < visible.length; i++)
-          _SmartFoodTile(
-            suggestion: visible[i],
-            rank: i + 1,
-            onReview: () => _openSuggestion(visible[i], rank: i + 1),
-          ),
-      ],
+    return SgCard(
+      padding: const EdgeInsets.fromLTRB(6, 12, 6, 8),
+      // ListTile ink needs a Material above SgCard's decorated background.
+      child: Material(
+        type: MaterialType.transparency,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (widget.showHeader)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 6),
+                child: Text('Go-to foods',
+                    style: Theme.of(context).textTheme.titleMedium),
+              ),
+            for (var i = 0; i < visible.length; i++)
+              _SmartFoodTile(
+                suggestion: visible[i],
+                rank: i + 1,
+                onReview: () => _openSuggestion(visible[i], rank: i + 1),
+              ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -93,7 +104,9 @@ class _SmartFoodsSectionState extends ConsumerState<SmartFoodsSection> {
       timezone: widget.contextData.timezone,
       now: DateTime.now(),
     );
-    context.go('/meal-editor', extra: draft);
+    // Always open Review — a suggestion is never saved without confirmation.
+    SgHaptics.tap();
+    context.push('/meal-editor', extra: draft);
   }
 
   void _trackVisibleSuggestions() {
@@ -128,22 +141,38 @@ class _SmartFoodTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: ListTile(
-        leading: CircleAvatar(child: Text(rank.toString())),
-        title: Text(suggestion.title,
-            maxLines: 1, overflow: TextOverflow.ellipsis),
-        subtitle: Text(
-          '${suggestion.reasonLabel} · ${suggestion.caloriesKcal.round()} kcal',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+    final tokens = context.sg;
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+      leading: Container(
+        width: 36,
+        height: 36,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: tokens.energy.soft,
+          shape: BoxShape.circle,
         ),
-        trailing: TextButton(
-          onPressed: onReview,
-          child: const Text('Review'),
+        child: Text(
+          rank.toString(),
+          style: Theme.of(context)
+              .textTheme
+              .labelLarge
+              ?.copyWith(color: tokens.energy.onSoft),
         ),
-        onTap: onReview,
       ),
+      title:
+          Text(suggestion.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+      subtitle: Text(
+        '${suggestion.reasonLabel} · ${Labels.kcal(suggestion.caloriesKcal)}',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      // "Log" still opens Review; nothing is saved until the user confirms.
+      trailing: TextButton(
+        onPressed: onReview,
+        child: const Text('Log'),
+      ),
+      onTap: onReview,
     );
   }
 }
