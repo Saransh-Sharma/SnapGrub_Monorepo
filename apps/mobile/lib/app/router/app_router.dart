@@ -1,16 +1,26 @@
+export 'package:snapgrub/app/splash/splash_screen.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:snapgrub/app/shell/app_shell.dart';
+import 'package:snapgrub/app/splash/splash_screen.dart';
+import 'package:snapgrub/core/feature_flags/feature_flags.dart';
 import 'package:snapgrub/features/auth/application/auth_controller.dart';
 import 'package:snapgrub/features/auth/domain/auth_state.dart';
 import 'package:snapgrub/features/auth/presentation/auth_screen.dart';
 import 'package:snapgrub/features/barcode/presentation/barcode_screen.dart';
 import 'package:snapgrub/features/capture/domain/capture_asset.dart';
+import 'package:snapgrub/features/capture/presentation/capture_screen.dart';
 import 'package:snapgrub/features/custom_foods/presentation/custom_foods_screen.dart';
+import 'package:snapgrub/features/conversation/presentation/day_thread_screen.dart';
 import 'package:snapgrub/features/home/presentation/home_screen.dart';
 import 'package:snapgrub/features/journal/presentation/journal_screen.dart';
+import 'package:snapgrub/features/meal_atlas/presentation/meal_atlas_screen.dart';
 import 'package:snapgrub/features/meal_editor/domain/meal.dart';
 import 'package:snapgrub/features/meal_editor/presentation/meal_editor_screen.dart';
+import 'package:snapgrub/features/milestones/presentation/milestones_screen.dart';
+import 'package:snapgrub/features/recap/presentation/weekly_recap_screen.dart';
 import 'package:snapgrub/features/onboarding/presentation/onboarding_flow_screen.dart';
 import 'package:snapgrub/features/photo_analysis/presentation/photo_analysis_screen.dart';
 import 'package:snapgrub/features/privacy/presentation/privacy_settings_screen.dart';
@@ -45,8 +55,75 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/onboarding',
         builder: (context, state) => const OnboardingFlowScreen(),
       ),
+      // Tabs: Today · Progress · [Capture] · Atlas · You.
+      StatefulShellRoute(
+        builder: (context, state, shell) => AppShell(shell: shell),
+        navigatorContainerBuilder: (context, shell, children) =>
+            FadeThroughBranches(
+          currentIndex: shell.currentIndex,
+          children: children,
+        ),
+        branches: [
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/home',
+              builder: (context, state) => _HomeEntry(
+                initialDay:
+                    DateTime.tryParse(state.uri.queryParameters['day'] ?? ''),
+                anchorMealId: state.uri.queryParameters['meal'],
+              ),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/progress',
+              builder: (context, state) => const ProgressScreen(),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/atlas',
+              builder: (context, state) => const MealAtlasScreen(),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/settings',
+              builder: (context, state) => const SettingsScreen(),
+            ),
+          ]),
+        ],
+      ),
       GoRoute(
-        path: '/home',
+        path: '/capture',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          fullscreenDialog: true,
+          opaque: false,
+          transitionDuration: const Duration(milliseconds: 420),
+          reverseTransitionDuration: const Duration(milliseconds: 280),
+          child: CaptureScreen(
+            initialMode: CaptureMode.fromName(
+                state.uri.queryParameters['mode']),
+          ),
+          transitionsBuilder: (context, animation, secondary, child) {
+            final curved = CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutCubic,
+              reverseCurve: Curves.easeInCubic,
+            );
+            return FadeTransition(
+              opacity: curved,
+              child: ScaleTransition(
+                scale: Tween(begin: .94, end: 1.0).animate(curved),
+                child: child,
+              ),
+            );
+          },
+        ),
+      ),
+      GoRoute(
+        path: '/home-legacy',
         builder: (context, state) => const HomeScreen(),
       ),
       GoRoute(
@@ -61,7 +138,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/photo-analysis',
         builder: (context, state) {
           final asset = state.extra;
-          if (asset is! CaptureAsset) return const HomeScreen();
+          if (asset is! CaptureAsset) return const CaptureScreen();
           return PhotoAnalysisScreen(asset: asset);
         },
       ),
@@ -90,12 +167,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const CustomFoodsScreen(),
       ),
       GoRoute(
-        path: '/progress',
-        builder: (context, state) => const ProgressScreen(),
-      ),
-      GoRoute(
-        path: '/settings',
-        builder: (context, state) => const SettingsScreen(),
+        path: '/settings/goal',
+        builder: (context, state) => const GoalEditScreen(),
       ),
       GoRoute(
         path: '/settings/privacy',
@@ -120,6 +193,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/settings/privacy/clear-local-data',
         builder: (context, state) => const ClearLocalDataScreen(),
+      ),
+      GoRoute(
+        path: '/milestones',
+        builder: (context, state) => const MilestonesScreen(),
+      ),
+      GoRoute(
+        path: '/recap',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          fullscreenDialog: true,
+          child: const WeeklyRecapScreen(),
+          transitionsBuilder: (context, animation, secondary, child) =>
+              FadeTransition(
+            opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
+            child: child,
+          ),
+        ),
       ),
       GoRoute(
         path: '/sync',
@@ -160,19 +250,27 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   );
 });
 
-class _RouterRefreshNotifier extends ChangeNotifier {
-  void notify() => notifyListeners();
-}
+class _HomeEntry extends ConsumerWidget {
+  const _HomeEntry({this.initialDay, this.anchorMealId});
 
-class SplashScreen extends StatelessWidget {
-  const SplashScreen({super.key});
+  final DateTime? initialDay;
+  final String? anchorMealId;
 
   @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: CircularProgressIndicator(),
-      ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final flags =
+        ref.watch(profileControllerProvider).valueOrNull?.featureFlags ??
+            const {};
+    if (!FeatureFlags(flags).isEnabled(FeatureFlag.conversationalHome)) {
+      return const HomeScreen();
+    }
+    return DayThreadScreen(
+      initialDay: initialDay,
+      anchorMealId: anchorMealId,
     );
   }
+}
+
+class _RouterRefreshNotifier extends ChangeNotifier {
+  void notify() => notifyListeners();
 }
