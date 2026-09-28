@@ -39,11 +39,43 @@ final todayMealsProvider = StreamProvider<List<Meal>>((ref) async* {
       .watchMealsForDay(context.userId, day, timezone: context.timezone);
 });
 
+final mealsForDayProvider =
+    StreamProvider.family<List<Meal>, DateTime>((ref, requestedDay) async* {
+  final context = await ref.watch(homeUserContextProvider.future);
+  if (context == null) {
+    yield const [];
+    return;
+  }
+  yield* ref.watch(mealRepositoryProvider).watchMealsForDay(
+        context.userId,
+        requestedDay,
+        timezone: context.timezone,
+      );
+});
+
+final allMealsProvider = StreamProvider<List<Meal>>((ref) async* {
+  final context = await ref.watch(homeUserContextProvider.future);
+  if (context == null) {
+    yield const [];
+    return;
+  }
+  yield* ref.watch(mealRepositoryProvider).watchAllMeals(context.userId);
+});
+
 final todayRollupProvider = StreamProvider<DailyRollup>((ref) async* {
   final context = await ref.watch(homeUserContextProvider.future);
   if (context == null) return;
   final day = ref.watch(userDayTickProvider(context.timezone));
   yield* ref.watch(mealRepositoryProvider).watchRollup(context.userId, day);
+});
+
+final rollupForDayProvider =
+    StreamProvider.family<DailyRollup, DateTime>((ref, requestedDay) async* {
+  final context = await ref.watch(homeUserContextProvider.future);
+  if (context == null) return;
+  yield* ref
+      .watch(mealRepositoryProvider)
+      .watchRollup(context.userId, requestedDay);
 });
 
 final userDayTickProvider = Provider.family<DateTime, String>((ref, timezone) {

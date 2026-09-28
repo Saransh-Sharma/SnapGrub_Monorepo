@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:snapgrub/core/feedback/labels.dart';
 import 'package:snapgrub/features/home/application/home_controller.dart';
 import 'package:snapgrub/features/meal_editor/domain/meal.dart';
 
@@ -50,9 +51,9 @@ class _Macro extends StatelessWidget {
       children: [
         Text(label, style: Theme.of(context).textTheme.labelMedium),
         const SizedBox(height: 4),
-        Text('${value.round()}g',
+        Text(Labels.grams(value),
             style: Theme.of(context).textTheme.titleMedium),
-        if (goal != null) Text('/ ${goal!.round()}g'),
+        if (goal != null) Text('/ ${Labels.grams(goal!)}'),
       ],
     );
   }

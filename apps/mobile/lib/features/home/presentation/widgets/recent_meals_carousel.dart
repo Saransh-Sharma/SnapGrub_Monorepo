@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:snapgrub/core/feedback/labels.dart';
 import 'package:snapgrub/features/meal_editor/domain/meal.dart';
 
 class RecentMealsCarousel extends StatelessWidget {
@@ -25,11 +26,12 @@ class RecentMealsCarousel extends StatelessWidget {
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final meal = meals[index];
+          final sync = Labels.mealSync(meal.syncStatus);
           return SizedBox(
             width: 220,
             child: Card(
               child: InkWell(
-                onTap: () => context.go('/meal-editor?id=${meal.id}'),
+                onTap: () => context.push('/meal-editor?id=${meal.id}'),
                 child: Padding(
                   padding: const EdgeInsets.all(12),
                   child: Column(
@@ -38,8 +40,8 @@ class RecentMealsCarousel extends StatelessWidget {
                       Text(meal.title,
                           maxLines: 1, overflow: TextOverflow.ellipsis),
                       const Spacer(),
-                      Text('${meal.caloriesKcal.round()} kcal'),
-                      Text(meal.syncStatus.name),
+                      Text(Labels.kcal(meal.caloriesKcal)),
+                      if (sync != null) Text(sync.label),
                     ],
                   ),
                 ),

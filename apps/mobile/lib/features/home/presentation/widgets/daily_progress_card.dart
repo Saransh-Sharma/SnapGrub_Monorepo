@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:snapgrub/core/feedback/labels.dart';
 import 'package:snapgrub/features/home/application/home_controller.dart';
 import 'package:snapgrub/features/meal_editor/domain/meal.dart';
 
@@ -28,7 +29,7 @@ class DailyProgressCard extends StatelessWidget {
             LinearProgressIndicator(value: progress),
             const SizedBox(height: 12),
             Text('${rollup.caloriesKcal.round()} / ${goal.round()} kcal'),
-            Text('${rollup.mealCount} meals logged'),
+            Text('${Labels.count(rollup.mealCount, 'meal')} logged'),
           ],
         ),
       ),

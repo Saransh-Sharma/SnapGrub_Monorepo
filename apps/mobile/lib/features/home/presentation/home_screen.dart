@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:snapgrub/app/e2e/e2e_ids.dart';
+import 'package:snapgrub/core/feedback/friendly_error.dart';
 import 'package:snapgrub/core/time/user_day.dart';
 import 'package:snapgrub/core/widgets/app_scaffold.dart';
 import 'package:snapgrub/features/capture/application/capture_controller.dart';
@@ -84,7 +85,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ],
       child: userContext.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Text(error.toString()),
+        error: (error, _) => Text(friendlyError(error).message),
         data: (contextData) {
           if (contextData == null) return const Text('Sign in to continue.');
           final rollupData = rollup.valueOrNull;
@@ -130,7 +131,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   const SizedBox(height: 16),
                   smartSuggestions.when(
                     loading: () => const LinearProgressIndicator(),
-                    error: (error, _) => Text(error.toString()),
+                    error: (error, _) => Text(friendlyError(error).message),
                     data: (items) => SmartFoodsSection(
                       suggestions: items,
                       contextData: contextData,
@@ -174,13 +175,13 @@ class _SyncAttentionCard extends StatelessWidget {
               ? Icons.report_problem_outlined
               : Icons.error_outline),
           title: Text(status == SyncStatus.conflict
-              ? 'Sync needs review'
-              : 'Sync retry pending'),
+              ? 'Needs review'
+              : 'Not synced'),
           subtitle: Text(status == SyncStatus.conflict
-              ? 'Review conflicting local changes before the next sync.'
-              : 'Some local changes failed and will retry automatically.'),
+              ? 'A change needs review. Tap to fix.'
+              : 'Some changes didn’t sync. We’ll retry soon.'),
           trailing: const Icon(Icons.chevron_right),
-          onTap: () => context.go('/sync'),
+          onTap: () => context.push('/sync'),
         ),
       ),
     );
