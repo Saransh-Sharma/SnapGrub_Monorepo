@@ -27,7 +27,7 @@ class SnapGrubFunctionClient {
         status: 503,
         code: 'NOT_CONFIGURED',
         message: 'Supabase is not configured.',
-        userMessage: 'This feature is unavailable in this build.',
+        userMessage: 'This feature isn’t available in this build.',
         retryable: false,
         requestId: '',
       );
@@ -55,7 +55,7 @@ class SnapGrubFunctionClient {
         status: error.status,
         code: 'UNKNOWN',
         message: error.toString(),
-        userMessage: 'Something went wrong. Please try again.',
+        userMessage: 'Something went wrong. Try again.',
         retryable: error.status >= 500,
         requestId: '',
       );
@@ -68,7 +68,7 @@ class SnapGrubFunctionClient {
       status: status,
       code: 'INVALID_RESPONSE',
       message: 'Function returned a non-object response.',
-      userMessage: 'Something went wrong. Please try again.',
+      userMessage: 'Something went wrong. Try again.',
       retryable: true,
       requestId: '',
     );
