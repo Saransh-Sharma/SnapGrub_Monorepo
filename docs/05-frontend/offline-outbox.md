@@ -29,6 +29,7 @@ The mobile outbox supports `settings.patch`, meal/template/custom-food commands,
 - Custom-food insertion should preserve `food_ref_kind`, `custom_food_id`, and source metadata on meal items.
 - Cache typed correction events from meal responses into `correction_events_local`.
 - Keep weekly insight/default caches read-oriented; scheduled generation is backend/ops-owned.
+- Smart repeats are read-only suggestions until the user reviews the generated draft in Meal Editor. Only the confirmed Meal Editor save enters the normal `meal.create` outbox path.
 - Privacy toggles are normal `settings.patch` commands and may queue offline.
 - Export creation can be queued through `export.create`, but artifact generation requires the command to drain online through `exports-create`.
 - Account deletion is not queued offline because it is destructive, must confirm against the authenticated cloud account, and must clear local state only after backend success.

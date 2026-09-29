@@ -1,5 +1,11 @@
 # Design
 
+> **Superseded (2026-09):** the source of truth is now the Dart design system in
+> `apps/mobile/lib/core/design_system/` — see [design-system-v2.md](design-system-v2.md)
+> and the copy guide [voice.md](voice.md). The `packages/design-tokens/*.json` values
+> below are legacy and are not used by the app.
+
+
 Design documentation covers reusable tokens, UX decisions, and implementation constraints.
 
 Current design token files live under `packages/design-tokens`.

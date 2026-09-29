@@ -12,7 +12,7 @@ This checklist turns beta and release-candidate readiness into staging/prod gate
 | Export | `export_requests`, `exports-create` logs | status, type, generation latency, signed URL refresh, failure code |
 | Account deletion | `account_deletion_requests`, `account-delete` logs | status, deleted storage objects, failure code |
 | Sync | mobile outbox state, `api_idempotency`, Edge Function logs | command type, pending/failed/conflict, retry count |
-| Product | `analytics_events`, meal tables, weekly insights | onboarding completion, meals saved/day, source mix, weekly insight impressions |
+| Product | `analytics_events`, meal tables, weekly insights | onboarding completion, meals saved/day, source mix, weekly check-in views/actions, Smart repeats views/opens |
 | Backend health | Edge Function logs, Supabase logs, scheduled job logs | 4xx, 5xx, request volume, missed jobs, RLS smoke status |
 
 ## Required Dashboards
@@ -26,6 +26,8 @@ This checklist turns beta and release-candidate readiness into staging/prod gate
 - Account deletion requests by status.
 - Scheduled `weekly-insights-generate` and `media-retention-cleanup` run success.
 - Meals saved/day and source mix.
+- Smart repeats view-to-open rate and open-to-save follow-through.
+- Weekly check-in view and action-tap rate.
 
 ## Required Alerts
 

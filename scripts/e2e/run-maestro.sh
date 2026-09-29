@@ -138,38 +138,6 @@ encode_dart_defines() {
   echo "${encoded[*]}"
 }
 
-ios_simulator_build_prepared=0
-
-prepare_ios_simulator_build() {
-  local pubspec="$mobile_dir/pubspec.yaml"
-  local recognizer="$mobile_dir/lib/features/barcode/data/label_text_recognizer.dart"
-  cp "$pubspec" "$pubspec.e2e-ios.bak"
-  cp "$recognizer" "$recognizer.e2e-ios.bak"
-  sed -i '' '/google_mlkit_text_recognition/d' "$pubspec"
-  cat > "$recognizer" <<'EOF'
-/// Stub-only export for iOS simulator E2E (google_mlkit lacks arm64 sim slices).
-library;
-
-export 'label_text_recognizer_stub.dart';
-EOF
-  ios_simulator_build_prepared=1
-  flutter pub get
-  (cd "$mobile_dir/ios" && pod install)
-}
-
-restore_ios_simulator_build() {
-  if [[ "$ios_simulator_build_prepared" != "1" ]]; then
-    return 0
-  fi
-  local pubspec="$mobile_dir/pubspec.yaml"
-  local recognizer="$mobile_dir/lib/features/barcode/data/label_text_recognizer.dart"
-  mv "$pubspec.e2e-ios.bak" "$pubspec"
-  mv "$recognizer.e2e-ios.bak" "$recognizer"
-  ios_simulator_build_prepared=0
-  flutter pub get
-  (cd "$mobile_dir/ios" && pod install)
-}
-
 allow_arm64_ios_simulator_build() {
   local generated_xcconfig="$mobile_dir/ios/Flutter/Generated.xcconfig"
   [[ -f "$generated_xcconfig" ]] || return 0
@@ -189,8 +157,7 @@ if [[ "$platform" == "android" ]]; then
   flutter build apk --debug --flavor dev "${dart_defines[@]}"
   adb install -r build/app/outputs/flutter-apk/app-dev-debug.apk
 else
-  trap restore_ios_simulator_build EXIT
-  prepare_ios_simulator_build
+  flutter pub get
   ios_simulator_name="${IOS_SIMULATOR_NAME:-iPhone 16 Pro}"
   open_simulator_app
   xcrun simctl boot "$ios_simulator_name" >/dev/null 2>&1 || true

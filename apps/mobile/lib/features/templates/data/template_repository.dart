@@ -69,7 +69,7 @@ class TemplateRepository {
     String? sourceMealId,
   }) async {
     if (title.trim().isEmpty) {
-      throw ArgumentError('Template title is required.');
+      throw ArgumentError('Add a name.');
     }
     final id = const Uuid().v4();
     final clientId = const Uuid().v4();
@@ -201,6 +201,8 @@ class TemplateRepository {
           {
             'name': item.name,
             'food_ref_kind': item.foodRefKind,
+            'canonical_food_id': item.canonicalFoodId,
+            'branded_product_id': item.brandedProductId,
             'custom_food_id': item.customFoodId,
             'quantity': item.quantity,
             'unit': item.unit,
@@ -226,6 +228,8 @@ class TemplateRepository {
           {
             'name': item.name,
             'food_ref_kind': item.foodRefKind,
+            'canonical_food_id': item.canonicalFoodId,
+            'branded_product_id': item.brandedProductId,
             'custom_food_id': item.customFoodId,
             'quantity': item.quantity,
             'unit': item.unit,

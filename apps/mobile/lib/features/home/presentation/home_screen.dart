@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:snapgrub/app/e2e/e2e_ids.dart';
+import 'package:snapgrub/core/feedback/friendly_error.dart';
+import 'package:snapgrub/core/time/user_day.dart';
 import 'package:snapgrub/core/widgets/app_scaffold.dart';
 import 'package:snapgrub/features/capture/application/capture_controller.dart';
 import 'package:snapgrub/features/home/application/home_controller.dart';
@@ -10,6 +12,9 @@ import 'package:snapgrub/features/home/presentation/widgets/macro_summary_card.d
 import 'package:snapgrub/features/home/presentation/widgets/quick_actions_row.dart';
 import 'package:snapgrub/features/home/presentation/widgets/recent_meals_carousel.dart';
 import 'package:snapgrub/features/home/presentation/widgets/snap_strip.dart';
+import 'package:snapgrub/features/insights/data/insights_repository.dart';
+import 'package:snapgrub/features/insights/presentation/smart_foods_section.dart';
+import 'package:snapgrub/features/meal_editor/domain/meal.dart';
 import 'package:snapgrub/offline/sync/sync_controller.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -80,11 +85,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ],
       child: userContext.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Text(error.toString()),
+        error: (error, _) => Text(friendlyError(error).message),
         data: (contextData) {
           if (contextData == null) return const Text('Sign in to continue.');
           final rollupData = rollup.valueOrNull;
           final mealData = meals.valueOrNull ?? const [];
+          final smartSuggestions = contextData.smartFoodsV2Enabled
+              ? ref.watch(smartFoodSuggestionsProvider(
+                  SmartFoodSuggestionsRequest(
+                    userId: contextData.userId,
+                    currentMealType:
+                        _mealTypeForNow(DateTime.now(), contextData.timezone),
+                    timezone: contextData.timezone,
+                  ),
+                ))
+              : null;
           return RefreshIndicator(
             onRefresh: () => ref
                 .read(syncControllerProvider.notifier)
@@ -112,6 +127,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 8),
                 RecentMealsCarousel(meals: mealData),
+                if (smartSuggestions != null) ...[
+                  const SizedBox(height: 16),
+                  smartSuggestions.when(
+                    loading: () => const LinearProgressIndicator(),
+                    error: (error, _) => Text(friendlyError(error).message),
+                    data: (items) => SmartFoodsSection(
+                      suggestions: items,
+                      contextData: contextData,
+                      maxItems: 3,
+                      showHeader: true,
+                    ),
+                  ),
+                ],
               ],
             ),
           );
@@ -119,6 +147,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ),
     );
   }
+}
+
+MealType _mealTypeForNow(DateTime now, String timezone) {
+  final local = userLocalTimeFor(now, timezone);
+  if (local.hour < 11) return MealType.breakfast;
+  if (local.hour < 16) return MealType.lunch;
+  if (local.hour < 21) return MealType.dinner;
+  return MealType.snack;
 }
 
 class _SyncAttentionCard extends StatelessWidget {
@@ -139,13 +175,13 @@ class _SyncAttentionCard extends StatelessWidget {
               ? Icons.report_problem_outlined
               : Icons.error_outline),
           title: Text(status == SyncStatus.conflict
-              ? 'Sync needs review'
-              : 'Sync retry pending'),
+              ? 'Needs review'
+              : 'Not synced'),
           subtitle: Text(status == SyncStatus.conflict
-              ? 'Review conflicting local changes before the next sync.'
-              : 'Some local changes failed and will retry automatically.'),
+              ? 'A change needs review. Tap to fix.'
+              : 'Some changes didn’t sync. We’ll retry soon.'),
           trailing: const Icon(Icons.chevron_right),
-          onTap: () => context.go('/sync'),
+          onTap: () => context.push('/sync'),
         ),
       ),
     );

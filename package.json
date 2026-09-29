@@ -16,6 +16,7 @@
     "backend:test:multimodal": "node services/backend/supabase/tests/integration/multimodal/multimodal_entry_smoke.mjs",
     "backend:test:offline-sync": "node services/backend/supabase/tests/integration/offline-sync/sync_readiness_smoke.mjs",
     "backend:test:insights": "node services/backend/supabase/tests/integration/insights/insights_defaults_smoke.mjs",
+    "backend:test:insights:local": "bash scripts/backend-test-insights-local.sh",
     "backend:test:privacy": "node services/backend/supabase/tests/integration/privacy/privacy_export_delete_smoke.mjs",
     "backend:test:remediation": "node services/backend/supabase/tests/integration/backend-remediation/backend_remediation_smoke.mjs",
     "backend:test:remediation-unit": "npx --yes deno test --allow-env services/backend/supabase/tests/unit/backend_remediation_test.ts",

@@ -1,5 +1,12 @@
-/// On-device label OCR. ML Kit is the normal app implementation; the iOS
-/// simulator E2E runner swaps this facade to the stub before `pod install`.
-library;
+import 'package:flutter/services.dart';
 
-export 'label_text_recognizer_mlkit.dart';
+const _channel = MethodChannel('snapgrub/ocr');
+
+/// Runs fully on device: Apple Vision on iOS and ML Kit on Android.
+Future<String> recognizeLabelText(String imagePath) async {
+  final text = await _channel.invokeMethod<String>(
+    'recognizeText',
+    {'path': imagePath},
+  );
+  return text ?? '';
+}

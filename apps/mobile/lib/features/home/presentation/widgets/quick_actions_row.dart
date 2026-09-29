@@ -15,7 +15,7 @@ class QuickActionsRow extends StatelessWidget {
               child: E2eId(
                 id: 'home.manual',
                 child: FilledButton.icon(
-                  onPressed: () => context.go('/meal-editor'),
+                  onPressed: () => context.push('/meal-editor'),
                   icon: const Icon(Icons.edit_outlined),
                   label: const Text('Manual'),
                 ),
@@ -26,7 +26,7 @@ class QuickActionsRow extends StatelessWidget {
               child: E2eId(
                 id: 'home.journal',
                 child: OutlinedButton.icon(
-                  onPressed: () => context.go('/journal'),
+                  onPressed: () => context.push('/journal'),
                   icon: const Icon(Icons.list_alt),
                   label: const Text('Journal'),
                 ),
@@ -41,9 +41,9 @@ class QuickActionsRow extends StatelessWidget {
               child: E2eId(
                 id: 'home.templates',
                 child: OutlinedButton.icon(
-                  onPressed: () => context.go('/templates'),
+                  onPressed: () => context.push('/templates'),
                   icon: const Icon(Icons.bookmark_border),
-                  label: const Text('Templates'),
+                  label: const Text('Saved meals'),
                 ),
               ),
             ),
@@ -52,9 +52,9 @@ class QuickActionsRow extends StatelessWidget {
               child: E2eId(
                 id: 'home.foods',
                 child: OutlinedButton.icon(
-                  onPressed: () => context.go('/custom-foods'),
+                  onPressed: () => context.push('/custom-foods'),
                   icon: const Icon(Icons.fastfood_outlined),
-                  label: const Text('Foods'),
+                  label: const Text('My foods'),
                 ),
               ),
             ),

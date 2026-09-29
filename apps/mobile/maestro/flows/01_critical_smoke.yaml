@@ -1,264 +1,91 @@
 appId: ${APP_ID}
-name: 01_critical_smoke
+name: 01_conversational_critical_smoke
 tags:
   - e2e
   - critical
+  - conversational
 ---
 - clearKeychain
 - clearState
 - launchApp
 - runFlow: ../common/auth_onboarding.yaml
-- runFlow: ../common/create_manual_meal.yaml
-- tapOn:
-    id: "${E2E_MANUAL_MEAL_ID}.duplicate"
 - assertVisible:
-    id: "${E2E_MANUAL_MEAL_COPY_ID}"
+    id: "screen.day_thread"
 - tapOn:
-    id: "${E2E_MANUAL_MEAL_COPY_ID}.edit"
-- extendedWaitUntil:
-    visible:
-      id: "scaffold.meal_editor"
-    timeout: 10000
-- tapOn:
-    id: "meal.title"
-- eraseText: 100
-- inputText: "${E2E_EDITED_MEAL_TITLE}"
-- pressKey: "enter"
-- scrollUntilVisible:
-    element:
-      id: "meal.save"
-    direction: DOWN
-    visibilityPercentage: 50
-- tapOn:
-    id: "meal.save"
-- extendedWaitUntil:
-    visible:
-      id: "scaffold.journal"
-    timeout: 10000
-- assertVisible:
-    id: "${E2E_EDITED_MEAL_ID}"
-- tapOn:
-    id: "${E2E_EDITED_MEAL_ID}.edit"
-- tapOn:
-    id: "meal.save_template"
-- tapOn:
-    id: "nav.home"
-- scrollUntilVisible:
-    element:
-      id: "home.foods"
-    direction: DOWN
-    visibilityPercentage: 50
-- tapOn:
-    id: "home.foods"
-- extendedWaitUntil:
-    visible:
-      id: "scaffold.custom_foods"
-    timeout: 10000
-- tapOn:
-    id: "custom_foods.add"
-- tapOn:
-    id: "custom_foods.name"
-- inputText: "${E2E_CUSTOM_FOOD_NAME}"
-- tapOn:
-    id: "custom_foods.save"
-- assertVisible:
-    text: "${E2E_CUSTOM_FOOD_NAME}"
-- tapOn:
-    id: "nav.home"
-- tapOn:
-    id: "snapstrip.text"
-- extendedWaitUntil:
-    visible:
-      id: "scaffold.text_meal"
-    timeout: 10000
-- tapOn:
-    id: "text_entry.meal"
-- eraseText: 100
+    id: "conversation.composer"
 - inputText: "${E2E_TEXT_MEAL_INPUT}"
 - tapOn:
-    id: "text_entry.review"
+    text: "Continue"
+    optional: true
+- tapOn:
+    id: "conversation.send_or_voice"
+- tapOn:
+    text: "Continue"
+    optional: true
 - extendedWaitUntil:
     visible:
-      id: "scaffold.meal_editor"
-    timeout: 10000
-- tapOn:
-    id: "meal.title"
-- eraseText: 100
-- inputText: "${E2E_TEXT_MEAL_TITLE}"
-- pressKey: "enter"
-- scrollUntilVisible:
-    element:
-      id: "meal.save"
-    direction: DOWN
-    visibilityPercentage: 50
-- tapOn:
-    id: "meal.save"
-- extendedWaitUntil:
-    visible:
-      id: "scaffold.journal"
-    timeout: 10000
-- assertVisible:
-    id: "${E2E_TEXT_MEAL_ID}"
-- tapOn:
-    id: "nav.home"
-- tapOn:
-    id: "snapstrip.voice"
-- extendedWaitUntil:
-    visible:
-      id: "scaffold.voice_meal"
-    timeout: 10000
-- tapOn:
-    id: "voice_entry.transcript"
-- eraseText: 100
-- inputText: "${E2E_VOICE_MEAL_INPUT}"
-- tapOn:
-    id: "voice_entry.review"
-- extendedWaitUntil:
-    visible:
-      id: "scaffold.meal_editor"
-    timeout: 10000
-- tapOn:
-    id: "meal.title"
-- eraseText: 100
-- inputText: "${E2E_VOICE_MEAL_TITLE}"
-- pressKey: "enter"
-- scrollUntilVisible:
-    element:
-      id: "meal.save"
-    direction: DOWN
-    visibilityPercentage: 50
-- tapOn:
-    id: "meal.save"
-- extendedWaitUntil:
-    visible:
-      id: "scaffold.journal"
-    timeout: 10000
-- assertVisible:
-    id: "${E2E_VOICE_MEAL_ID}"
-- tapOn:
-    id: "nav.home"
-- tapOn:
-    id: "snapstrip.barcode"
-- extendedWaitUntil:
-    visible:
-      id: "scaffold.barcode"
-    timeout: 10000
-- tapOn:
-    id: "barcode.e2e_unknown"
-- tapOn:
-    id: "barcode.product_name"
-- inputText: "${E2E_UNKNOWN_BAR_TITLE}"
-- tapOn:
-    id: "barcode.calories"
-- inputText: "350"
-- tapOn:
-    id: "barcode.review_custom_product"
-- extendedWaitUntil:
-    visible:
-      id: "scaffold.meal_editor"
-    timeout: 10000
-- scrollUntilVisible:
-    element:
-      id: "meal.save"
-    direction: DOWN
-    visibilityPercentage: 50
-- tapOn:
-    id: "meal.save"
-- extendedWaitUntil:
-    visible:
-      id: "scaffold.journal"
-    timeout: 10000
-- assertVisible:
-    id: "${E2E_UNKNOWN_BAR_ID}"
-- tapOn:
-    id: "nav.home"
-- tapOn:
-    id: "snapstrip.fixture_photo"
-- extendedWaitUntil:
-    visible:
-      id: "scaffold.meal_editor"
+      id: "conversation.proposal.confirm"
     timeout: 15000
-- assertVisible:
-    id: "meal.title"
 - tapOn:
-    id: "meal.title"
-- eraseText: 100
-- inputText: "${E2E_PHOTO_MEAL_TITLE}"
-- pressKey: "enter"
-- scrollUntilVisible:
-    element:
-      id: "meal.save"
-    direction: DOWN
-    visibilityPercentage: 50
+    id: "conversation.proposal.confirm"
+- waitForAnimationToEnd
 - tapOn:
-    id: "meal.save"
+    id: "tab.atlas"
 - extendedWaitUntil:
     visible:
-      id: "scaffold.journal"
+      id: "screen.meal_atlas"
     timeout: 10000
 - assertVisible:
-    id: "${E2E_PHOTO_MEAL_ID}"
+    id: "atlas.content"
 - tapOn:
-    id: "nav.home"
-- tapOn:
-    id: "home.sync"
+    id: "tab.today"
 - assertVisible:
-    id: "scaffold.today"
-- scrollUntilVisible:
-    element:
-      id: "home.progress"
-    direction: DOWN
-    visibilityPercentage: 50
+    id: "screen.day_thread"
 - tapOn:
-    id: "home.progress"
+    id: "conversation.previous_day"
 - assertVisible:
-    id: "scaffold.progress"
+    id: "conversation.date.yesterday"
 - tapOn:
-    id: "nav.home"
+    id: "conversation.next_day"
+- assertVisible:
+    id: "conversation.date.today"
 - tapOn:
-    id: "home.settings"
+    id: "conversation.add_menu"
+- assertVisible:
+    id: "conversation.capture.camera"
+- assertVisible:
+    id: "conversation.capture.scan"
+- assertVisible:
+    id: "conversation.capture.voice"
+- assertVisible:
+    id: "conversation.capture.manual"
 - tapOn:
-    id: "settings.privacy"
-- tapOn:
-    id: "privacy.ai_consent"
-- tapOn:
-    id: "privacy.ai_consent.toggle"
-- tapOn:
-    id: "home.settings"
-- tapOn:
-    id: "settings.privacy"
-- tapOn:
-    id: "privacy.media_retention"
-- tapOn:
-    id: "privacy.media_retention.save_originals"
-- tapOn:
-    id: "home.settings"
-- tapOn:
-    id: "settings.privacy"
-- tapOn:
-    id: "privacy.export"
-- tapOn:
-    id: "privacy.export.create"
+    id: "conversation.capture.manual"
 - extendedWaitUntil:
     visible:
-      id: "privacy.export.status"
+      id: "scaffold.meal_editor"
     timeout: 10000
+- back
+- assertVisible:
+    id: "screen.day_thread"
 - tapOn:
-    id: "nav.home"
-- tapOn:
-    id: "home.settings"
-- tapOn:
-    id: "settings.privacy"
-- tapOn:
-    id: "privacy.delete_account"
-- assertNotVisible:
-    id: "screen.auth"
-- tapOn:
-    id: "privacy.delete.confirmation"
-- inputText: "DELETE"
-- tapOn:
-    id: "privacy.delete.submit"
+    id: "tab.you"
 - extendedWaitUntil:
     visible:
-      id: "screen.auth"
+      id: "scaffold.settings"
     timeout: 10000
+- assertVisible:
+    id: "settings.privacy"
+- tapOn:
+    id: "tab.today"
+- assertVisible:
+    id: "screen.day_thread"
+- tapOn:
+    id: "tab.capture"
+- extendedWaitUntil:
+    visible:
+      id: "screen.capture"
+    timeout: 10000
+- back
+- assertVisible:
+    id: "screen.day_thread"

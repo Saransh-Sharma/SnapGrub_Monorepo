@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
   title: SnapGrub API
-  version: 0.3.0
-  description: Phase 0-8 contracts for auth bootstrap, settings, meal core, multimodal entry, offline sync, privacy export, and account deletion.
+  version: 0.4.0
+  description: Contracts for profile, meal ledger, multimodal entry, offline sync, conversational journaling, generated meal artwork, privacy export, and account deletion.
   license:
     name: Proprietary
     url: https://snapgrub.app/legal
@@ -563,6 +563,150 @@ paths:
           $ref: "#/components/responses/Error"
         "401":
           $ref: "#/components/responses/Error"
+  /agent-runs:
+    post:
+      operationId: agentRunCreate
+      summary: Start or replay an idempotent conversational food-agent run
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentRunRequest"
+      responses:
+        "200":
+          description: Ordered server-sent run events
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        "401":
+          $ref: "#/components/responses/Error"
+  /agent-runs/{agent_run_id}:
+    get:
+      operationId: agentRunGet
+      summary: Read finalized state for reconnection replay
+      parameters:
+        - name: agent_run_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Agent run and replayable events
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [agent_run, thread, messages, events, request_id]
+                properties:
+                  agent_run:
+                    $ref: "#/components/schemas/AgentRun"
+                  thread:
+                    $ref: "#/components/schemas/DailyThread"
+                  messages:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ThreadMessage"
+                  events:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AgentStreamEvent"
+                  request_id:
+                    $ref: "#/components/schemas/RequestId"
+        "404":
+          $ref: "#/components/responses/Error"
+  /agent-proposals/{proposal_id}/acknowledge:
+    post:
+      operationId: agentProposalAcknowledge
+      summary: Acknowledge a proposal after its local ledger mutation
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - name: proposal_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProposalAcknowledgeRequest"
+      responses:
+        "200":
+          description: Updated proposal
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [proposal, request_id]
+                properties:
+                  proposal:
+                    $ref: "#/components/schemas/MealChangeProposal"
+                  request_id:
+                    $ref: "#/components/schemas/RequestId"
+        "400":
+          $ref: "#/components/responses/Error"
+  /meal-visuals:
+    post:
+      operationId: mealVisualCreate
+      summary: Idempotently generate private studio artwork for a meal
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MealVisualCreateRequest"
+      responses:
+        "202":
+          description: Generated or queued visual
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [meal_visual, request_id]
+                properties:
+                  meal_visual:
+                    $ref: "#/components/schemas/MealVisual"
+                  request_id:
+                    $ref: "#/components/schemas/RequestId"
+        "400":
+          $ref: "#/components/responses/Error"
+  /meal-visuals/{meal_visual_id}:
+    get:
+      operationId: mealVisualGet
+      summary: Read generated visual state and fresh signed asset URLs
+      parameters:
+        - name: meal_visual_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Meal visual state
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [meal_visual, request_id]
+                properties:
+                  meal_visual:
+                    $ref: "#/components/schemas/MealVisual"
+                  request_id:
+                    $ref: "#/components/schemas/RequestId"
+        "404":
+          $ref: "#/components/responses/Error"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -605,6 +749,8 @@ components:
               IDEMPOTENCY_CONFLICT,
               CONFLICT,
               RATE_LIMITED,
+              PROVIDER_UNAVAILABLE,
+              IMAGE_GENERATION_FAILED,
               UNKNOWN,
             ]
         message:
@@ -1980,3 +2126,117 @@ components:
           format: date-time
         request_id:
           $ref: "#/components/schemas/RequestId"
+    DailyThread:
+      type: object
+      required: [id, user_id, day, timezone, created_at, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        user_id: { type: string, format: uuid }
+        day: { type: string, format: date }
+        timezone: { type: string }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    ThreadMessage:
+      type: object
+      required: [id, thread_id, user_id, client_id, role, kind, sequence, delivery_state, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        thread_id: { type: string, format: uuid }
+        user_id: { type: string, format: uuid }
+        client_id: { type: string }
+        role: { type: string, enum: [user, assistant, system, tool] }
+        kind: { type: string, enum: [text, activity, mealProposal, mealEvent, error] }
+        text_content: { type: [string, "null"] }
+        payload: { type: object, additionalProperties: true }
+        sequence: { type: integer }
+        delivery_state: { type: string, enum: [pending, streaming, delivered, queued, failed] }
+        created_at: { type: string, format: date-time }
+    AgentRun:
+      type: object
+      required: [id, thread_id, user_id, client_request_id, status, cursor, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        thread_id: { type: string, format: uuid }
+        user_id: { type: string, format: uuid }
+        client_request_id: { type: string }
+        status: { type: string, enum: [pending, streaming, completed, failed] }
+        cursor: { type: integer }
+        provider: { type: [string, "null"] }
+        model_name: { type: [string, "null"] }
+        redacted_metadata: { type: object, additionalProperties: true }
+        created_at: { type: string, format: date-time }
+        completed_at: { type: [string, "null"], format: date-time }
+    AgentStreamEvent:
+      type: object
+      required: [event, run_id, sequence, data]
+      properties:
+        event:
+          type: string
+          enum: [run.started, assistant.delta, tool.started, tool.completed, proposal.ready, run.completed, run.failed]
+        run_id: { type: string, format: uuid }
+        sequence: { type: integer }
+        message_id: { type: [string, "null"], format: uuid }
+        data: { type: object, additionalProperties: true }
+    MealChangeProposal:
+      type: object
+      required: [id, thread_id, user_id, operation, draft_payload, status, created_at, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        thread_id: { type: string, format: uuid }
+        user_id: { type: string, format: uuid }
+        agent_run_id: { type: [string, "null"], format: uuid }
+        message_id: { type: [string, "null"], format: uuid }
+        operation: { type: string, enum: [create, update, delete] }
+        target_meal_id: { type: [string, "null"], format: uuid }
+        expected_revision: { type: [integer, "null"] }
+        draft_payload: { type: object, additionalProperties: true }
+        status: { type: string, enum: [pending, confirmed, edited, rejected, undone, expired] }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    MealVisual:
+      type: object
+      required: [id, meal_id, user_id, prompt_signature, style_version, status, created_at, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        meal_id: { type: string, format: uuid }
+        user_id: { type: string, format: uuid }
+        prompt_signature: { type: string }
+        style_version: { type: string }
+        status: { type: string, enum: [queued, generating, ready, failed] }
+        provider: { type: [string, "null"] }
+        model_name: { type: [string, "null"] }
+        storage_path: { type: [string, "null"] }
+        thumb_storage_path: { type: [string, "null"] }
+        dominant_color: { type: [string, "null"] }
+        signed_url: { type: [string, "null"], format: uri }
+        thumb_signed_url: { type: [string, "null"], format: uri }
+        signed_url_expires_at: { type: [string, "null"], format: date-time }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    AgentRunRequest:
+      type: object
+      required: [client_request_id, thread_id, day, timezone, locale, message]
+      properties:
+        client_request_id: { type: string }
+        thread_id: { type: string, format: uuid }
+        day: { type: string, format: date }
+        timezone: { type: string }
+        locale: { type: string }
+        cuisine_hints:
+          type: array
+          items: { type: string }
+        message: { type: string, minLength: 1 }
+    ProposalAcknowledgeRequest:
+      type: object
+      required: [action]
+      properties:
+        action: { type: string, enum: [confirm, edit, reject, undo] }
+    MealVisualCreateRequest:
+      type: object
+      required: [client_request_id, meal_id, prompt_signature, style_version]
+      properties:
+        client_request_id: { type: string }
+        visual_id: { type: [string, "null"], format: uuid }
+        meal_id: { type: string, format: uuid }
+        prompt_signature: { type: string }
+        style_version: { type: string }

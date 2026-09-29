@@ -259,6 +259,60 @@ try {
         response_payload: {},
       });
     if (invocationError) throw invocationError;
+
+    const { data: thread, error: threadError } = await admin
+      .from("daily_threads")
+      .insert({
+        user_id: user.id,
+        day: new Date().toISOString().slice(0, 10),
+        timezone: "UTC",
+      })
+      .select()
+      .single();
+    if (threadError) throw threadError;
+    const { data: message, error: messageError } = await admin
+      .from("thread_messages")
+      .insert({
+        thread_id: thread.id,
+        user_id: user.id,
+        client_id: `${user.id}-thread-message`,
+        role: "user",
+        kind: "text",
+        text_content: "Private breakfast note",
+        sequence: 1,
+      })
+      .select()
+      .single();
+    if (messageError) throw messageError;
+    const { data: run, error: runError } = await admin.from("agent_runs")
+      .insert({
+        thread_id: thread.id,
+        user_id: user.id,
+        client_request_id: `${user.id}-agent-run`,
+        status: "completed",
+        redacted_metadata: { message_length: 22 },
+      })
+      .select()
+      .single();
+    if (runError) throw runError;
+    const { error: proposalError } = await admin
+      .from("meal_change_proposals")
+      .insert({
+        thread_id: thread.id,
+        user_id: user.id,
+        agent_run_id: run.id,
+        message_id: message.id,
+        operation: "create",
+        draft_payload: { title: "Private breakfast" },
+      });
+    if (proposalError) throw proposalError;
+    const { error: visualError } = await admin.from("meal_visuals").insert({
+      meal_id: meal.id,
+      user_id: user.id,
+      prompt_signature: `${user.id}-signature`,
+      status: "queued",
+    });
+    if (visualError) throw visualError;
   }
 
   const { data: ownProfile } = await userA.client
@@ -556,6 +610,18 @@ try {
     otherInvocationsError,
     "User A must not read User B model invocations.",
   );
+
+  for (const table of [
+    "daily_threads",
+    "thread_messages",
+    "agent_runs",
+    "meal_change_proposals",
+    "meal_visuals",
+  ]) {
+    const { data, error } = await userA.client.from(table).select("*")
+      .eq("user_id", userB.id);
+    assertNoRows(data, error, `User A must not read User B ${table}.`);
+  }
 
   console.log("RLS isolation checks passed.");
 } finally {

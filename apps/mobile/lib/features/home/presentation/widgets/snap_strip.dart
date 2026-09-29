@@ -6,6 +6,7 @@ import 'package:snapgrub/app/e2e/e2e_data.dart';
 import 'package:snapgrub/app/e2e/e2e_ids.dart';
 import 'package:snapgrub/app/env/app_config_provider.dart';
 import 'package:snapgrub/core/feature_flags/feature_flags.dart';
+import 'package:snapgrub/core/feedback/friendly_error.dart';
 import 'package:snapgrub/features/capture/application/capture_controller.dart';
 import 'package:snapgrub/features/capture/domain/capture_state.dart';
 import 'package:snapgrub/features/home/application/home_controller.dart';
@@ -51,12 +52,12 @@ class SnapStrip extends ConsumerWidget {
                 E2eId(
                   id: 'snapstrip.barcode',
                   child: IconButton(
-                    tooltip: 'Barcode',
+                    tooltip: 'Scan barcode',
                     onPressed: barcodeEnabled
                         ? () async {
                             await controller
                                 .trackAction('snapstrip_barcode_tapped');
-                            if (context.mounted) context.go('/barcode');
+                            if (context.mounted) context.push('/barcode');
                           }
                         : null,
                     icon: const Icon(Icons.qr_code_scanner),
@@ -73,7 +74,7 @@ class SnapStrip extends ConsumerWidget {
                             final asset = await controller.capture(
                                 userId: userContext.userId);
                             if (asset != null && context.mounted) {
-                              context.go('/photo-analysis', extra: asset);
+                              context.push('/photo-analysis', extra: asset);
                             }
                           }
                         : null,
@@ -88,7 +89,7 @@ class SnapStrip extends ConsumerWidget {
                         ? () async {
                             await controller
                                 .trackAction('snapstrip_text_tapped');
-                            if (context.mounted) context.go('/text-entry');
+                            if (context.mounted) context.push('/text-entry');
                           }
                         : null,
                     icon: const Icon(Icons.keyboard),
@@ -102,7 +103,7 @@ class SnapStrip extends ConsumerWidget {
                         ? () async {
                             await controller
                                 .trackAction('snapstrip_voice_tapped');
-                            if (context.mounted) context.go('/voice-entry');
+                            if (context.mounted) context.push('/voice-entry');
                           }
                         : null,
                     icon: const Icon(Icons.mic_none),
@@ -120,11 +121,11 @@ class SnapStrip extends ConsumerWidget {
                       final asset =
                           await E2eData.fixtureAsset(userContext.userId);
                       if (!context.mounted) return;
-                      context.go('/photo-analysis', extra: asset);
+                      context.push('/photo-analysis', extra: asset);
                     } catch (error) {
                       if (!context.mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(error.toString())),
+                        SnackBar(content: Text(friendlyError(error).message)),
                       );
                     }
                   },
@@ -167,7 +168,7 @@ class _PreviewState extends StatelessWidget {
   Widget build(BuildContext context) {
     return switch (state.status) {
       CaptureStatus.loading => const CircularProgressIndicator(),
-      CaptureStatus.permissionNeeded => const Text('Camera permission needed'),
+      CaptureStatus.permissionNeeded => const Text('Camera access needed'),
       CaptureStatus.cameraReady => camera != null && camera!.value.isInitialized
           ? ClipRRect(
               borderRadius: BorderRadius.circular(8),
@@ -175,10 +176,10 @@ class _PreviewState extends StatelessWidget {
             )
           : const Icon(Icons.camera_alt, size: 48),
       CaptureStatus.cameraPaused => const Text('Camera paused'),
-      CaptureStatus.captureInProgress => const Text('Capturing...'),
-      CaptureStatus.analysisInProgress => const Text('Preparing...'),
+      CaptureStatus.captureInProgress => const Text('Capturing…'),
+      CaptureStatus.analysisInProgress => const Text('Preparing…'),
       CaptureStatus.error => Text(state.message ?? 'Camera unavailable'),
-      CaptureStatus.featureDisabled => const Text('SnapStrip is disabled'),
+      CaptureStatus.featureDisabled => const Text('Camera is off'),
     };
   }
 }

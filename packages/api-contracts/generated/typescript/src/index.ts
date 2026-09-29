@@ -7,7 +7,7 @@ export type GoalType = 'lose' | 'maintain' | 'gain' | 'custom';
 export type JsonMap = Record<string, unknown>;
 
 export type ErrorEnvelope = {
-  code: 'AUTH_REQUIRED' | 'INVALID_INPUT' | 'NOT_FOUND' | 'IDEMPOTENCY_CONFLICT' | 'CONFLICT' | 'UNKNOWN';
+  code: 'AUTH_REQUIRED' | 'INVALID_INPUT' | 'NOT_FOUND' | 'IDEMPOTENCY_CONFLICT' | 'CONFLICT' | 'RATE_LIMITED' | 'PROVIDER_UNAVAILABLE' | 'IMAGE_GENERATION_FAILED' | 'UNKNOWN';
   message: string;
   user_message: string;
   retryable: boolean;
@@ -352,4 +352,47 @@ export type MultimodalAnalysisResponse = {
   retryable: boolean;
   server_time: string;
   request_id: string;
+};
+
+export type DailyThread = {
+  id: string; user_id: string; day: string; timezone: string;
+  created_at: string; updated_at: string;
+};
+
+export type ThreadMessage = {
+  id: string; thread_id: string; user_id: string; client_id: string;
+  role: 'user' | 'assistant' | 'system' | 'tool';
+  kind: 'text' | 'activity' | 'mealProposal' | 'mealEvent' | 'error';
+  text_content: string | null; payload: JsonMap; sequence: number;
+  delivery_state: 'pending' | 'streaming' | 'delivered' | 'queued' | 'failed';
+  created_at: string;
+};
+
+export type AgentRun = {
+  id: string; thread_id: string; user_id: string; client_request_id: string;
+  status: 'pending' | 'streaming' | 'completed' | 'failed'; cursor: number;
+  provider: string | null; model_name: string | null;
+  redacted_metadata: JsonMap; created_at: string; completed_at: string | null;
+};
+
+export type AgentStreamEvent = {
+  event: 'run.started' | 'assistant.delta' | 'tool.started' | 'tool.completed' | 'proposal.ready' | 'run.completed' | 'run.failed';
+  run_id: string; sequence: number; message_id?: string | null; data: JsonMap;
+};
+
+export type MealChangeProposal = {
+  id: string; thread_id: string; user_id: string;
+  operation: 'create' | 'update' | 'delete'; target_meal_id: string | null;
+  expected_revision: number | null; draft_payload: JsonMap;
+  status: 'pending' | 'confirmed' | 'edited' | 'rejected' | 'undone' | 'expired';
+  created_at: string; updated_at: string;
+};
+
+export type MealVisual = {
+  id: string; meal_id: string; user_id: string; prompt_signature: string;
+  style_version: string; status: 'queued' | 'generating' | 'ready' | 'failed';
+  provider: string | null; model_name: string | null; storage_path: string | null;
+  thumb_storage_path: string | null; dominant_color: string | null;
+  signed_url?: string | null; thumb_signed_url?: string | null;
+  signed_url_expires_at?: string | null; created_at: string; updated_at: string;
 };

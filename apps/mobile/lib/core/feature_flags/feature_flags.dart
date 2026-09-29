@@ -16,7 +16,12 @@ enum FeatureFlag {
   barcode('barcode.enabled'),
   ocrAssist('ocr_assist.enabled'),
   voiceCapture('voice_capture.enabled'),
-  weeklyInsights('weekly_insights.enabled', defaultEnabled: false);
+  smartFoodsV2('smart_foods_v2.enabled', defaultEnabled: false),
+  weeklyInsights('weekly_insights.enabled', defaultEnabled: false),
+  conversationalHome('conversational_home.enabled'),
+  agentStreaming('agent_streaming.enabled'),
+  generatedMealVisuals('generated_meal_visuals.enabled'),
+  premiumMotion('premium_motion.enabled');
 
   const FeatureFlag(this.key, {this.defaultEnabled = true});
 

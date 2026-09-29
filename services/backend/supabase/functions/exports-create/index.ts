@@ -308,6 +308,11 @@ async function buildArtifact(
         meal_templates: data.meal_templates,
         correction_events: data.correction_events,
         weekly_insights: data.weekly_insights,
+        daily_threads: data.daily_threads,
+        thread_messages: data.thread_messages,
+        agent_runs: data.agent_runs,
+        meal_change_proposals: data.meal_change_proposals,
+        meal_visuals: data.meal_visuals,
       },
       null,
       2,
@@ -330,6 +335,11 @@ async function readExportData(
     mealTemplates,
     correctionEvents,
     weeklyInsights,
+    dailyThreads,
+    threadMessages,
+    agentRuns,
+    mealChangeProposals,
+    mealVisuals,
   ] = await Promise.all([
     selectMaybeSingle(client, "profiles", userId),
     selectRows(client, "nutrition_goals", userId),
@@ -339,6 +349,11 @@ async function readExportData(
     selectRows(client, "meal_templates", userId),
     selectRows(client, "correction_events", userId),
     selectRows(client, "weekly_insights", userId),
+    selectRows(client, "daily_threads", userId),
+    selectRows(client, "thread_messages", userId),
+    selectRows(client, "agent_runs", userId),
+    selectRows(client, "meal_change_proposals", userId),
+    selectRows(client, "meal_visuals", userId),
   ]);
   const mealItems = await selectMealItemsForMeals(
     client,
@@ -356,6 +371,11 @@ async function readExportData(
     meal_templates: mealTemplates,
     correction_events: correctionEvents,
     weekly_insights: weeklyInsights,
+    daily_threads: dailyThreads,
+    thread_messages: threadMessages,
+    agent_runs: agentRuns,
+    meal_change_proposals: mealChangeProposals,
+    meal_visuals: mealVisuals,
   };
 }
 

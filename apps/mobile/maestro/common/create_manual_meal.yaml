@@ -1,7 +1,12 @@
 appId: ${APP_ID}
 ---
+# Opens Meal Review for a manual meal from Today, fills the first item and
+# logs it. A new manual meal opens with its blank item already expanded and
+# "Edit nutrition" open, so the item fields are reachable without extra taps.
 - tapOn:
-    id: "home.manual"
+    id: "conversation.add_menu"
+- tapOn:
+    id: "conversation.capture.manual"
 - extendedWaitUntil:
     visible:
       id: "scaffold.meal_editor"
@@ -9,40 +14,63 @@ appId: ${APP_ID}
 - tapOn:
     id: "meal.title"
 - inputText: "${E2E_MANUAL_MEAL_TITLE}"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "meal.item.0.food"
+    direction: DOWN
+    visibilityPercentage: 100
 - tapOn:
     id: "meal.item.0.food"
 - inputText: "Paneer bowl"
-- pressKey: "enter"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "meal.item.0.kcal"
+    direction: DOWN
+    visibilityPercentage: 100
 - tapOn:
     id: "meal.item.0.kcal"
 - eraseText: 100
 - inputText: "520"
-- pressKey: "enter"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "meal.item.0.protein"
+    direction: DOWN
+    visibilityPercentage: 100
 - tapOn:
     id: "meal.item.0.protein"
 - eraseText: 100
 - inputText: "32"
-- pressKey: "enter"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "meal.item.0.carbs"
+    direction: DOWN
+    visibilityPercentage: 100
 - tapOn:
     id: "meal.item.0.carbs"
 - eraseText: 100
 - inputText: "45"
-- pressKey: "enter"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "meal.item.0.fat"
+    direction: DOWN
+    visibilityPercentage: 100
 - tapOn:
     id: "meal.item.0.fat"
 - eraseText: 100
 - inputText: "18"
-- pressKey: "enter"
-- scrollUntilVisible:
-    element:
-      id: "meal.save"
-    direction: DOWN
-    visibilityPercentage: 50
+- hideKeyboard
+# "Log meal" lives in the sticky bottom bar, so it is always on screen.
 - tapOn:
     id: "meal.save"
+# Saving pops back to Today and shows "Logged · Undo".
 - extendedWaitUntil:
     visible:
-      id: "scaffold.journal"
+      id: "screen.day_thread"
     timeout: 10000
 - assertVisible:
-    id: "${E2E_MANUAL_MEAL_ID}"
+    text: ".*${E2E_MANUAL_MEAL_TITLE}.*"

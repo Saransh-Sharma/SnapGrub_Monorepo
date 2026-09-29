@@ -4,7 +4,7 @@ Phase 0-1 events:
 
 - `app_opened`
 - `auth_started`
-- `auth_magic_link_requested`
+- `auth_email_otp_requested`
 - `onboarding_started`
 - `onboarding_completed`
 - `settings_patch_queued`
@@ -31,3 +31,10 @@ Phase 3 meal events:
 - `sync_started`
 - `sync_completed`
 - `sync_failed`
+
+Phase 7 insights and Smart repeats events:
+
+- `smart_food_suggestion_viewed`
+- `smart_food_suggestion_opened`
+- `weekly_checkin_viewed`
+- `weekly_checkin_action_tapped`

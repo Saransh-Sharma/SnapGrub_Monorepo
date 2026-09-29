@@ -198,6 +198,18 @@ class OutboxRepository {
     );
   }
 
+  Future<void> markClientRequestSynced(String clientRequestId) async {
+    await (_db.update(_db.outboxCommands)
+          ..where((row) => row.clientRequestId.equals(clientRequestId)))
+        .write(
+      OutboxCommandsCompanion(
+        status: const Value('synced'),
+        lastError: const Value<String?>(null),
+        updatedAt: Value(DateTime.now().toUtc()),
+      ),
+    );
+  }
+
   Future<void> markAllUserCommandsSynced(String userId) async {
     await (_db.update(_db.outboxCommands)
           ..where((tbl) =>

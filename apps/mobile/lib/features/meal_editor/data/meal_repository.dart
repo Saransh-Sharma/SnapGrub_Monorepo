@@ -68,6 +68,19 @@ class MealRepository {
     });
   }
 
+  Stream<List<domain.Meal>> watchAllMeals(String userId) {
+    final query = _db.select(_db.mealsLocal)
+      ..where((tbl) => tbl.userId.equals(userId) & tbl.deletedAt.isNull())
+      ..orderBy([(tbl) => OrderingTerm.desc(tbl.loggedAt)]);
+    return query.watch().asyncMap((rows) async {
+      final meals = <domain.Meal>[];
+      for (final row in rows) {
+        meals.add(await _mealFromRow(row));
+      }
+      return meals;
+    });
+  }
+
   Stream<domain.DailyRollup> watchRollup(String userId, DateTime day) {
     final normalized = DateTime(day.year, day.month, day.day);
     final query = _db.select(_db.dailyRollupsLocal)
@@ -78,6 +91,24 @@ class MealRepository {
       }
       return _rollupFromRow(row);
     });
+  }
+
+  /// Daily rollups for user-days in [start]..[end] (inclusive), oldest first.
+  /// Days without a rollup row are simply absent.
+  Stream<List<domain.DailyRollup>> watchRollupsBetween(
+    String userId,
+    DateTime start,
+    DateTime end,
+  ) {
+    final from = DateTime(start.year, start.month, start.day);
+    final to = DateTime(end.year, end.month, end.day);
+    final query = _db.select(_db.dailyRollupsLocal)
+      ..where((tbl) =>
+          tbl.userId.equals(userId) &
+          tbl.day.isBiggerOrEqualValue(from) &
+          tbl.day.isSmallerOrEqualValue(to))
+      ..orderBy([(tbl) => OrderingTerm.asc(tbl.day)]);
+    return query.watch().map((rows) => rows.map(_rollupFromRow).toList());
   }
 
   Future<domain.Meal?> getMeal(String id) async {
@@ -138,7 +169,7 @@ class MealRepository {
     final draft = domain.MealDraft(
       userId: meal.userId,
       timezone: meal.timezone,
-      title: '${meal.title} copy',
+      title: meal.title,
       mealType: meal.mealType,
       source: domain.MealSource.duplicate,
       loggedAt: DateTime.now(),

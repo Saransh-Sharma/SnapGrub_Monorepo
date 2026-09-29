@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
+import 'package:drift/drift.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:snapgrub/data/db/drift/app_database.dart';
@@ -16,16 +16,22 @@ class E2eData {
     'barcode.enabled': true,
     'ocr_assist.enabled': true,
     'voice_capture.enabled': true,
+    'smart_foods_v2.enabled': true,
     'weekly_insights.enabled': true,
+    'conversational_home.enabled': true,
+    'agent_streaming.enabled': true,
+    'generated_meal_visuals.enabled': true,
+    'premium_motion.enabled': true,
   };
 
   static Future<void> ensureFeatureFlags(AppDatabase db) async {
     for (final entry in enabledFlags.entries) {
-      await db.into(db.featureFlagsLocal).insertOnConflictUpdate(
+      await db.into(db.featureFlagsLocal).insert(
             FeatureFlagsLocalCompanion.insert(
               key: entry.key,
               valueJson: jsonEncode(entry.value),
             ),
+            mode: InsertMode.insertOrIgnore,
           );
     }
   }

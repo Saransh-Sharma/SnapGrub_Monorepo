@@ -85,6 +85,12 @@ npm run backend:test:insights
 npm run backend:test:privacy
 ```
 
+For the insights/defaults smoke from a clean local state, prefer the wrapper:
+
+```sh
+npm run backend:test:insights:local
+```
+
 `NODE_OPTIONS=--experimental-websocket` is needed on Node 20 because Supabase JS initializes realtime support with a WebSocket dependency. Remove it only after verifying the tests on Node 22 or newer.
 
 The hosted `snapgrub-dev` Supabase project is the next deployment target after local validation. Link and deploy it only after creating the cloud project; keep production as a separate Supabase project.
@@ -101,3 +107,20 @@ flutter build apk --debug --flavor dev --dart-define=SNAPGRUB_ENV=dev
 ```
 
 If the Android build reports that no Java Runtime is available, install a JDK and rerun the APK build before treating mobile acceptance as complete.
+
+If the Android debug build stalls, collect environment signal before changing app code:
+
+```sh
+cd apps/mobile
+flutter doctor -v
+java -version
+./android/gradlew --version
+df -h .
+cd android
+./gradlew --stop
+./gradlew :app:assembleDevDebug --stacktrace --info --console=plain
+cd ..
+flutter build apk --debug --flavor dev --dart-define=SNAPGRUB_ENV=dev
+```
+
+Use the focused Gradle output to identify the last active task or daemon issue; only change Gradle or Flutter configuration when that output points to a concrete blocker.

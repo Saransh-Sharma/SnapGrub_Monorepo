@@ -138,6 +138,61 @@ try {
   });
   if (itemError) throw itemError;
 
+  const { data: thread, error: threadError } = await admin
+    .from("daily_threads")
+    .insert({
+      user_id: exportUserId,
+      day: new Date().toISOString().slice(0, 10),
+      timezone: "Asia/Kolkata",
+    })
+    .select()
+    .single();
+  if (threadError) throw threadError;
+  const { data: threadMessage, error: threadMessageError } = await admin
+    .from("thread_messages")
+    .insert({
+      thread_id: thread.id,
+      user_id: exportUserId,
+      client_id: crypto.randomUUID(),
+      role: "user",
+      kind: "text",
+      text_content: "Export this private food note",
+      sequence: 1,
+    })
+    .select()
+    .single();
+  if (threadMessageError) throw threadMessageError;
+  const { data: agentRun, error: agentRunError } = await admin
+    .from("agent_runs")
+    .insert({
+      thread_id: thread.id,
+      user_id: exportUserId,
+      client_request_id: crypto.randomUUID(),
+      status: "completed",
+      redacted_metadata: { message_length: 29 },
+    })
+    .select()
+    .single();
+  if (agentRunError) throw agentRunError;
+  const { error: proposalError } = await admin
+    .from("meal_change_proposals")
+    .insert({
+      thread_id: thread.id,
+      user_id: exportUserId,
+      agent_run_id: agentRun.id,
+      message_id: threadMessage.id,
+      operation: "create",
+      draft_payload: { title: "Export proposal" },
+    });
+  if (proposalError) throw proposalError;
+  const { error: visualError } = await admin.from("meal_visuals").insert({
+    meal_id: mealId,
+    user_id: exportUserId,
+    prompt_signature: "privacy-export-signature",
+    status: "queued",
+  });
+  if (visualError) throw visualError;
+
   const clientRequestId = crypto.randomUUID();
   const exported = await invokeOrThrow(exportUser.client, "exports-create", {
     headers: { "Idempotency-Key": clientRequestId },
@@ -196,6 +251,11 @@ try {
     artifactText.includes("Privacy export meal"),
     "export artifact should contain meal data",
   );
+  assert(
+    artifactText.includes("Export this private food note") &&
+      artifactText.includes("privacy-export-signature"),
+    "export artifact should contain conversations and generated visual records",
+  );
 
   const deleteUser = await createSignedInUser("privacy-delete");
   deleteUserId = deleteUser.id;
@@ -216,6 +276,15 @@ try {
       upsert: true,
     });
   if (nestedUploadError) throw nestedUploadError;
+  const generatedStoragePath =
+    `${deleteUserId}/generated/${crypto.randomUUID()}.jpg`;
+  const { error: generatedUploadError } = await admin.storage
+    .from("meal-generated-private")
+    .upload(generatedStoragePath, new Blob(["image"], { type: "image/jpeg" }), {
+      contentType: "image/jpeg",
+      upsert: true,
+    });
+  if (generatedUploadError) throw generatedUploadError;
 
   await invokeExpectError(
     deleteUser.client,
@@ -232,6 +301,13 @@ try {
   assert(
     deletion.account_deletion.status === "completed",
     "account deletion should complete",
+  );
+
+  const { data: generatedArtifact, error: generatedArtifactError } = await admin
+    .storage.from("meal-generated-private").download(generatedStoragePath);
+  assert(
+    generatedArtifact == null && generatedArtifactError,
+    "account deletion should remove generated meal artwork",
   );
   deleteUserId = undefined;
 

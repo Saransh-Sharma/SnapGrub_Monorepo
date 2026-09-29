@@ -5,6 +5,8 @@ export type ErrorCode =
   | "IDEMPOTENCY_CONFLICT"
   | "CONFLICT"
   | "RATE_LIMITED"
+  | "PROVIDER_UNAVAILABLE"
+  | "IMAGE_GENERATION_FAILED"
   | "UNKNOWN";
 
 export class ApiError extends Error {

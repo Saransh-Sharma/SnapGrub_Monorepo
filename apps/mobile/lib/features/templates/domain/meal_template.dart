@@ -36,6 +36,8 @@ class MealTemplate {
         carbsG: (item['carbs_g'] as num?)?.toDouble() ?? 0,
         fatG: (item['fat_g'] as num?)?.toDouble() ?? 0,
         foodRefKind: item['food_ref_kind'] as String? ?? 'manual',
+        canonicalFoodId: item['canonical_food_id'] as String?,
+        brandedProductId: item['branded_product_id'] as String?,
         customFoodId: item['custom_food_id'] as String?,
         sourceType: item['source_type'] as String?,
         sourceId: item['source_id'] as String?,

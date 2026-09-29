@@ -8,6 +8,7 @@ const STORAGE_BUCKETS = [
   "meal-originals-private",
   "meal-thumbnails-private",
   "exports-private",
+  "meal-generated-private",
 ];
 
 Deno.serve(async (req) => {
@@ -162,6 +163,22 @@ async function knownStoragePaths(
     push(
       exportRequest.result_storage_bucket ?? "exports-private",
       exportRequest.result_storage_path,
+    );
+  }
+
+  const { data: visuals, error: visualError } = await client
+    .from("meal_visuals")
+    .select("storage_bucket, storage_path, thumb_storage_path")
+    .eq("user_id", userId);
+  if (visualError) throw visualError;
+  for (const visual of visuals ?? []) {
+    push(
+      visual.storage_bucket ?? "meal-generated-private",
+      visual.storage_path,
+    );
+    push(
+      visual.storage_bucket ?? "meal-generated-private",
+      visual.thumb_storage_path,
     );
   }
 

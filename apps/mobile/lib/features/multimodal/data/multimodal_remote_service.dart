@@ -152,7 +152,7 @@ class MultimodalRemoteService {
   }) {
     final draft = response.draft;
     if (draft == null) {
-      throw StateError(response.fallbackReason ?? 'Barcode was not found.');
+      throw StateError(response.fallbackReason ?? 'Product not found.');
     }
     return mealDraftFromEditableDto(
       result: draft,

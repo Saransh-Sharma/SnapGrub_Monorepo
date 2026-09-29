@@ -1,19 +1,24 @@
 import 'package:drift/drift.dart';
 import 'package:snapgrub/data/db/drift/connection.dart';
 import 'package:snapgrub/data/db/tables/body_measurements_local.dart';
+import 'package:snapgrub/data/db/tables/agent_runs_local.dart';
 import 'package:snapgrub/data/db/tables/correction_events_local.dart';
 import 'package:snapgrub/data/db/tables/custom_foods_local.dart';
 import 'package:snapgrub/data/db/tables/daily_rollups_local.dart';
+import 'package:snapgrub/data/db/tables/daily_threads_local.dart';
 import 'package:snapgrub/data/db/tables/devices_local.dart';
 import 'package:snapgrub/data/db/tables/feature_flags_local.dart';
 import 'package:snapgrub/data/db/tables/meal_assets_local.dart';
 import 'package:snapgrub/data/db/tables/meal_items_local.dart';
+import 'package:snapgrub/data/db/tables/meal_change_proposals_local.dart';
 import 'package:snapgrub/data/db/tables/meal_templates_local.dart';
+import 'package:snapgrub/data/db/tables/meal_visuals_local.dart';
 import 'package:snapgrub/data/db/tables/meals_local.dart';
 import 'package:snapgrub/data/db/tables/nutrition_goals_local.dart';
 import 'package:snapgrub/data/db/tables/outbox_commands.dart';
 import 'package:snapgrub/data/db/tables/profiles_local.dart';
 import 'package:snapgrub/data/db/tables/sync_state.dart';
+import 'package:snapgrub/data/db/tables/thread_messages_local.dart';
 import 'package:snapgrub/data/db/tables/user_food_defaults_local.dart';
 import 'package:snapgrub/data/db/tables/weekly_insights_local.dart';
 
@@ -37,13 +42,18 @@ part 'app_database.g.dart';
     CorrectionEventsLocal,
     WeeklyInsightsLocal,
     UserFoodDefaultsLocal,
+    DailyThreadsLocal,
+    ThreadMessagesLocal,
+    AgentRunsLocal,
+    MealChangeProposalsLocal,
+    MealVisualsLocal,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? openConnection());
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -69,6 +79,13 @@ class AppDatabase extends _$AppDatabase {
           if (from < 5) {
             await m.createTable(weeklyInsightsLocal);
             await m.createTable(userFoodDefaultsLocal);
+          }
+          if (from < 6) {
+            await m.createTable(dailyThreadsLocal);
+            await m.createTable(threadMessagesLocal);
+            await m.createTable(agentRunsLocal);
+            await m.createTable(mealChangeProposalsLocal);
+            await m.createTable(mealVisualsLocal);
           }
         },
       );

@@ -9631,6 +9631,2895 @@ class UserFoodDefaultsLocalCompanion
   }
 }
 
+class $DailyThreadsLocalTable extends DailyThreadsLocal
+    with TableInfo<$DailyThreadsLocalTable, DailyThreadsLocalData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DailyThreadsLocalTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+      'user_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _dayMeta = const VerificationMeta('day');
+  @override
+  late final GeneratedColumn<DateTime> day = GeneratedColumn<DateTime>(
+      'day', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _timezoneMeta =
+      const VerificationMeta('timezone');
+  @override
+  late final GeneratedColumn<String> timezone = GeneratedColumn<String>(
+      'timezone', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, userId, day, timezone, createdAt, updatedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'daily_threads_local';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<DailyThreadsLocalData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta,
+          userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('day')) {
+      context.handle(
+          _dayMeta, day.isAcceptableOrUnknown(data['day']!, _dayMeta));
+    } else if (isInserting) {
+      context.missing(_dayMeta);
+    }
+    if (data.containsKey('timezone')) {
+      context.handle(_timezoneMeta,
+          timezone.isAcceptableOrUnknown(data['timezone']!, _timezoneMeta));
+    } else if (isInserting) {
+      context.missing(_timezoneMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+        {userId, day},
+      ];
+  @override
+  DailyThreadsLocalData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DailyThreadsLocalData(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      userId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      day: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}day'])!,
+      timezone: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}timezone'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+    );
+  }
+
+  @override
+  $DailyThreadsLocalTable createAlias(String alias) {
+    return $DailyThreadsLocalTable(attachedDatabase, alias);
+  }
+}
+
+class DailyThreadsLocalData extends DataClass
+    implements Insertable<DailyThreadsLocalData> {
+  final String id;
+  final String userId;
+  final DateTime day;
+  final String timezone;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const DailyThreadsLocalData(
+      {required this.id,
+      required this.userId,
+      required this.day,
+      required this.timezone,
+      required this.createdAt,
+      required this.updatedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['user_id'] = Variable<String>(userId);
+    map['day'] = Variable<DateTime>(day);
+    map['timezone'] = Variable<String>(timezone);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  DailyThreadsLocalCompanion toCompanion(bool nullToAbsent) {
+    return DailyThreadsLocalCompanion(
+      id: Value(id),
+      userId: Value(userId),
+      day: Value(day),
+      timezone: Value(timezone),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory DailyThreadsLocalData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DailyThreadsLocalData(
+      id: serializer.fromJson<String>(json['id']),
+      userId: serializer.fromJson<String>(json['userId']),
+      day: serializer.fromJson<DateTime>(json['day']),
+      timezone: serializer.fromJson<String>(json['timezone']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'userId': serializer.toJson<String>(userId),
+      'day': serializer.toJson<DateTime>(day),
+      'timezone': serializer.toJson<String>(timezone),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  DailyThreadsLocalData copyWith(
+          {String? id,
+          String? userId,
+          DateTime? day,
+          String? timezone,
+          DateTime? createdAt,
+          DateTime? updatedAt}) =>
+      DailyThreadsLocalData(
+        id: id ?? this.id,
+        userId: userId ?? this.userId,
+        day: day ?? this.day,
+        timezone: timezone ?? this.timezone,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+      );
+  DailyThreadsLocalData copyWithCompanion(DailyThreadsLocalCompanion data) {
+    return DailyThreadsLocalData(
+      id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      day: data.day.present ? data.day.value : this.day,
+      timezone: data.timezone.present ? data.timezone.value : this.timezone,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DailyThreadsLocalData(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('day: $day, ')
+          ..write('timezone: $timezone, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, userId, day, timezone, createdAt, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DailyThreadsLocalData &&
+          other.id == this.id &&
+          other.userId == this.userId &&
+          other.day == this.day &&
+          other.timezone == this.timezone &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class DailyThreadsLocalCompanion
+    extends UpdateCompanion<DailyThreadsLocalData> {
+  final Value<String> id;
+  final Value<String> userId;
+  final Value<DateTime> day;
+  final Value<String> timezone;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const DailyThreadsLocalCompanion({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.day = const Value.absent(),
+    this.timezone = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DailyThreadsLocalCompanion.insert({
+    required String id,
+    required String userId,
+    required DateTime day,
+    required String timezone,
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        userId = Value(userId),
+        day = Value(day),
+        timezone = Value(timezone);
+  static Insertable<DailyThreadsLocalData> custom({
+    Expression<String>? id,
+    Expression<String>? userId,
+    Expression<DateTime>? day,
+    Expression<String>? timezone,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (day != null) 'day': day,
+      if (timezone != null) 'timezone': timezone,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DailyThreadsLocalCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? userId,
+      Value<DateTime>? day,
+      Value<String>? timezone,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt,
+      Value<int>? rowid}) {
+    return DailyThreadsLocalCompanion(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      day: day ?? this.day,
+      timezone: timezone ?? this.timezone,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (day.present) {
+      map['day'] = Variable<DateTime>(day.value);
+    }
+    if (timezone.present) {
+      map['timezone'] = Variable<String>(timezone.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DailyThreadsLocalCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('day: $day, ')
+          ..write('timezone: $timezone, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ThreadMessagesLocalTable extends ThreadMessagesLocal
+    with TableInfo<$ThreadMessagesLocalTable, ThreadMessagesLocalData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ThreadMessagesLocalTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _threadIdMeta =
+      const VerificationMeta('threadId');
+  @override
+  late final GeneratedColumn<String> threadId = GeneratedColumn<String>(
+      'thread_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+      'user_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _clientIdMeta =
+      const VerificationMeta('clientId');
+  @override
+  late final GeneratedColumn<String> clientId = GeneratedColumn<String>(
+      'client_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _roleMeta = const VerificationMeta('role');
+  @override
+  late final GeneratedColumn<String> role = GeneratedColumn<String>(
+      'role', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _kindMeta = const VerificationMeta('kind');
+  @override
+  late final GeneratedColumn<String> kind = GeneratedColumn<String>(
+      'kind', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('text'));
+  static const VerificationMeta _textContentMeta =
+      const VerificationMeta('textContent');
+  @override
+  late final GeneratedColumn<String> textContent = GeneratedColumn<String>(
+      'text_content', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _payloadJsonMeta =
+      const VerificationMeta('payloadJson');
+  @override
+  late final GeneratedColumn<String> payloadJson = GeneratedColumn<String>(
+      'payload_json', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('{}'));
+  static const VerificationMeta _sequenceMeta =
+      const VerificationMeta('sequence');
+  @override
+  late final GeneratedColumn<int> sequence = GeneratedColumn<int>(
+      'sequence', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _deliveryStateMeta =
+      const VerificationMeta('deliveryState');
+  @override
+  late final GeneratedColumn<String> deliveryState = GeneratedColumn<String>(
+      'delivery_state', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('pending'));
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        threadId,
+        userId,
+        clientId,
+        role,
+        kind,
+        textContent,
+        payloadJson,
+        sequence,
+        deliveryState,
+        createdAt,
+        updatedAt
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'thread_messages_local';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<ThreadMessagesLocalData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('thread_id')) {
+      context.handle(_threadIdMeta,
+          threadId.isAcceptableOrUnknown(data['thread_id']!, _threadIdMeta));
+    } else if (isInserting) {
+      context.missing(_threadIdMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta,
+          userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('client_id')) {
+      context.handle(_clientIdMeta,
+          clientId.isAcceptableOrUnknown(data['client_id']!, _clientIdMeta));
+    } else if (isInserting) {
+      context.missing(_clientIdMeta);
+    }
+    if (data.containsKey('role')) {
+      context.handle(
+          _roleMeta, role.isAcceptableOrUnknown(data['role']!, _roleMeta));
+    } else if (isInserting) {
+      context.missing(_roleMeta);
+    }
+    if (data.containsKey('kind')) {
+      context.handle(
+          _kindMeta, kind.isAcceptableOrUnknown(data['kind']!, _kindMeta));
+    }
+    if (data.containsKey('text_content')) {
+      context.handle(
+          _textContentMeta,
+          textContent.isAcceptableOrUnknown(
+              data['text_content']!, _textContentMeta));
+    }
+    if (data.containsKey('payload_json')) {
+      context.handle(
+          _payloadJsonMeta,
+          payloadJson.isAcceptableOrUnknown(
+              data['payload_json']!, _payloadJsonMeta));
+    }
+    if (data.containsKey('sequence')) {
+      context.handle(_sequenceMeta,
+          sequence.isAcceptableOrUnknown(data['sequence']!, _sequenceMeta));
+    } else if (isInserting) {
+      context.missing(_sequenceMeta);
+    }
+    if (data.containsKey('delivery_state')) {
+      context.handle(
+          _deliveryStateMeta,
+          deliveryState.isAcceptableOrUnknown(
+              data['delivery_state']!, _deliveryStateMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+        {userId, clientId},
+      ];
+  @override
+  ThreadMessagesLocalData map(Map<String, dynamic> data,
+      {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ThreadMessagesLocalData(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      threadId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}thread_id'])!,
+      userId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      clientId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}client_id'])!,
+      role: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}role'])!,
+      kind: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}kind'])!,
+      textContent: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}text_content']),
+      payloadJson: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}payload_json'])!,
+      sequence: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}sequence'])!,
+      deliveryState: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}delivery_state'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+    );
+  }
+
+  @override
+  $ThreadMessagesLocalTable createAlias(String alias) {
+    return $ThreadMessagesLocalTable(attachedDatabase, alias);
+  }
+}
+
+class ThreadMessagesLocalData extends DataClass
+    implements Insertable<ThreadMessagesLocalData> {
+  final String id;
+  final String threadId;
+  final String userId;
+  final String clientId;
+  final String role;
+  final String kind;
+  final String? textContent;
+  final String payloadJson;
+  final int sequence;
+  final String deliveryState;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const ThreadMessagesLocalData(
+      {required this.id,
+      required this.threadId,
+      required this.userId,
+      required this.clientId,
+      required this.role,
+      required this.kind,
+      this.textContent,
+      required this.payloadJson,
+      required this.sequence,
+      required this.deliveryState,
+      required this.createdAt,
+      required this.updatedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['thread_id'] = Variable<String>(threadId);
+    map['user_id'] = Variable<String>(userId);
+    map['client_id'] = Variable<String>(clientId);
+    map['role'] = Variable<String>(role);
+    map['kind'] = Variable<String>(kind);
+    if (!nullToAbsent || textContent != null) {
+      map['text_content'] = Variable<String>(textContent);
+    }
+    map['payload_json'] = Variable<String>(payloadJson);
+    map['sequence'] = Variable<int>(sequence);
+    map['delivery_state'] = Variable<String>(deliveryState);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  ThreadMessagesLocalCompanion toCompanion(bool nullToAbsent) {
+    return ThreadMessagesLocalCompanion(
+      id: Value(id),
+      threadId: Value(threadId),
+      userId: Value(userId),
+      clientId: Value(clientId),
+      role: Value(role),
+      kind: Value(kind),
+      textContent: textContent == null && nullToAbsent
+          ? const Value.absent()
+          : Value(textContent),
+      payloadJson: Value(payloadJson),
+      sequence: Value(sequence),
+      deliveryState: Value(deliveryState),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory ThreadMessagesLocalData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ThreadMessagesLocalData(
+      id: serializer.fromJson<String>(json['id']),
+      threadId: serializer.fromJson<String>(json['threadId']),
+      userId: serializer.fromJson<String>(json['userId']),
+      clientId: serializer.fromJson<String>(json['clientId']),
+      role: serializer.fromJson<String>(json['role']),
+      kind: serializer.fromJson<String>(json['kind']),
+      textContent: serializer.fromJson<String?>(json['textContent']),
+      payloadJson: serializer.fromJson<String>(json['payloadJson']),
+      sequence: serializer.fromJson<int>(json['sequence']),
+      deliveryState: serializer.fromJson<String>(json['deliveryState']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'threadId': serializer.toJson<String>(threadId),
+      'userId': serializer.toJson<String>(userId),
+      'clientId': serializer.toJson<String>(clientId),
+      'role': serializer.toJson<String>(role),
+      'kind': serializer.toJson<String>(kind),
+      'textContent': serializer.toJson<String?>(textContent),
+      'payloadJson': serializer.toJson<String>(payloadJson),
+      'sequence': serializer.toJson<int>(sequence),
+      'deliveryState': serializer.toJson<String>(deliveryState),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  ThreadMessagesLocalData copyWith(
+          {String? id,
+          String? threadId,
+          String? userId,
+          String? clientId,
+          String? role,
+          String? kind,
+          Value<String?> textContent = const Value.absent(),
+          String? payloadJson,
+          int? sequence,
+          String? deliveryState,
+          DateTime? createdAt,
+          DateTime? updatedAt}) =>
+      ThreadMessagesLocalData(
+        id: id ?? this.id,
+        threadId: threadId ?? this.threadId,
+        userId: userId ?? this.userId,
+        clientId: clientId ?? this.clientId,
+        role: role ?? this.role,
+        kind: kind ?? this.kind,
+        textContent: textContent.present ? textContent.value : this.textContent,
+        payloadJson: payloadJson ?? this.payloadJson,
+        sequence: sequence ?? this.sequence,
+        deliveryState: deliveryState ?? this.deliveryState,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+      );
+  ThreadMessagesLocalData copyWithCompanion(ThreadMessagesLocalCompanion data) {
+    return ThreadMessagesLocalData(
+      id: data.id.present ? data.id.value : this.id,
+      threadId: data.threadId.present ? data.threadId.value : this.threadId,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      clientId: data.clientId.present ? data.clientId.value : this.clientId,
+      role: data.role.present ? data.role.value : this.role,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      textContent:
+          data.textContent.present ? data.textContent.value : this.textContent,
+      payloadJson:
+          data.payloadJson.present ? data.payloadJson.value : this.payloadJson,
+      sequence: data.sequence.present ? data.sequence.value : this.sequence,
+      deliveryState: data.deliveryState.present
+          ? data.deliveryState.value
+          : this.deliveryState,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ThreadMessagesLocalData(')
+          ..write('id: $id, ')
+          ..write('threadId: $threadId, ')
+          ..write('userId: $userId, ')
+          ..write('clientId: $clientId, ')
+          ..write('role: $role, ')
+          ..write('kind: $kind, ')
+          ..write('textContent: $textContent, ')
+          ..write('payloadJson: $payloadJson, ')
+          ..write('sequence: $sequence, ')
+          ..write('deliveryState: $deliveryState, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, threadId, userId, clientId, role, kind,
+      textContent, payloadJson, sequence, deliveryState, createdAt, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ThreadMessagesLocalData &&
+          other.id == this.id &&
+          other.threadId == this.threadId &&
+          other.userId == this.userId &&
+          other.clientId == this.clientId &&
+          other.role == this.role &&
+          other.kind == this.kind &&
+          other.textContent == this.textContent &&
+          other.payloadJson == this.payloadJson &&
+          other.sequence == this.sequence &&
+          other.deliveryState == this.deliveryState &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class ThreadMessagesLocalCompanion
+    extends UpdateCompanion<ThreadMessagesLocalData> {
+  final Value<String> id;
+  final Value<String> threadId;
+  final Value<String> userId;
+  final Value<String> clientId;
+  final Value<String> role;
+  final Value<String> kind;
+  final Value<String?> textContent;
+  final Value<String> payloadJson;
+  final Value<int> sequence;
+  final Value<String> deliveryState;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const ThreadMessagesLocalCompanion({
+    this.id = const Value.absent(),
+    this.threadId = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.clientId = const Value.absent(),
+    this.role = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.textContent = const Value.absent(),
+    this.payloadJson = const Value.absent(),
+    this.sequence = const Value.absent(),
+    this.deliveryState = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ThreadMessagesLocalCompanion.insert({
+    required String id,
+    required String threadId,
+    required String userId,
+    required String clientId,
+    required String role,
+    this.kind = const Value.absent(),
+    this.textContent = const Value.absent(),
+    this.payloadJson = const Value.absent(),
+    required int sequence,
+    this.deliveryState = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        threadId = Value(threadId),
+        userId = Value(userId),
+        clientId = Value(clientId),
+        role = Value(role),
+        sequence = Value(sequence);
+  static Insertable<ThreadMessagesLocalData> custom({
+    Expression<String>? id,
+    Expression<String>? threadId,
+    Expression<String>? userId,
+    Expression<String>? clientId,
+    Expression<String>? role,
+    Expression<String>? kind,
+    Expression<String>? textContent,
+    Expression<String>? payloadJson,
+    Expression<int>? sequence,
+    Expression<String>? deliveryState,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (threadId != null) 'thread_id': threadId,
+      if (userId != null) 'user_id': userId,
+      if (clientId != null) 'client_id': clientId,
+      if (role != null) 'role': role,
+      if (kind != null) 'kind': kind,
+      if (textContent != null) 'text_content': textContent,
+      if (payloadJson != null) 'payload_json': payloadJson,
+      if (sequence != null) 'sequence': sequence,
+      if (deliveryState != null) 'delivery_state': deliveryState,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ThreadMessagesLocalCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? threadId,
+      Value<String>? userId,
+      Value<String>? clientId,
+      Value<String>? role,
+      Value<String>? kind,
+      Value<String?>? textContent,
+      Value<String>? payloadJson,
+      Value<int>? sequence,
+      Value<String>? deliveryState,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt,
+      Value<int>? rowid}) {
+    return ThreadMessagesLocalCompanion(
+      id: id ?? this.id,
+      threadId: threadId ?? this.threadId,
+      userId: userId ?? this.userId,
+      clientId: clientId ?? this.clientId,
+      role: role ?? this.role,
+      kind: kind ?? this.kind,
+      textContent: textContent ?? this.textContent,
+      payloadJson: payloadJson ?? this.payloadJson,
+      sequence: sequence ?? this.sequence,
+      deliveryState: deliveryState ?? this.deliveryState,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (threadId.present) {
+      map['thread_id'] = Variable<String>(threadId.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (clientId.present) {
+      map['client_id'] = Variable<String>(clientId.value);
+    }
+    if (role.present) {
+      map['role'] = Variable<String>(role.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(kind.value);
+    }
+    if (textContent.present) {
+      map['text_content'] = Variable<String>(textContent.value);
+    }
+    if (payloadJson.present) {
+      map['payload_json'] = Variable<String>(payloadJson.value);
+    }
+    if (sequence.present) {
+      map['sequence'] = Variable<int>(sequence.value);
+    }
+    if (deliveryState.present) {
+      map['delivery_state'] = Variable<String>(deliveryState.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ThreadMessagesLocalCompanion(')
+          ..write('id: $id, ')
+          ..write('threadId: $threadId, ')
+          ..write('userId: $userId, ')
+          ..write('clientId: $clientId, ')
+          ..write('role: $role, ')
+          ..write('kind: $kind, ')
+          ..write('textContent: $textContent, ')
+          ..write('payloadJson: $payloadJson, ')
+          ..write('sequence: $sequence, ')
+          ..write('deliveryState: $deliveryState, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AgentRunsLocalTable extends AgentRunsLocal
+    with TableInfo<$AgentRunsLocalTable, AgentRunsLocalData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AgentRunsLocalTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _threadIdMeta =
+      const VerificationMeta('threadId');
+  @override
+  late final GeneratedColumn<String> threadId = GeneratedColumn<String>(
+      'thread_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+      'user_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _clientRequestIdMeta =
+      const VerificationMeta('clientRequestId');
+  @override
+  late final GeneratedColumn<String> clientRequestId = GeneratedColumn<String>(
+      'client_request_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+      'status', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('pending'));
+  static const VerificationMeta _cursorMeta = const VerificationMeta('cursor');
+  @override
+  late final GeneratedColumn<int> cursor = GeneratedColumn<int>(
+      'cursor', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _providerMeta =
+      const VerificationMeta('provider');
+  @override
+  late final GeneratedColumn<String> provider = GeneratedColumn<String>(
+      'provider', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _modelNameMeta =
+      const VerificationMeta('modelName');
+  @override
+  late final GeneratedColumn<String> modelName = GeneratedColumn<String>(
+      'model_name', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _errorCodeMeta =
+      const VerificationMeta('errorCode');
+  @override
+  late final GeneratedColumn<String> errorCode = GeneratedColumn<String>(
+      'error_code', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _completedAtMeta =
+      const VerificationMeta('completedAt');
+  @override
+  late final GeneratedColumn<DateTime> completedAt = GeneratedColumn<DateTime>(
+      'completed_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        threadId,
+        userId,
+        clientRequestId,
+        status,
+        cursor,
+        provider,
+        modelName,
+        errorCode,
+        createdAt,
+        updatedAt,
+        completedAt
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'agent_runs_local';
+  @override
+  VerificationContext validateIntegrity(Insertable<AgentRunsLocalData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('thread_id')) {
+      context.handle(_threadIdMeta,
+          threadId.isAcceptableOrUnknown(data['thread_id']!, _threadIdMeta));
+    } else if (isInserting) {
+      context.missing(_threadIdMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta,
+          userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('client_request_id')) {
+      context.handle(
+          _clientRequestIdMeta,
+          clientRequestId.isAcceptableOrUnknown(
+              data['client_request_id']!, _clientRequestIdMeta));
+    } else if (isInserting) {
+      context.missing(_clientRequestIdMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
+    }
+    if (data.containsKey('cursor')) {
+      context.handle(_cursorMeta,
+          cursor.isAcceptableOrUnknown(data['cursor']!, _cursorMeta));
+    }
+    if (data.containsKey('provider')) {
+      context.handle(_providerMeta,
+          provider.isAcceptableOrUnknown(data['provider']!, _providerMeta));
+    }
+    if (data.containsKey('model_name')) {
+      context.handle(_modelNameMeta,
+          modelName.isAcceptableOrUnknown(data['model_name']!, _modelNameMeta));
+    }
+    if (data.containsKey('error_code')) {
+      context.handle(_errorCodeMeta,
+          errorCode.isAcceptableOrUnknown(data['error_code']!, _errorCodeMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    if (data.containsKey('completed_at')) {
+      context.handle(
+          _completedAtMeta,
+          completedAt.isAcceptableOrUnknown(
+              data['completed_at']!, _completedAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+        {userId, clientRequestId},
+      ];
+  @override
+  AgentRunsLocalData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AgentRunsLocalData(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      threadId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}thread_id'])!,
+      userId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      clientRequestId: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}client_request_id'])!,
+      status: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}status'])!,
+      cursor: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}cursor'])!,
+      provider: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}provider']),
+      modelName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}model_name']),
+      errorCode: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}error_code']),
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+      completedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}completed_at']),
+    );
+  }
+
+  @override
+  $AgentRunsLocalTable createAlias(String alias) {
+    return $AgentRunsLocalTable(attachedDatabase, alias);
+  }
+}
+
+class AgentRunsLocalData extends DataClass
+    implements Insertable<AgentRunsLocalData> {
+  final String id;
+  final String threadId;
+  final String userId;
+  final String clientRequestId;
+  final String status;
+  final int cursor;
+  final String? provider;
+  final String? modelName;
+  final String? errorCode;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? completedAt;
+  const AgentRunsLocalData(
+      {required this.id,
+      required this.threadId,
+      required this.userId,
+      required this.clientRequestId,
+      required this.status,
+      required this.cursor,
+      this.provider,
+      this.modelName,
+      this.errorCode,
+      required this.createdAt,
+      required this.updatedAt,
+      this.completedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['thread_id'] = Variable<String>(threadId);
+    map['user_id'] = Variable<String>(userId);
+    map['client_request_id'] = Variable<String>(clientRequestId);
+    map['status'] = Variable<String>(status);
+    map['cursor'] = Variable<int>(cursor);
+    if (!nullToAbsent || provider != null) {
+      map['provider'] = Variable<String>(provider);
+    }
+    if (!nullToAbsent || modelName != null) {
+      map['model_name'] = Variable<String>(modelName);
+    }
+    if (!nullToAbsent || errorCode != null) {
+      map['error_code'] = Variable<String>(errorCode);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || completedAt != null) {
+      map['completed_at'] = Variable<DateTime>(completedAt);
+    }
+    return map;
+  }
+
+  AgentRunsLocalCompanion toCompanion(bool nullToAbsent) {
+    return AgentRunsLocalCompanion(
+      id: Value(id),
+      threadId: Value(threadId),
+      userId: Value(userId),
+      clientRequestId: Value(clientRequestId),
+      status: Value(status),
+      cursor: Value(cursor),
+      provider: provider == null && nullToAbsent
+          ? const Value.absent()
+          : Value(provider),
+      modelName: modelName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(modelName),
+      errorCode: errorCode == null && nullToAbsent
+          ? const Value.absent()
+          : Value(errorCode),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      completedAt: completedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(completedAt),
+    );
+  }
+
+  factory AgentRunsLocalData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AgentRunsLocalData(
+      id: serializer.fromJson<String>(json['id']),
+      threadId: serializer.fromJson<String>(json['threadId']),
+      userId: serializer.fromJson<String>(json['userId']),
+      clientRequestId: serializer.fromJson<String>(json['clientRequestId']),
+      status: serializer.fromJson<String>(json['status']),
+      cursor: serializer.fromJson<int>(json['cursor']),
+      provider: serializer.fromJson<String?>(json['provider']),
+      modelName: serializer.fromJson<String?>(json['modelName']),
+      errorCode: serializer.fromJson<String?>(json['errorCode']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      completedAt: serializer.fromJson<DateTime?>(json['completedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'threadId': serializer.toJson<String>(threadId),
+      'userId': serializer.toJson<String>(userId),
+      'clientRequestId': serializer.toJson<String>(clientRequestId),
+      'status': serializer.toJson<String>(status),
+      'cursor': serializer.toJson<int>(cursor),
+      'provider': serializer.toJson<String?>(provider),
+      'modelName': serializer.toJson<String?>(modelName),
+      'errorCode': serializer.toJson<String?>(errorCode),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'completedAt': serializer.toJson<DateTime?>(completedAt),
+    };
+  }
+
+  AgentRunsLocalData copyWith(
+          {String? id,
+          String? threadId,
+          String? userId,
+          String? clientRequestId,
+          String? status,
+          int? cursor,
+          Value<String?> provider = const Value.absent(),
+          Value<String?> modelName = const Value.absent(),
+          Value<String?> errorCode = const Value.absent(),
+          DateTime? createdAt,
+          DateTime? updatedAt,
+          Value<DateTime?> completedAt = const Value.absent()}) =>
+      AgentRunsLocalData(
+        id: id ?? this.id,
+        threadId: threadId ?? this.threadId,
+        userId: userId ?? this.userId,
+        clientRequestId: clientRequestId ?? this.clientRequestId,
+        status: status ?? this.status,
+        cursor: cursor ?? this.cursor,
+        provider: provider.present ? provider.value : this.provider,
+        modelName: modelName.present ? modelName.value : this.modelName,
+        errorCode: errorCode.present ? errorCode.value : this.errorCode,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+        completedAt: completedAt.present ? completedAt.value : this.completedAt,
+      );
+  AgentRunsLocalData copyWithCompanion(AgentRunsLocalCompanion data) {
+    return AgentRunsLocalData(
+      id: data.id.present ? data.id.value : this.id,
+      threadId: data.threadId.present ? data.threadId.value : this.threadId,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      clientRequestId: data.clientRequestId.present
+          ? data.clientRequestId.value
+          : this.clientRequestId,
+      status: data.status.present ? data.status.value : this.status,
+      cursor: data.cursor.present ? data.cursor.value : this.cursor,
+      provider: data.provider.present ? data.provider.value : this.provider,
+      modelName: data.modelName.present ? data.modelName.value : this.modelName,
+      errorCode: data.errorCode.present ? data.errorCode.value : this.errorCode,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      completedAt:
+          data.completedAt.present ? data.completedAt.value : this.completedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AgentRunsLocalData(')
+          ..write('id: $id, ')
+          ..write('threadId: $threadId, ')
+          ..write('userId: $userId, ')
+          ..write('clientRequestId: $clientRequestId, ')
+          ..write('status: $status, ')
+          ..write('cursor: $cursor, ')
+          ..write('provider: $provider, ')
+          ..write('modelName: $modelName, ')
+          ..write('errorCode: $errorCode, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('completedAt: $completedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      id,
+      threadId,
+      userId,
+      clientRequestId,
+      status,
+      cursor,
+      provider,
+      modelName,
+      errorCode,
+      createdAt,
+      updatedAt,
+      completedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AgentRunsLocalData &&
+          other.id == this.id &&
+          other.threadId == this.threadId &&
+          other.userId == this.userId &&
+          other.clientRequestId == this.clientRequestId &&
+          other.status == this.status &&
+          other.cursor == this.cursor &&
+          other.provider == this.provider &&
+          other.modelName == this.modelName &&
+          other.errorCode == this.errorCode &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.completedAt == this.completedAt);
+}
+
+class AgentRunsLocalCompanion extends UpdateCompanion<AgentRunsLocalData> {
+  final Value<String> id;
+  final Value<String> threadId;
+  final Value<String> userId;
+  final Value<String> clientRequestId;
+  final Value<String> status;
+  final Value<int> cursor;
+  final Value<String?> provider;
+  final Value<String?> modelName;
+  final Value<String?> errorCode;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> completedAt;
+  final Value<int> rowid;
+  const AgentRunsLocalCompanion({
+    this.id = const Value.absent(),
+    this.threadId = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.clientRequestId = const Value.absent(),
+    this.status = const Value.absent(),
+    this.cursor = const Value.absent(),
+    this.provider = const Value.absent(),
+    this.modelName = const Value.absent(),
+    this.errorCode = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AgentRunsLocalCompanion.insert({
+    required String id,
+    required String threadId,
+    required String userId,
+    required String clientRequestId,
+    this.status = const Value.absent(),
+    this.cursor = const Value.absent(),
+    this.provider = const Value.absent(),
+    this.modelName = const Value.absent(),
+    this.errorCode = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        threadId = Value(threadId),
+        userId = Value(userId),
+        clientRequestId = Value(clientRequestId);
+  static Insertable<AgentRunsLocalData> custom({
+    Expression<String>? id,
+    Expression<String>? threadId,
+    Expression<String>? userId,
+    Expression<String>? clientRequestId,
+    Expression<String>? status,
+    Expression<int>? cursor,
+    Expression<String>? provider,
+    Expression<String>? modelName,
+    Expression<String>? errorCode,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? completedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (threadId != null) 'thread_id': threadId,
+      if (userId != null) 'user_id': userId,
+      if (clientRequestId != null) 'client_request_id': clientRequestId,
+      if (status != null) 'status': status,
+      if (cursor != null) 'cursor': cursor,
+      if (provider != null) 'provider': provider,
+      if (modelName != null) 'model_name': modelName,
+      if (errorCode != null) 'error_code': errorCode,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (completedAt != null) 'completed_at': completedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AgentRunsLocalCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? threadId,
+      Value<String>? userId,
+      Value<String>? clientRequestId,
+      Value<String>? status,
+      Value<int>? cursor,
+      Value<String?>? provider,
+      Value<String?>? modelName,
+      Value<String?>? errorCode,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt,
+      Value<DateTime?>? completedAt,
+      Value<int>? rowid}) {
+    return AgentRunsLocalCompanion(
+      id: id ?? this.id,
+      threadId: threadId ?? this.threadId,
+      userId: userId ?? this.userId,
+      clientRequestId: clientRequestId ?? this.clientRequestId,
+      status: status ?? this.status,
+      cursor: cursor ?? this.cursor,
+      provider: provider ?? this.provider,
+      modelName: modelName ?? this.modelName,
+      errorCode: errorCode ?? this.errorCode,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      completedAt: completedAt ?? this.completedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (threadId.present) {
+      map['thread_id'] = Variable<String>(threadId.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (clientRequestId.present) {
+      map['client_request_id'] = Variable<String>(clientRequestId.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (cursor.present) {
+      map['cursor'] = Variable<int>(cursor.value);
+    }
+    if (provider.present) {
+      map['provider'] = Variable<String>(provider.value);
+    }
+    if (modelName.present) {
+      map['model_name'] = Variable<String>(modelName.value);
+    }
+    if (errorCode.present) {
+      map['error_code'] = Variable<String>(errorCode.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (completedAt.present) {
+      map['completed_at'] = Variable<DateTime>(completedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AgentRunsLocalCompanion(')
+          ..write('id: $id, ')
+          ..write('threadId: $threadId, ')
+          ..write('userId: $userId, ')
+          ..write('clientRequestId: $clientRequestId, ')
+          ..write('status: $status, ')
+          ..write('cursor: $cursor, ')
+          ..write('provider: $provider, ')
+          ..write('modelName: $modelName, ')
+          ..write('errorCode: $errorCode, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $MealChangeProposalsLocalTable extends MealChangeProposalsLocal
+    with
+        TableInfo<$MealChangeProposalsLocalTable,
+            MealChangeProposalsLocalData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MealChangeProposalsLocalTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _threadIdMeta =
+      const VerificationMeta('threadId');
+  @override
+  late final GeneratedColumn<String> threadId = GeneratedColumn<String>(
+      'thread_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+      'user_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _messageIdMeta =
+      const VerificationMeta('messageId');
+  @override
+  late final GeneratedColumn<String> messageId = GeneratedColumn<String>(
+      'message_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _operationMeta =
+      const VerificationMeta('operation');
+  @override
+  late final GeneratedColumn<String> operation = GeneratedColumn<String>(
+      'operation', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _targetMealIdMeta =
+      const VerificationMeta('targetMealId');
+  @override
+  late final GeneratedColumn<String> targetMealId = GeneratedColumn<String>(
+      'target_meal_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _expectedRevisionMeta =
+      const VerificationMeta('expectedRevision');
+  @override
+  late final GeneratedColumn<int> expectedRevision = GeneratedColumn<int>(
+      'expected_revision', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _draftJsonMeta =
+      const VerificationMeta('draftJson');
+  @override
+  late final GeneratedColumn<String> draftJson = GeneratedColumn<String>(
+      'draft_json', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+      'status', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('pending'));
+  static const VerificationMeta _expiresAtMeta =
+      const VerificationMeta('expiresAt');
+  @override
+  late final GeneratedColumn<DateTime> expiresAt = GeneratedColumn<DateTime>(
+      'expires_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        threadId,
+        userId,
+        messageId,
+        operation,
+        targetMealId,
+        expectedRevision,
+        draftJson,
+        status,
+        expiresAt,
+        createdAt,
+        updatedAt
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'meal_change_proposals_local';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<MealChangeProposalsLocalData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('thread_id')) {
+      context.handle(_threadIdMeta,
+          threadId.isAcceptableOrUnknown(data['thread_id']!, _threadIdMeta));
+    } else if (isInserting) {
+      context.missing(_threadIdMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta,
+          userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('message_id')) {
+      context.handle(_messageIdMeta,
+          messageId.isAcceptableOrUnknown(data['message_id']!, _messageIdMeta));
+    }
+    if (data.containsKey('operation')) {
+      context.handle(_operationMeta,
+          operation.isAcceptableOrUnknown(data['operation']!, _operationMeta));
+    } else if (isInserting) {
+      context.missing(_operationMeta);
+    }
+    if (data.containsKey('target_meal_id')) {
+      context.handle(
+          _targetMealIdMeta,
+          targetMealId.isAcceptableOrUnknown(
+              data['target_meal_id']!, _targetMealIdMeta));
+    }
+    if (data.containsKey('expected_revision')) {
+      context.handle(
+          _expectedRevisionMeta,
+          expectedRevision.isAcceptableOrUnknown(
+              data['expected_revision']!, _expectedRevisionMeta));
+    }
+    if (data.containsKey('draft_json')) {
+      context.handle(_draftJsonMeta,
+          draftJson.isAcceptableOrUnknown(data['draft_json']!, _draftJsonMeta));
+    } else if (isInserting) {
+      context.missing(_draftJsonMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
+    }
+    if (data.containsKey('expires_at')) {
+      context.handle(_expiresAtMeta,
+          expiresAt.isAcceptableOrUnknown(data['expires_at']!, _expiresAtMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MealChangeProposalsLocalData map(Map<String, dynamic> data,
+      {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MealChangeProposalsLocalData(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      threadId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}thread_id'])!,
+      userId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      messageId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}message_id']),
+      operation: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}operation'])!,
+      targetMealId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}target_meal_id']),
+      expectedRevision: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}expected_revision']),
+      draftJson: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}draft_json'])!,
+      status: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}status'])!,
+      expiresAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}expires_at']),
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+    );
+  }
+
+  @override
+  $MealChangeProposalsLocalTable createAlias(String alias) {
+    return $MealChangeProposalsLocalTable(attachedDatabase, alias);
+  }
+}
+
+class MealChangeProposalsLocalData extends DataClass
+    implements Insertable<MealChangeProposalsLocalData> {
+  final String id;
+  final String threadId;
+  final String userId;
+  final String? messageId;
+  final String operation;
+  final String? targetMealId;
+  final int? expectedRevision;
+  final String draftJson;
+  final String status;
+  final DateTime? expiresAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const MealChangeProposalsLocalData(
+      {required this.id,
+      required this.threadId,
+      required this.userId,
+      this.messageId,
+      required this.operation,
+      this.targetMealId,
+      this.expectedRevision,
+      required this.draftJson,
+      required this.status,
+      this.expiresAt,
+      required this.createdAt,
+      required this.updatedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['thread_id'] = Variable<String>(threadId);
+    map['user_id'] = Variable<String>(userId);
+    if (!nullToAbsent || messageId != null) {
+      map['message_id'] = Variable<String>(messageId);
+    }
+    map['operation'] = Variable<String>(operation);
+    if (!nullToAbsent || targetMealId != null) {
+      map['target_meal_id'] = Variable<String>(targetMealId);
+    }
+    if (!nullToAbsent || expectedRevision != null) {
+      map['expected_revision'] = Variable<int>(expectedRevision);
+    }
+    map['draft_json'] = Variable<String>(draftJson);
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || expiresAt != null) {
+      map['expires_at'] = Variable<DateTime>(expiresAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  MealChangeProposalsLocalCompanion toCompanion(bool nullToAbsent) {
+    return MealChangeProposalsLocalCompanion(
+      id: Value(id),
+      threadId: Value(threadId),
+      userId: Value(userId),
+      messageId: messageId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(messageId),
+      operation: Value(operation),
+      targetMealId: targetMealId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(targetMealId),
+      expectedRevision: expectedRevision == null && nullToAbsent
+          ? const Value.absent()
+          : Value(expectedRevision),
+      draftJson: Value(draftJson),
+      status: Value(status),
+      expiresAt: expiresAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(expiresAt),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory MealChangeProposalsLocalData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MealChangeProposalsLocalData(
+      id: serializer.fromJson<String>(json['id']),
+      threadId: serializer.fromJson<String>(json['threadId']),
+      userId: serializer.fromJson<String>(json['userId']),
+      messageId: serializer.fromJson<String?>(json['messageId']),
+      operation: serializer.fromJson<String>(json['operation']),
+      targetMealId: serializer.fromJson<String?>(json['targetMealId']),
+      expectedRevision: serializer.fromJson<int?>(json['expectedRevision']),
+      draftJson: serializer.fromJson<String>(json['draftJson']),
+      status: serializer.fromJson<String>(json['status']),
+      expiresAt: serializer.fromJson<DateTime?>(json['expiresAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'threadId': serializer.toJson<String>(threadId),
+      'userId': serializer.toJson<String>(userId),
+      'messageId': serializer.toJson<String?>(messageId),
+      'operation': serializer.toJson<String>(operation),
+      'targetMealId': serializer.toJson<String?>(targetMealId),
+      'expectedRevision': serializer.toJson<int?>(expectedRevision),
+      'draftJson': serializer.toJson<String>(draftJson),
+      'status': serializer.toJson<String>(status),
+      'expiresAt': serializer.toJson<DateTime?>(expiresAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  MealChangeProposalsLocalData copyWith(
+          {String? id,
+          String? threadId,
+          String? userId,
+          Value<String?> messageId = const Value.absent(),
+          String? operation,
+          Value<String?> targetMealId = const Value.absent(),
+          Value<int?> expectedRevision = const Value.absent(),
+          String? draftJson,
+          String? status,
+          Value<DateTime?> expiresAt = const Value.absent(),
+          DateTime? createdAt,
+          DateTime? updatedAt}) =>
+      MealChangeProposalsLocalData(
+        id: id ?? this.id,
+        threadId: threadId ?? this.threadId,
+        userId: userId ?? this.userId,
+        messageId: messageId.present ? messageId.value : this.messageId,
+        operation: operation ?? this.operation,
+        targetMealId:
+            targetMealId.present ? targetMealId.value : this.targetMealId,
+        expectedRevision: expectedRevision.present
+            ? expectedRevision.value
+            : this.expectedRevision,
+        draftJson: draftJson ?? this.draftJson,
+        status: status ?? this.status,
+        expiresAt: expiresAt.present ? expiresAt.value : this.expiresAt,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+      );
+  MealChangeProposalsLocalData copyWithCompanion(
+      MealChangeProposalsLocalCompanion data) {
+    return MealChangeProposalsLocalData(
+      id: data.id.present ? data.id.value : this.id,
+      threadId: data.threadId.present ? data.threadId.value : this.threadId,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      messageId: data.messageId.present ? data.messageId.value : this.messageId,
+      operation: data.operation.present ? data.operation.value : this.operation,
+      targetMealId: data.targetMealId.present
+          ? data.targetMealId.value
+          : this.targetMealId,
+      expectedRevision: data.expectedRevision.present
+          ? data.expectedRevision.value
+          : this.expectedRevision,
+      draftJson: data.draftJson.present ? data.draftJson.value : this.draftJson,
+      status: data.status.present ? data.status.value : this.status,
+      expiresAt: data.expiresAt.present ? data.expiresAt.value : this.expiresAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MealChangeProposalsLocalData(')
+          ..write('id: $id, ')
+          ..write('threadId: $threadId, ')
+          ..write('userId: $userId, ')
+          ..write('messageId: $messageId, ')
+          ..write('operation: $operation, ')
+          ..write('targetMealId: $targetMealId, ')
+          ..write('expectedRevision: $expectedRevision, ')
+          ..write('draftJson: $draftJson, ')
+          ..write('status: $status, ')
+          ..write('expiresAt: $expiresAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      id,
+      threadId,
+      userId,
+      messageId,
+      operation,
+      targetMealId,
+      expectedRevision,
+      draftJson,
+      status,
+      expiresAt,
+      createdAt,
+      updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MealChangeProposalsLocalData &&
+          other.id == this.id &&
+          other.threadId == this.threadId &&
+          other.userId == this.userId &&
+          other.messageId == this.messageId &&
+          other.operation == this.operation &&
+          other.targetMealId == this.targetMealId &&
+          other.expectedRevision == this.expectedRevision &&
+          other.draftJson == this.draftJson &&
+          other.status == this.status &&
+          other.expiresAt == this.expiresAt &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class MealChangeProposalsLocalCompanion
+    extends UpdateCompanion<MealChangeProposalsLocalData> {
+  final Value<String> id;
+  final Value<String> threadId;
+  final Value<String> userId;
+  final Value<String?> messageId;
+  final Value<String> operation;
+  final Value<String?> targetMealId;
+  final Value<int?> expectedRevision;
+  final Value<String> draftJson;
+  final Value<String> status;
+  final Value<DateTime?> expiresAt;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const MealChangeProposalsLocalCompanion({
+    this.id = const Value.absent(),
+    this.threadId = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.messageId = const Value.absent(),
+    this.operation = const Value.absent(),
+    this.targetMealId = const Value.absent(),
+    this.expectedRevision = const Value.absent(),
+    this.draftJson = const Value.absent(),
+    this.status = const Value.absent(),
+    this.expiresAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MealChangeProposalsLocalCompanion.insert({
+    required String id,
+    required String threadId,
+    required String userId,
+    this.messageId = const Value.absent(),
+    required String operation,
+    this.targetMealId = const Value.absent(),
+    this.expectedRevision = const Value.absent(),
+    required String draftJson,
+    this.status = const Value.absent(),
+    this.expiresAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        threadId = Value(threadId),
+        userId = Value(userId),
+        operation = Value(operation),
+        draftJson = Value(draftJson);
+  static Insertable<MealChangeProposalsLocalData> custom({
+    Expression<String>? id,
+    Expression<String>? threadId,
+    Expression<String>? userId,
+    Expression<String>? messageId,
+    Expression<String>? operation,
+    Expression<String>? targetMealId,
+    Expression<int>? expectedRevision,
+    Expression<String>? draftJson,
+    Expression<String>? status,
+    Expression<DateTime>? expiresAt,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (threadId != null) 'thread_id': threadId,
+      if (userId != null) 'user_id': userId,
+      if (messageId != null) 'message_id': messageId,
+      if (operation != null) 'operation': operation,
+      if (targetMealId != null) 'target_meal_id': targetMealId,
+      if (expectedRevision != null) 'expected_revision': expectedRevision,
+      if (draftJson != null) 'draft_json': draftJson,
+      if (status != null) 'status': status,
+      if (expiresAt != null) 'expires_at': expiresAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MealChangeProposalsLocalCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? threadId,
+      Value<String>? userId,
+      Value<String?>? messageId,
+      Value<String>? operation,
+      Value<String?>? targetMealId,
+      Value<int?>? expectedRevision,
+      Value<String>? draftJson,
+      Value<String>? status,
+      Value<DateTime?>? expiresAt,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt,
+      Value<int>? rowid}) {
+    return MealChangeProposalsLocalCompanion(
+      id: id ?? this.id,
+      threadId: threadId ?? this.threadId,
+      userId: userId ?? this.userId,
+      messageId: messageId ?? this.messageId,
+      operation: operation ?? this.operation,
+      targetMealId: targetMealId ?? this.targetMealId,
+      expectedRevision: expectedRevision ?? this.expectedRevision,
+      draftJson: draftJson ?? this.draftJson,
+      status: status ?? this.status,
+      expiresAt: expiresAt ?? this.expiresAt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (threadId.present) {
+      map['thread_id'] = Variable<String>(threadId.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (messageId.present) {
+      map['message_id'] = Variable<String>(messageId.value);
+    }
+    if (operation.present) {
+      map['operation'] = Variable<String>(operation.value);
+    }
+    if (targetMealId.present) {
+      map['target_meal_id'] = Variable<String>(targetMealId.value);
+    }
+    if (expectedRevision.present) {
+      map['expected_revision'] = Variable<int>(expectedRevision.value);
+    }
+    if (draftJson.present) {
+      map['draft_json'] = Variable<String>(draftJson.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (expiresAt.present) {
+      map['expires_at'] = Variable<DateTime>(expiresAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MealChangeProposalsLocalCompanion(')
+          ..write('id: $id, ')
+          ..write('threadId: $threadId, ')
+          ..write('userId: $userId, ')
+          ..write('messageId: $messageId, ')
+          ..write('operation: $operation, ')
+          ..write('targetMealId: $targetMealId, ')
+          ..write('expectedRevision: $expectedRevision, ')
+          ..write('draftJson: $draftJson, ')
+          ..write('status: $status, ')
+          ..write('expiresAt: $expiresAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $MealVisualsLocalTable extends MealVisualsLocal
+    with TableInfo<$MealVisualsLocalTable, MealVisualsLocalData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MealVisualsLocalTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _mealIdMeta = const VerificationMeta('mealId');
+  @override
+  late final GeneratedColumn<String> mealId = GeneratedColumn<String>(
+      'meal_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+      'user_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _promptSignatureMeta =
+      const VerificationMeta('promptSignature');
+  @override
+  late final GeneratedColumn<String> promptSignature = GeneratedColumn<String>(
+      'prompt_signature', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _styleVersionMeta =
+      const VerificationMeta('styleVersion');
+  @override
+  late final GeneratedColumn<String> styleVersion = GeneratedColumn<String>(
+      'style_version', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('studio-v1'));
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+      'status', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('queued'));
+  static const VerificationMeta _localPathMeta =
+      const VerificationMeta('localPath');
+  @override
+  late final GeneratedColumn<String> localPath = GeneratedColumn<String>(
+      'local_path', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _remotePathMeta =
+      const VerificationMeta('remotePath');
+  @override
+  late final GeneratedColumn<String> remotePath = GeneratedColumn<String>(
+      'remote_path', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _thumbRemotePathMeta =
+      const VerificationMeta('thumbRemotePath');
+  @override
+  late final GeneratedColumn<String> thumbRemotePath = GeneratedColumn<String>(
+      'thumb_remote_path', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _dominantColorMeta =
+      const VerificationMeta('dominantColor');
+  @override
+  late final GeneratedColumn<String> dominantColor = GeneratedColumn<String>(
+      'dominant_color', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _providerMeta =
+      const VerificationMeta('provider');
+  @override
+  late final GeneratedColumn<String> provider = GeneratedColumn<String>(
+      'provider', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _modelNameMeta =
+      const VerificationMeta('modelName');
+  @override
+  late final GeneratedColumn<String> modelName = GeneratedColumn<String>(
+      'model_name', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _errorCodeMeta =
+      const VerificationMeta('errorCode');
+  @override
+  late final GeneratedColumn<String> errorCode = GeneratedColumn<String>(
+      'error_code', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        mealId,
+        userId,
+        promptSignature,
+        styleVersion,
+        status,
+        localPath,
+        remotePath,
+        thumbRemotePath,
+        dominantColor,
+        provider,
+        modelName,
+        errorCode,
+        createdAt,
+        updatedAt
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'meal_visuals_local';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<MealVisualsLocalData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('meal_id')) {
+      context.handle(_mealIdMeta,
+          mealId.isAcceptableOrUnknown(data['meal_id']!, _mealIdMeta));
+    } else if (isInserting) {
+      context.missing(_mealIdMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta,
+          userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('prompt_signature')) {
+      context.handle(
+          _promptSignatureMeta,
+          promptSignature.isAcceptableOrUnknown(
+              data['prompt_signature']!, _promptSignatureMeta));
+    } else if (isInserting) {
+      context.missing(_promptSignatureMeta);
+    }
+    if (data.containsKey('style_version')) {
+      context.handle(
+          _styleVersionMeta,
+          styleVersion.isAcceptableOrUnknown(
+              data['style_version']!, _styleVersionMeta));
+    }
+    if (data.containsKey('status')) {
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
+    }
+    if (data.containsKey('local_path')) {
+      context.handle(_localPathMeta,
+          localPath.isAcceptableOrUnknown(data['local_path']!, _localPathMeta));
+    }
+    if (data.containsKey('remote_path')) {
+      context.handle(
+          _remotePathMeta,
+          remotePath.isAcceptableOrUnknown(
+              data['remote_path']!, _remotePathMeta));
+    }
+    if (data.containsKey('thumb_remote_path')) {
+      context.handle(
+          _thumbRemotePathMeta,
+          thumbRemotePath.isAcceptableOrUnknown(
+              data['thumb_remote_path']!, _thumbRemotePathMeta));
+    }
+    if (data.containsKey('dominant_color')) {
+      context.handle(
+          _dominantColorMeta,
+          dominantColor.isAcceptableOrUnknown(
+              data['dominant_color']!, _dominantColorMeta));
+    }
+    if (data.containsKey('provider')) {
+      context.handle(_providerMeta,
+          provider.isAcceptableOrUnknown(data['provider']!, _providerMeta));
+    }
+    if (data.containsKey('model_name')) {
+      context.handle(_modelNameMeta,
+          modelName.isAcceptableOrUnknown(data['model_name']!, _modelNameMeta));
+    }
+    if (data.containsKey('error_code')) {
+      context.handle(_errorCodeMeta,
+          errorCode.isAcceptableOrUnknown(data['error_code']!, _errorCodeMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+        {mealId, promptSignature},
+      ];
+  @override
+  MealVisualsLocalData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MealVisualsLocalData(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      mealId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}meal_id'])!,
+      userId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      promptSignature: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}prompt_signature'])!,
+      styleVersion: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}style_version'])!,
+      status: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}status'])!,
+      localPath: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}local_path']),
+      remotePath: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}remote_path']),
+      thumbRemotePath: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}thumb_remote_path']),
+      dominantColor: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}dominant_color']),
+      provider: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}provider']),
+      modelName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}model_name']),
+      errorCode: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}error_code']),
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+    );
+  }
+
+  @override
+  $MealVisualsLocalTable createAlias(String alias) {
+    return $MealVisualsLocalTable(attachedDatabase, alias);
+  }
+}
+
+class MealVisualsLocalData extends DataClass
+    implements Insertable<MealVisualsLocalData> {
+  final String id;
+  final String mealId;
+  final String userId;
+  final String promptSignature;
+  final String styleVersion;
+  final String status;
+  final String? localPath;
+  final String? remotePath;
+  final String? thumbRemotePath;
+  final String? dominantColor;
+  final String? provider;
+  final String? modelName;
+  final String? errorCode;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const MealVisualsLocalData(
+      {required this.id,
+      required this.mealId,
+      required this.userId,
+      required this.promptSignature,
+      required this.styleVersion,
+      required this.status,
+      this.localPath,
+      this.remotePath,
+      this.thumbRemotePath,
+      this.dominantColor,
+      this.provider,
+      this.modelName,
+      this.errorCode,
+      required this.createdAt,
+      required this.updatedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['meal_id'] = Variable<String>(mealId);
+    map['user_id'] = Variable<String>(userId);
+    map['prompt_signature'] = Variable<String>(promptSignature);
+    map['style_version'] = Variable<String>(styleVersion);
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || localPath != null) {
+      map['local_path'] = Variable<String>(localPath);
+    }
+    if (!nullToAbsent || remotePath != null) {
+      map['remote_path'] = Variable<String>(remotePath);
+    }
+    if (!nullToAbsent || thumbRemotePath != null) {
+      map['thumb_remote_path'] = Variable<String>(thumbRemotePath);
+    }
+    if (!nullToAbsent || dominantColor != null) {
+      map['dominant_color'] = Variable<String>(dominantColor);
+    }
+    if (!nullToAbsent || provider != null) {
+      map['provider'] = Variable<String>(provider);
+    }
+    if (!nullToAbsent || modelName != null) {
+      map['model_name'] = Variable<String>(modelName);
+    }
+    if (!nullToAbsent || errorCode != null) {
+      map['error_code'] = Variable<String>(errorCode);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  MealVisualsLocalCompanion toCompanion(bool nullToAbsent) {
+    return MealVisualsLocalCompanion(
+      id: Value(id),
+      mealId: Value(mealId),
+      userId: Value(userId),
+      promptSignature: Value(promptSignature),
+      styleVersion: Value(styleVersion),
+      status: Value(status),
+      localPath: localPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(localPath),
+      remotePath: remotePath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remotePath),
+      thumbRemotePath: thumbRemotePath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(thumbRemotePath),
+      dominantColor: dominantColor == null && nullToAbsent
+          ? const Value.absent()
+          : Value(dominantColor),
+      provider: provider == null && nullToAbsent
+          ? const Value.absent()
+          : Value(provider),
+      modelName: modelName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(modelName),
+      errorCode: errorCode == null && nullToAbsent
+          ? const Value.absent()
+          : Value(errorCode),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory MealVisualsLocalData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MealVisualsLocalData(
+      id: serializer.fromJson<String>(json['id']),
+      mealId: serializer.fromJson<String>(json['mealId']),
+      userId: serializer.fromJson<String>(json['userId']),
+      promptSignature: serializer.fromJson<String>(json['promptSignature']),
+      styleVersion: serializer.fromJson<String>(json['styleVersion']),
+      status: serializer.fromJson<String>(json['status']),
+      localPath: serializer.fromJson<String?>(json['localPath']),
+      remotePath: serializer.fromJson<String?>(json['remotePath']),
+      thumbRemotePath: serializer.fromJson<String?>(json['thumbRemotePath']),
+      dominantColor: serializer.fromJson<String?>(json['dominantColor']),
+      provider: serializer.fromJson<String?>(json['provider']),
+      modelName: serializer.fromJson<String?>(json['modelName']),
+      errorCode: serializer.fromJson<String?>(json['errorCode']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'mealId': serializer.toJson<String>(mealId),
+      'userId': serializer.toJson<String>(userId),
+      'promptSignature': serializer.toJson<String>(promptSignature),
+      'styleVersion': serializer.toJson<String>(styleVersion),
+      'status': serializer.toJson<String>(status),
+      'localPath': serializer.toJson<String?>(localPath),
+      'remotePath': serializer.toJson<String?>(remotePath),
+      'thumbRemotePath': serializer.toJson<String?>(thumbRemotePath),
+      'dominantColor': serializer.toJson<String?>(dominantColor),
+      'provider': serializer.toJson<String?>(provider),
+      'modelName': serializer.toJson<String?>(modelName),
+      'errorCode': serializer.toJson<String?>(errorCode),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  MealVisualsLocalData copyWith(
+          {String? id,
+          String? mealId,
+          String? userId,
+          String? promptSignature,
+          String? styleVersion,
+          String? status,
+          Value<String?> localPath = const Value.absent(),
+          Value<String?> remotePath = const Value.absent(),
+          Value<String?> thumbRemotePath = const Value.absent(),
+          Value<String?> dominantColor = const Value.absent(),
+          Value<String?> provider = const Value.absent(),
+          Value<String?> modelName = const Value.absent(),
+          Value<String?> errorCode = const Value.absent(),
+          DateTime? createdAt,
+          DateTime? updatedAt}) =>
+      MealVisualsLocalData(
+        id: id ?? this.id,
+        mealId: mealId ?? this.mealId,
+        userId: userId ?? this.userId,
+        promptSignature: promptSignature ?? this.promptSignature,
+        styleVersion: styleVersion ?? this.styleVersion,
+        status: status ?? this.status,
+        localPath: localPath.present ? localPath.value : this.localPath,
+        remotePath: remotePath.present ? remotePath.value : this.remotePath,
+        thumbRemotePath: thumbRemotePath.present
+            ? thumbRemotePath.value
+            : this.thumbRemotePath,
+        dominantColor:
+            dominantColor.present ? dominantColor.value : this.dominantColor,
+        provider: provider.present ? provider.value : this.provider,
+        modelName: modelName.present ? modelName.value : this.modelName,
+        errorCode: errorCode.present ? errorCode.value : this.errorCode,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+      );
+  MealVisualsLocalData copyWithCompanion(MealVisualsLocalCompanion data) {
+    return MealVisualsLocalData(
+      id: data.id.present ? data.id.value : this.id,
+      mealId: data.mealId.present ? data.mealId.value : this.mealId,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      promptSignature: data.promptSignature.present
+          ? data.promptSignature.value
+          : this.promptSignature,
+      styleVersion: data.styleVersion.present
+          ? data.styleVersion.value
+          : this.styleVersion,
+      status: data.status.present ? data.status.value : this.status,
+      localPath: data.localPath.present ? data.localPath.value : this.localPath,
+      remotePath:
+          data.remotePath.present ? data.remotePath.value : this.remotePath,
+      thumbRemotePath: data.thumbRemotePath.present
+          ? data.thumbRemotePath.value
+          : this.thumbRemotePath,
+      dominantColor: data.dominantColor.present
+          ? data.dominantColor.value
+          : this.dominantColor,
+      provider: data.provider.present ? data.provider.value : this.provider,
+      modelName: data.modelName.present ? data.modelName.value : this.modelName,
+      errorCode: data.errorCode.present ? data.errorCode.value : this.errorCode,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MealVisualsLocalData(')
+          ..write('id: $id, ')
+          ..write('mealId: $mealId, ')
+          ..write('userId: $userId, ')
+          ..write('promptSignature: $promptSignature, ')
+          ..write('styleVersion: $styleVersion, ')
+          ..write('status: $status, ')
+          ..write('localPath: $localPath, ')
+          ..write('remotePath: $remotePath, ')
+          ..write('thumbRemotePath: $thumbRemotePath, ')
+          ..write('dominantColor: $dominantColor, ')
+          ..write('provider: $provider, ')
+          ..write('modelName: $modelName, ')
+          ..write('errorCode: $errorCode, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      id,
+      mealId,
+      userId,
+      promptSignature,
+      styleVersion,
+      status,
+      localPath,
+      remotePath,
+      thumbRemotePath,
+      dominantColor,
+      provider,
+      modelName,
+      errorCode,
+      createdAt,
+      updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MealVisualsLocalData &&
+          other.id == this.id &&
+          other.mealId == this.mealId &&
+          other.userId == this.userId &&
+          other.promptSignature == this.promptSignature &&
+          other.styleVersion == this.styleVersion &&
+          other.status == this.status &&
+          other.localPath == this.localPath &&
+          other.remotePath == this.remotePath &&
+          other.thumbRemotePath == this.thumbRemotePath &&
+          other.dominantColor == this.dominantColor &&
+          other.provider == this.provider &&
+          other.modelName == this.modelName &&
+          other.errorCode == this.errorCode &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class MealVisualsLocalCompanion extends UpdateCompanion<MealVisualsLocalData> {
+  final Value<String> id;
+  final Value<String> mealId;
+  final Value<String> userId;
+  final Value<String> promptSignature;
+  final Value<String> styleVersion;
+  final Value<String> status;
+  final Value<String?> localPath;
+  final Value<String?> remotePath;
+  final Value<String?> thumbRemotePath;
+  final Value<String?> dominantColor;
+  final Value<String?> provider;
+  final Value<String?> modelName;
+  final Value<String?> errorCode;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const MealVisualsLocalCompanion({
+    this.id = const Value.absent(),
+    this.mealId = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.promptSignature = const Value.absent(),
+    this.styleVersion = const Value.absent(),
+    this.status = const Value.absent(),
+    this.localPath = const Value.absent(),
+    this.remotePath = const Value.absent(),
+    this.thumbRemotePath = const Value.absent(),
+    this.dominantColor = const Value.absent(),
+    this.provider = const Value.absent(),
+    this.modelName = const Value.absent(),
+    this.errorCode = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MealVisualsLocalCompanion.insert({
+    required String id,
+    required String mealId,
+    required String userId,
+    required String promptSignature,
+    this.styleVersion = const Value.absent(),
+    this.status = const Value.absent(),
+    this.localPath = const Value.absent(),
+    this.remotePath = const Value.absent(),
+    this.thumbRemotePath = const Value.absent(),
+    this.dominantColor = const Value.absent(),
+    this.provider = const Value.absent(),
+    this.modelName = const Value.absent(),
+    this.errorCode = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        mealId = Value(mealId),
+        userId = Value(userId),
+        promptSignature = Value(promptSignature);
+  static Insertable<MealVisualsLocalData> custom({
+    Expression<String>? id,
+    Expression<String>? mealId,
+    Expression<String>? userId,
+    Expression<String>? promptSignature,
+    Expression<String>? styleVersion,
+    Expression<String>? status,
+    Expression<String>? localPath,
+    Expression<String>? remotePath,
+    Expression<String>? thumbRemotePath,
+    Expression<String>? dominantColor,
+    Expression<String>? provider,
+    Expression<String>? modelName,
+    Expression<String>? errorCode,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (mealId != null) 'meal_id': mealId,
+      if (userId != null) 'user_id': userId,
+      if (promptSignature != null) 'prompt_signature': promptSignature,
+      if (styleVersion != null) 'style_version': styleVersion,
+      if (status != null) 'status': status,
+      if (localPath != null) 'local_path': localPath,
+      if (remotePath != null) 'remote_path': remotePath,
+      if (thumbRemotePath != null) 'thumb_remote_path': thumbRemotePath,
+      if (dominantColor != null) 'dominant_color': dominantColor,
+      if (provider != null) 'provider': provider,
+      if (modelName != null) 'model_name': modelName,
+      if (errorCode != null) 'error_code': errorCode,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MealVisualsLocalCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? mealId,
+      Value<String>? userId,
+      Value<String>? promptSignature,
+      Value<String>? styleVersion,
+      Value<String>? status,
+      Value<String?>? localPath,
+      Value<String?>? remotePath,
+      Value<String?>? thumbRemotePath,
+      Value<String?>? dominantColor,
+      Value<String?>? provider,
+      Value<String?>? modelName,
+      Value<String?>? errorCode,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt,
+      Value<int>? rowid}) {
+    return MealVisualsLocalCompanion(
+      id: id ?? this.id,
+      mealId: mealId ?? this.mealId,
+      userId: userId ?? this.userId,
+      promptSignature: promptSignature ?? this.promptSignature,
+      styleVersion: styleVersion ?? this.styleVersion,
+      status: status ?? this.status,
+      localPath: localPath ?? this.localPath,
+      remotePath: remotePath ?? this.remotePath,
+      thumbRemotePath: thumbRemotePath ?? this.thumbRemotePath,
+      dominantColor: dominantColor ?? this.dominantColor,
+      provider: provider ?? this.provider,
+      modelName: modelName ?? this.modelName,
+      errorCode: errorCode ?? this.errorCode,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (mealId.present) {
+      map['meal_id'] = Variable<String>(mealId.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (promptSignature.present) {
+      map['prompt_signature'] = Variable<String>(promptSignature.value);
+    }
+    if (styleVersion.present) {
+      map['style_version'] = Variable<String>(styleVersion.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (localPath.present) {
+      map['local_path'] = Variable<String>(localPath.value);
+    }
+    if (remotePath.present) {
+      map['remote_path'] = Variable<String>(remotePath.value);
+    }
+    if (thumbRemotePath.present) {
+      map['thumb_remote_path'] = Variable<String>(thumbRemotePath.value);
+    }
+    if (dominantColor.present) {
+      map['dominant_color'] = Variable<String>(dominantColor.value);
+    }
+    if (provider.present) {
+      map['provider'] = Variable<String>(provider.value);
+    }
+    if (modelName.present) {
+      map['model_name'] = Variable<String>(modelName.value);
+    }
+    if (errorCode.present) {
+      map['error_code'] = Variable<String>(errorCode.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MealVisualsLocalCompanion(')
+          ..write('id: $id, ')
+          ..write('mealId: $mealId, ')
+          ..write('userId: $userId, ')
+          ..write('promptSignature: $promptSignature, ')
+          ..write('styleVersion: $styleVersion, ')
+          ..write('status: $status, ')
+          ..write('localPath: $localPath, ')
+          ..write('remotePath: $remotePath, ')
+          ..write('thumbRemotePath: $thumbRemotePath, ')
+          ..write('dominantColor: $dominantColor, ')
+          ..write('provider: $provider, ')
+          ..write('modelName: $modelName, ')
+          ..write('errorCode: $errorCode, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -9660,6 +12549,15 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $WeeklyInsightsLocalTable(this);
   late final $UserFoodDefaultsLocalTable userFoodDefaultsLocal =
       $UserFoodDefaultsLocalTable(this);
+  late final $DailyThreadsLocalTable dailyThreadsLocal =
+      $DailyThreadsLocalTable(this);
+  late final $ThreadMessagesLocalTable threadMessagesLocal =
+      $ThreadMessagesLocalTable(this);
+  late final $AgentRunsLocalTable agentRunsLocal = $AgentRunsLocalTable(this);
+  late final $MealChangeProposalsLocalTable mealChangeProposalsLocal =
+      $MealChangeProposalsLocalTable(this);
+  late final $MealVisualsLocalTable mealVisualsLocal =
+      $MealVisualsLocalTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -9680,7 +12578,12 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         dailyRollupsLocal,
         correctionEventsLocal,
         weeklyInsightsLocal,
-        userFoodDefaultsLocal
+        userFoodDefaultsLocal,
+        dailyThreadsLocal,
+        threadMessagesLocal,
+        agentRunsLocal,
+        mealChangeProposalsLocal,
+        mealVisualsLocal
       ];
 }
 
@@ -14220,6 +17123,1383 @@ typedef $$UserFoodDefaultsLocalTableProcessedTableManager
         ),
         UserFoodDefaultsLocalData,
         PrefetchHooks Function()>;
+typedef $$DailyThreadsLocalTableCreateCompanionBuilder
+    = DailyThreadsLocalCompanion Function({
+  required String id,
+  required String userId,
+  required DateTime day,
+  required String timezone,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+typedef $$DailyThreadsLocalTableUpdateCompanionBuilder
+    = DailyThreadsLocalCompanion Function({
+  Value<String> id,
+  Value<String> userId,
+  Value<DateTime> day,
+  Value<String> timezone,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+
+class $$DailyThreadsLocalTableFilterComposer
+    extends Composer<_$AppDatabase, $DailyThreadsLocalTable> {
+  $$DailyThreadsLocalTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get userId => $composableBuilder(
+      column: $table.userId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get day => $composableBuilder(
+      column: $table.day, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get timezone => $composableBuilder(
+      column: $table.timezone, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$DailyThreadsLocalTableOrderingComposer
+    extends Composer<_$AppDatabase, $DailyThreadsLocalTable> {
+  $$DailyThreadsLocalTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+      column: $table.userId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get day => $composableBuilder(
+      column: $table.day, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get timezone => $composableBuilder(
+      column: $table.timezone, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$DailyThreadsLocalTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DailyThreadsLocalTable> {
+  $$DailyThreadsLocalTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get day =>
+      $composableBuilder(column: $table.day, builder: (column) => column);
+
+  GeneratedColumn<String> get timezone =>
+      $composableBuilder(column: $table.timezone, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$DailyThreadsLocalTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $DailyThreadsLocalTable,
+    DailyThreadsLocalData,
+    $$DailyThreadsLocalTableFilterComposer,
+    $$DailyThreadsLocalTableOrderingComposer,
+    $$DailyThreadsLocalTableAnnotationComposer,
+    $$DailyThreadsLocalTableCreateCompanionBuilder,
+    $$DailyThreadsLocalTableUpdateCompanionBuilder,
+    (
+      DailyThreadsLocalData,
+      BaseReferences<_$AppDatabase, $DailyThreadsLocalTable,
+          DailyThreadsLocalData>
+    ),
+    DailyThreadsLocalData,
+    PrefetchHooks Function()> {
+  $$DailyThreadsLocalTableTableManager(
+      _$AppDatabase db, $DailyThreadsLocalTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DailyThreadsLocalTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DailyThreadsLocalTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DailyThreadsLocalTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> userId = const Value.absent(),
+            Value<DateTime> day = const Value.absent(),
+            Value<String> timezone = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              DailyThreadsLocalCompanion(
+            id: id,
+            userId: userId,
+            day: day,
+            timezone: timezone,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String userId,
+            required DateTime day,
+            required String timezone,
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              DailyThreadsLocalCompanion.insert(
+            id: id,
+            userId: userId,
+            day: day,
+            timezone: timezone,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$DailyThreadsLocalTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $DailyThreadsLocalTable,
+    DailyThreadsLocalData,
+    $$DailyThreadsLocalTableFilterComposer,
+    $$DailyThreadsLocalTableOrderingComposer,
+    $$DailyThreadsLocalTableAnnotationComposer,
+    $$DailyThreadsLocalTableCreateCompanionBuilder,
+    $$DailyThreadsLocalTableUpdateCompanionBuilder,
+    (
+      DailyThreadsLocalData,
+      BaseReferences<_$AppDatabase, $DailyThreadsLocalTable,
+          DailyThreadsLocalData>
+    ),
+    DailyThreadsLocalData,
+    PrefetchHooks Function()>;
+typedef $$ThreadMessagesLocalTableCreateCompanionBuilder
+    = ThreadMessagesLocalCompanion Function({
+  required String id,
+  required String threadId,
+  required String userId,
+  required String clientId,
+  required String role,
+  Value<String> kind,
+  Value<String?> textContent,
+  Value<String> payloadJson,
+  required int sequence,
+  Value<String> deliveryState,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+typedef $$ThreadMessagesLocalTableUpdateCompanionBuilder
+    = ThreadMessagesLocalCompanion Function({
+  Value<String> id,
+  Value<String> threadId,
+  Value<String> userId,
+  Value<String> clientId,
+  Value<String> role,
+  Value<String> kind,
+  Value<String?> textContent,
+  Value<String> payloadJson,
+  Value<int> sequence,
+  Value<String> deliveryState,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+
+class $$ThreadMessagesLocalTableFilterComposer
+    extends Composer<_$AppDatabase, $ThreadMessagesLocalTable> {
+  $$ThreadMessagesLocalTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get threadId => $composableBuilder(
+      column: $table.threadId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get userId => $composableBuilder(
+      column: $table.userId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get clientId => $composableBuilder(
+      column: $table.clientId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get role => $composableBuilder(
+      column: $table.role, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get kind => $composableBuilder(
+      column: $table.kind, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get textContent => $composableBuilder(
+      column: $table.textContent, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get payloadJson => $composableBuilder(
+      column: $table.payloadJson, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get sequence => $composableBuilder(
+      column: $table.sequence, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get deliveryState => $composableBuilder(
+      column: $table.deliveryState, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$ThreadMessagesLocalTableOrderingComposer
+    extends Composer<_$AppDatabase, $ThreadMessagesLocalTable> {
+  $$ThreadMessagesLocalTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get threadId => $composableBuilder(
+      column: $table.threadId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+      column: $table.userId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get clientId => $composableBuilder(
+      column: $table.clientId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get role => $composableBuilder(
+      column: $table.role, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get kind => $composableBuilder(
+      column: $table.kind, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get textContent => $composableBuilder(
+      column: $table.textContent, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get payloadJson => $composableBuilder(
+      column: $table.payloadJson, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get sequence => $composableBuilder(
+      column: $table.sequence, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get deliveryState => $composableBuilder(
+      column: $table.deliveryState,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$ThreadMessagesLocalTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ThreadMessagesLocalTable> {
+  $$ThreadMessagesLocalTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get threadId =>
+      $composableBuilder(column: $table.threadId, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get clientId =>
+      $composableBuilder(column: $table.clientId, builder: (column) => column);
+
+  GeneratedColumn<String> get role =>
+      $composableBuilder(column: $table.role, builder: (column) => column);
+
+  GeneratedColumn<String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<String> get textContent => $composableBuilder(
+      column: $table.textContent, builder: (column) => column);
+
+  GeneratedColumn<String> get payloadJson => $composableBuilder(
+      column: $table.payloadJson, builder: (column) => column);
+
+  GeneratedColumn<int> get sequence =>
+      $composableBuilder(column: $table.sequence, builder: (column) => column);
+
+  GeneratedColumn<String> get deliveryState => $composableBuilder(
+      column: $table.deliveryState, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$ThreadMessagesLocalTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $ThreadMessagesLocalTable,
+    ThreadMessagesLocalData,
+    $$ThreadMessagesLocalTableFilterComposer,
+    $$ThreadMessagesLocalTableOrderingComposer,
+    $$ThreadMessagesLocalTableAnnotationComposer,
+    $$ThreadMessagesLocalTableCreateCompanionBuilder,
+    $$ThreadMessagesLocalTableUpdateCompanionBuilder,
+    (
+      ThreadMessagesLocalData,
+      BaseReferences<_$AppDatabase, $ThreadMessagesLocalTable,
+          ThreadMessagesLocalData>
+    ),
+    ThreadMessagesLocalData,
+    PrefetchHooks Function()> {
+  $$ThreadMessagesLocalTableTableManager(
+      _$AppDatabase db, $ThreadMessagesLocalTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ThreadMessagesLocalTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ThreadMessagesLocalTableOrderingComposer(
+                  $db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ThreadMessagesLocalTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> threadId = const Value.absent(),
+            Value<String> userId = const Value.absent(),
+            Value<String> clientId = const Value.absent(),
+            Value<String> role = const Value.absent(),
+            Value<String> kind = const Value.absent(),
+            Value<String?> textContent = const Value.absent(),
+            Value<String> payloadJson = const Value.absent(),
+            Value<int> sequence = const Value.absent(),
+            Value<String> deliveryState = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              ThreadMessagesLocalCompanion(
+            id: id,
+            threadId: threadId,
+            userId: userId,
+            clientId: clientId,
+            role: role,
+            kind: kind,
+            textContent: textContent,
+            payloadJson: payloadJson,
+            sequence: sequence,
+            deliveryState: deliveryState,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String threadId,
+            required String userId,
+            required String clientId,
+            required String role,
+            Value<String> kind = const Value.absent(),
+            Value<String?> textContent = const Value.absent(),
+            Value<String> payloadJson = const Value.absent(),
+            required int sequence,
+            Value<String> deliveryState = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              ThreadMessagesLocalCompanion.insert(
+            id: id,
+            threadId: threadId,
+            userId: userId,
+            clientId: clientId,
+            role: role,
+            kind: kind,
+            textContent: textContent,
+            payloadJson: payloadJson,
+            sequence: sequence,
+            deliveryState: deliveryState,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$ThreadMessagesLocalTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $ThreadMessagesLocalTable,
+    ThreadMessagesLocalData,
+    $$ThreadMessagesLocalTableFilterComposer,
+    $$ThreadMessagesLocalTableOrderingComposer,
+    $$ThreadMessagesLocalTableAnnotationComposer,
+    $$ThreadMessagesLocalTableCreateCompanionBuilder,
+    $$ThreadMessagesLocalTableUpdateCompanionBuilder,
+    (
+      ThreadMessagesLocalData,
+      BaseReferences<_$AppDatabase, $ThreadMessagesLocalTable,
+          ThreadMessagesLocalData>
+    ),
+    ThreadMessagesLocalData,
+    PrefetchHooks Function()>;
+typedef $$AgentRunsLocalTableCreateCompanionBuilder = AgentRunsLocalCompanion
+    Function({
+  required String id,
+  required String threadId,
+  required String userId,
+  required String clientRequestId,
+  Value<String> status,
+  Value<int> cursor,
+  Value<String?> provider,
+  Value<String?> modelName,
+  Value<String?> errorCode,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> completedAt,
+  Value<int> rowid,
+});
+typedef $$AgentRunsLocalTableUpdateCompanionBuilder = AgentRunsLocalCompanion
+    Function({
+  Value<String> id,
+  Value<String> threadId,
+  Value<String> userId,
+  Value<String> clientRequestId,
+  Value<String> status,
+  Value<int> cursor,
+  Value<String?> provider,
+  Value<String?> modelName,
+  Value<String?> errorCode,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> completedAt,
+  Value<int> rowid,
+});
+
+class $$AgentRunsLocalTableFilterComposer
+    extends Composer<_$AppDatabase, $AgentRunsLocalTable> {
+  $$AgentRunsLocalTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get threadId => $composableBuilder(
+      column: $table.threadId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get userId => $composableBuilder(
+      column: $table.userId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get clientRequestId => $composableBuilder(
+      column: $table.clientRequestId,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get cursor => $composableBuilder(
+      column: $table.cursor, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get provider => $composableBuilder(
+      column: $table.provider, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get modelName => $composableBuilder(
+      column: $table.modelName, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get errorCode => $composableBuilder(
+      column: $table.errorCode, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get completedAt => $composableBuilder(
+      column: $table.completedAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$AgentRunsLocalTableOrderingComposer
+    extends Composer<_$AppDatabase, $AgentRunsLocalTable> {
+  $$AgentRunsLocalTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get threadId => $composableBuilder(
+      column: $table.threadId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+      column: $table.userId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get clientRequestId => $composableBuilder(
+      column: $table.clientRequestId,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get cursor => $composableBuilder(
+      column: $table.cursor, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get provider => $composableBuilder(
+      column: $table.provider, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get modelName => $composableBuilder(
+      column: $table.modelName, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get errorCode => $composableBuilder(
+      column: $table.errorCode, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get completedAt => $composableBuilder(
+      column: $table.completedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$AgentRunsLocalTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AgentRunsLocalTable> {
+  $$AgentRunsLocalTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get threadId =>
+      $composableBuilder(column: $table.threadId, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get clientRequestId => $composableBuilder(
+      column: $table.clientRequestId, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<int> get cursor =>
+      $composableBuilder(column: $table.cursor, builder: (column) => column);
+
+  GeneratedColumn<String> get provider =>
+      $composableBuilder(column: $table.provider, builder: (column) => column);
+
+  GeneratedColumn<String> get modelName =>
+      $composableBuilder(column: $table.modelName, builder: (column) => column);
+
+  GeneratedColumn<String> get errorCode =>
+      $composableBuilder(column: $table.errorCode, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get completedAt => $composableBuilder(
+      column: $table.completedAt, builder: (column) => column);
+}
+
+class $$AgentRunsLocalTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $AgentRunsLocalTable,
+    AgentRunsLocalData,
+    $$AgentRunsLocalTableFilterComposer,
+    $$AgentRunsLocalTableOrderingComposer,
+    $$AgentRunsLocalTableAnnotationComposer,
+    $$AgentRunsLocalTableCreateCompanionBuilder,
+    $$AgentRunsLocalTableUpdateCompanionBuilder,
+    (
+      AgentRunsLocalData,
+      BaseReferences<_$AppDatabase, $AgentRunsLocalTable, AgentRunsLocalData>
+    ),
+    AgentRunsLocalData,
+    PrefetchHooks Function()> {
+  $$AgentRunsLocalTableTableManager(
+      _$AppDatabase db, $AgentRunsLocalTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AgentRunsLocalTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AgentRunsLocalTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AgentRunsLocalTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> threadId = const Value.absent(),
+            Value<String> userId = const Value.absent(),
+            Value<String> clientRequestId = const Value.absent(),
+            Value<String> status = const Value.absent(),
+            Value<int> cursor = const Value.absent(),
+            Value<String?> provider = const Value.absent(),
+            Value<String?> modelName = const Value.absent(),
+            Value<String?> errorCode = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<DateTime?> completedAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              AgentRunsLocalCompanion(
+            id: id,
+            threadId: threadId,
+            userId: userId,
+            clientRequestId: clientRequestId,
+            status: status,
+            cursor: cursor,
+            provider: provider,
+            modelName: modelName,
+            errorCode: errorCode,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            completedAt: completedAt,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String threadId,
+            required String userId,
+            required String clientRequestId,
+            Value<String> status = const Value.absent(),
+            Value<int> cursor = const Value.absent(),
+            Value<String?> provider = const Value.absent(),
+            Value<String?> modelName = const Value.absent(),
+            Value<String?> errorCode = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<DateTime?> completedAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              AgentRunsLocalCompanion.insert(
+            id: id,
+            threadId: threadId,
+            userId: userId,
+            clientRequestId: clientRequestId,
+            status: status,
+            cursor: cursor,
+            provider: provider,
+            modelName: modelName,
+            errorCode: errorCode,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            completedAt: completedAt,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$AgentRunsLocalTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $AgentRunsLocalTable,
+    AgentRunsLocalData,
+    $$AgentRunsLocalTableFilterComposer,
+    $$AgentRunsLocalTableOrderingComposer,
+    $$AgentRunsLocalTableAnnotationComposer,
+    $$AgentRunsLocalTableCreateCompanionBuilder,
+    $$AgentRunsLocalTableUpdateCompanionBuilder,
+    (
+      AgentRunsLocalData,
+      BaseReferences<_$AppDatabase, $AgentRunsLocalTable, AgentRunsLocalData>
+    ),
+    AgentRunsLocalData,
+    PrefetchHooks Function()>;
+typedef $$MealChangeProposalsLocalTableCreateCompanionBuilder
+    = MealChangeProposalsLocalCompanion Function({
+  required String id,
+  required String threadId,
+  required String userId,
+  Value<String?> messageId,
+  required String operation,
+  Value<String?> targetMealId,
+  Value<int?> expectedRevision,
+  required String draftJson,
+  Value<String> status,
+  Value<DateTime?> expiresAt,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+typedef $$MealChangeProposalsLocalTableUpdateCompanionBuilder
+    = MealChangeProposalsLocalCompanion Function({
+  Value<String> id,
+  Value<String> threadId,
+  Value<String> userId,
+  Value<String?> messageId,
+  Value<String> operation,
+  Value<String?> targetMealId,
+  Value<int?> expectedRevision,
+  Value<String> draftJson,
+  Value<String> status,
+  Value<DateTime?> expiresAt,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+
+class $$MealChangeProposalsLocalTableFilterComposer
+    extends Composer<_$AppDatabase, $MealChangeProposalsLocalTable> {
+  $$MealChangeProposalsLocalTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get threadId => $composableBuilder(
+      column: $table.threadId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get userId => $composableBuilder(
+      column: $table.userId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get messageId => $composableBuilder(
+      column: $table.messageId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get operation => $composableBuilder(
+      column: $table.operation, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get targetMealId => $composableBuilder(
+      column: $table.targetMealId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get expectedRevision => $composableBuilder(
+      column: $table.expectedRevision,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get draftJson => $composableBuilder(
+      column: $table.draftJson, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get expiresAt => $composableBuilder(
+      column: $table.expiresAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$MealChangeProposalsLocalTableOrderingComposer
+    extends Composer<_$AppDatabase, $MealChangeProposalsLocalTable> {
+  $$MealChangeProposalsLocalTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get threadId => $composableBuilder(
+      column: $table.threadId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+      column: $table.userId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get messageId => $composableBuilder(
+      column: $table.messageId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get operation => $composableBuilder(
+      column: $table.operation, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get targetMealId => $composableBuilder(
+      column: $table.targetMealId,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get expectedRevision => $composableBuilder(
+      column: $table.expectedRevision,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get draftJson => $composableBuilder(
+      column: $table.draftJson, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get expiresAt => $composableBuilder(
+      column: $table.expiresAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$MealChangeProposalsLocalTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MealChangeProposalsLocalTable> {
+  $$MealChangeProposalsLocalTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get threadId =>
+      $composableBuilder(column: $table.threadId, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get messageId =>
+      $composableBuilder(column: $table.messageId, builder: (column) => column);
+
+  GeneratedColumn<String> get operation =>
+      $composableBuilder(column: $table.operation, builder: (column) => column);
+
+  GeneratedColumn<String> get targetMealId => $composableBuilder(
+      column: $table.targetMealId, builder: (column) => column);
+
+  GeneratedColumn<int> get expectedRevision => $composableBuilder(
+      column: $table.expectedRevision, builder: (column) => column);
+
+  GeneratedColumn<String> get draftJson =>
+      $composableBuilder(column: $table.draftJson, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get expiresAt =>
+      $composableBuilder(column: $table.expiresAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$MealChangeProposalsLocalTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $MealChangeProposalsLocalTable,
+    MealChangeProposalsLocalData,
+    $$MealChangeProposalsLocalTableFilterComposer,
+    $$MealChangeProposalsLocalTableOrderingComposer,
+    $$MealChangeProposalsLocalTableAnnotationComposer,
+    $$MealChangeProposalsLocalTableCreateCompanionBuilder,
+    $$MealChangeProposalsLocalTableUpdateCompanionBuilder,
+    (
+      MealChangeProposalsLocalData,
+      BaseReferences<_$AppDatabase, $MealChangeProposalsLocalTable,
+          MealChangeProposalsLocalData>
+    ),
+    MealChangeProposalsLocalData,
+    PrefetchHooks Function()> {
+  $$MealChangeProposalsLocalTableTableManager(
+      _$AppDatabase db, $MealChangeProposalsLocalTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MealChangeProposalsLocalTableFilterComposer(
+                  $db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MealChangeProposalsLocalTableOrderingComposer(
+                  $db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$MealChangeProposalsLocalTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> threadId = const Value.absent(),
+            Value<String> userId = const Value.absent(),
+            Value<String?> messageId = const Value.absent(),
+            Value<String> operation = const Value.absent(),
+            Value<String?> targetMealId = const Value.absent(),
+            Value<int?> expectedRevision = const Value.absent(),
+            Value<String> draftJson = const Value.absent(),
+            Value<String> status = const Value.absent(),
+            Value<DateTime?> expiresAt = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              MealChangeProposalsLocalCompanion(
+            id: id,
+            threadId: threadId,
+            userId: userId,
+            messageId: messageId,
+            operation: operation,
+            targetMealId: targetMealId,
+            expectedRevision: expectedRevision,
+            draftJson: draftJson,
+            status: status,
+            expiresAt: expiresAt,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String threadId,
+            required String userId,
+            Value<String?> messageId = const Value.absent(),
+            required String operation,
+            Value<String?> targetMealId = const Value.absent(),
+            Value<int?> expectedRevision = const Value.absent(),
+            required String draftJson,
+            Value<String> status = const Value.absent(),
+            Value<DateTime?> expiresAt = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              MealChangeProposalsLocalCompanion.insert(
+            id: id,
+            threadId: threadId,
+            userId: userId,
+            messageId: messageId,
+            operation: operation,
+            targetMealId: targetMealId,
+            expectedRevision: expectedRevision,
+            draftJson: draftJson,
+            status: status,
+            expiresAt: expiresAt,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$MealChangeProposalsLocalTableProcessedTableManager
+    = ProcessedTableManager<
+        _$AppDatabase,
+        $MealChangeProposalsLocalTable,
+        MealChangeProposalsLocalData,
+        $$MealChangeProposalsLocalTableFilterComposer,
+        $$MealChangeProposalsLocalTableOrderingComposer,
+        $$MealChangeProposalsLocalTableAnnotationComposer,
+        $$MealChangeProposalsLocalTableCreateCompanionBuilder,
+        $$MealChangeProposalsLocalTableUpdateCompanionBuilder,
+        (
+          MealChangeProposalsLocalData,
+          BaseReferences<_$AppDatabase, $MealChangeProposalsLocalTable,
+              MealChangeProposalsLocalData>
+        ),
+        MealChangeProposalsLocalData,
+        PrefetchHooks Function()>;
+typedef $$MealVisualsLocalTableCreateCompanionBuilder
+    = MealVisualsLocalCompanion Function({
+  required String id,
+  required String mealId,
+  required String userId,
+  required String promptSignature,
+  Value<String> styleVersion,
+  Value<String> status,
+  Value<String?> localPath,
+  Value<String?> remotePath,
+  Value<String?> thumbRemotePath,
+  Value<String?> dominantColor,
+  Value<String?> provider,
+  Value<String?> modelName,
+  Value<String?> errorCode,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+typedef $$MealVisualsLocalTableUpdateCompanionBuilder
+    = MealVisualsLocalCompanion Function({
+  Value<String> id,
+  Value<String> mealId,
+  Value<String> userId,
+  Value<String> promptSignature,
+  Value<String> styleVersion,
+  Value<String> status,
+  Value<String?> localPath,
+  Value<String?> remotePath,
+  Value<String?> thumbRemotePath,
+  Value<String?> dominantColor,
+  Value<String?> provider,
+  Value<String?> modelName,
+  Value<String?> errorCode,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+
+class $$MealVisualsLocalTableFilterComposer
+    extends Composer<_$AppDatabase, $MealVisualsLocalTable> {
+  $$MealVisualsLocalTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get mealId => $composableBuilder(
+      column: $table.mealId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get userId => $composableBuilder(
+      column: $table.userId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get promptSignature => $composableBuilder(
+      column: $table.promptSignature,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get styleVersion => $composableBuilder(
+      column: $table.styleVersion, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get localPath => $composableBuilder(
+      column: $table.localPath, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get remotePath => $composableBuilder(
+      column: $table.remotePath, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get thumbRemotePath => $composableBuilder(
+      column: $table.thumbRemotePath,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get dominantColor => $composableBuilder(
+      column: $table.dominantColor, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get provider => $composableBuilder(
+      column: $table.provider, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get modelName => $composableBuilder(
+      column: $table.modelName, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get errorCode => $composableBuilder(
+      column: $table.errorCode, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$MealVisualsLocalTableOrderingComposer
+    extends Composer<_$AppDatabase, $MealVisualsLocalTable> {
+  $$MealVisualsLocalTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get mealId => $composableBuilder(
+      column: $table.mealId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+      column: $table.userId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get promptSignature => $composableBuilder(
+      column: $table.promptSignature,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get styleVersion => $composableBuilder(
+      column: $table.styleVersion,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get localPath => $composableBuilder(
+      column: $table.localPath, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get remotePath => $composableBuilder(
+      column: $table.remotePath, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get thumbRemotePath => $composableBuilder(
+      column: $table.thumbRemotePath,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get dominantColor => $composableBuilder(
+      column: $table.dominantColor,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get provider => $composableBuilder(
+      column: $table.provider, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get modelName => $composableBuilder(
+      column: $table.modelName, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get errorCode => $composableBuilder(
+      column: $table.errorCode, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$MealVisualsLocalTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MealVisualsLocalTable> {
+  $$MealVisualsLocalTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get mealId =>
+      $composableBuilder(column: $table.mealId, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get promptSignature => $composableBuilder(
+      column: $table.promptSignature, builder: (column) => column);
+
+  GeneratedColumn<String> get styleVersion => $composableBuilder(
+      column: $table.styleVersion, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get localPath =>
+      $composableBuilder(column: $table.localPath, builder: (column) => column);
+
+  GeneratedColumn<String> get remotePath => $composableBuilder(
+      column: $table.remotePath, builder: (column) => column);
+
+  GeneratedColumn<String> get thumbRemotePath => $composableBuilder(
+      column: $table.thumbRemotePath, builder: (column) => column);
+
+  GeneratedColumn<String> get dominantColor => $composableBuilder(
+      column: $table.dominantColor, builder: (column) => column);
+
+  GeneratedColumn<String> get provider =>
+      $composableBuilder(column: $table.provider, builder: (column) => column);
+
+  GeneratedColumn<String> get modelName =>
+      $composableBuilder(column: $table.modelName, builder: (column) => column);
+
+  GeneratedColumn<String> get errorCode =>
+      $composableBuilder(column: $table.errorCode, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$MealVisualsLocalTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $MealVisualsLocalTable,
+    MealVisualsLocalData,
+    $$MealVisualsLocalTableFilterComposer,
+    $$MealVisualsLocalTableOrderingComposer,
+    $$MealVisualsLocalTableAnnotationComposer,
+    $$MealVisualsLocalTableCreateCompanionBuilder,
+    $$MealVisualsLocalTableUpdateCompanionBuilder,
+    (
+      MealVisualsLocalData,
+      BaseReferences<_$AppDatabase, $MealVisualsLocalTable,
+          MealVisualsLocalData>
+    ),
+    MealVisualsLocalData,
+    PrefetchHooks Function()> {
+  $$MealVisualsLocalTableTableManager(
+      _$AppDatabase db, $MealVisualsLocalTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MealVisualsLocalTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MealVisualsLocalTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$MealVisualsLocalTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> mealId = const Value.absent(),
+            Value<String> userId = const Value.absent(),
+            Value<String> promptSignature = const Value.absent(),
+            Value<String> styleVersion = const Value.absent(),
+            Value<String> status = const Value.absent(),
+            Value<String?> localPath = const Value.absent(),
+            Value<String?> remotePath = const Value.absent(),
+            Value<String?> thumbRemotePath = const Value.absent(),
+            Value<String?> dominantColor = const Value.absent(),
+            Value<String?> provider = const Value.absent(),
+            Value<String?> modelName = const Value.absent(),
+            Value<String?> errorCode = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              MealVisualsLocalCompanion(
+            id: id,
+            mealId: mealId,
+            userId: userId,
+            promptSignature: promptSignature,
+            styleVersion: styleVersion,
+            status: status,
+            localPath: localPath,
+            remotePath: remotePath,
+            thumbRemotePath: thumbRemotePath,
+            dominantColor: dominantColor,
+            provider: provider,
+            modelName: modelName,
+            errorCode: errorCode,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String mealId,
+            required String userId,
+            required String promptSignature,
+            Value<String> styleVersion = const Value.absent(),
+            Value<String> status = const Value.absent(),
+            Value<String?> localPath = const Value.absent(),
+            Value<String?> remotePath = const Value.absent(),
+            Value<String?> thumbRemotePath = const Value.absent(),
+            Value<String?> dominantColor = const Value.absent(),
+            Value<String?> provider = const Value.absent(),
+            Value<String?> modelName = const Value.absent(),
+            Value<String?> errorCode = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              MealVisualsLocalCompanion.insert(
+            id: id,
+            mealId: mealId,
+            userId: userId,
+            promptSignature: promptSignature,
+            styleVersion: styleVersion,
+            status: status,
+            localPath: localPath,
+            remotePath: remotePath,
+            thumbRemotePath: thumbRemotePath,
+            dominantColor: dominantColor,
+            provider: provider,
+            modelName: modelName,
+            errorCode: errorCode,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$MealVisualsLocalTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $MealVisualsLocalTable,
+    MealVisualsLocalData,
+    $$MealVisualsLocalTableFilterComposer,
+    $$MealVisualsLocalTableOrderingComposer,
+    $$MealVisualsLocalTableAnnotationComposer,
+    $$MealVisualsLocalTableCreateCompanionBuilder,
+    $$MealVisualsLocalTableUpdateCompanionBuilder,
+    (
+      MealVisualsLocalData,
+      BaseReferences<_$AppDatabase, $MealVisualsLocalTable,
+          MealVisualsLocalData>
+    ),
+    MealVisualsLocalData,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -14256,4 +18536,15 @@ class $AppDatabaseManager {
       $$WeeklyInsightsLocalTableTableManager(_db, _db.weeklyInsightsLocal);
   $$UserFoodDefaultsLocalTableTableManager get userFoodDefaultsLocal =>
       $$UserFoodDefaultsLocalTableTableManager(_db, _db.userFoodDefaultsLocal);
+  $$DailyThreadsLocalTableTableManager get dailyThreadsLocal =>
+      $$DailyThreadsLocalTableTableManager(_db, _db.dailyThreadsLocal);
+  $$ThreadMessagesLocalTableTableManager get threadMessagesLocal =>
+      $$ThreadMessagesLocalTableTableManager(_db, _db.threadMessagesLocal);
+  $$AgentRunsLocalTableTableManager get agentRunsLocal =>
+      $$AgentRunsLocalTableTableManager(_db, _db.agentRunsLocal);
+  $$MealChangeProposalsLocalTableTableManager get mealChangeProposalsLocal =>
+      $$MealChangeProposalsLocalTableTableManager(
+          _db, _db.mealChangeProposalsLocal);
+  $$MealVisualsLocalTableTableManager get mealVisualsLocal =>
+      $$MealVisualsLocalTableTableManager(_db, _db.mealVisualsLocal);
 }

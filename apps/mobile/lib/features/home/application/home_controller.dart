@@ -20,6 +20,8 @@ final homeUserContextProvider = FutureProvider<HomeUserContext?>((ref) async {
     proteinGoal: profile.activeGoal?.proteinG,
     carbsGoal: profile.activeGoal?.carbsG,
     fatGoal: profile.activeGoal?.fatG,
+    smartFoodsV2Enabled:
+        FeatureFlags(profile.featureFlags).isEnabled(FeatureFlag.smartFoodsV2),
     weeklyInsightsEnabled: FeatureFlags(profile.featureFlags)
         .isEnabled(FeatureFlag.weeklyInsights),
   );
@@ -37,11 +39,43 @@ final todayMealsProvider = StreamProvider<List<Meal>>((ref) async* {
       .watchMealsForDay(context.userId, day, timezone: context.timezone);
 });
 
+final mealsForDayProvider =
+    StreamProvider.family<List<Meal>, DateTime>((ref, requestedDay) async* {
+  final context = await ref.watch(homeUserContextProvider.future);
+  if (context == null) {
+    yield const [];
+    return;
+  }
+  yield* ref.watch(mealRepositoryProvider).watchMealsForDay(
+        context.userId,
+        requestedDay,
+        timezone: context.timezone,
+      );
+});
+
+final allMealsProvider = StreamProvider<List<Meal>>((ref) async* {
+  final context = await ref.watch(homeUserContextProvider.future);
+  if (context == null) {
+    yield const [];
+    return;
+  }
+  yield* ref.watch(mealRepositoryProvider).watchAllMeals(context.userId);
+});
+
 final todayRollupProvider = StreamProvider<DailyRollup>((ref) async* {
   final context = await ref.watch(homeUserContextProvider.future);
   if (context == null) return;
   final day = ref.watch(userDayTickProvider(context.timezone));
   yield* ref.watch(mealRepositoryProvider).watchRollup(context.userId, day);
+});
+
+final rollupForDayProvider =
+    StreamProvider.family<DailyRollup, DateTime>((ref, requestedDay) async* {
+  final context = await ref.watch(homeUserContextProvider.future);
+  if (context == null) return;
+  yield* ref
+      .watch(mealRepositoryProvider)
+      .watchRollup(context.userId, requestedDay);
 });
 
 final userDayTickProvider = Provider.family<DateTime, String>((ref, timezone) {
@@ -68,6 +102,7 @@ class HomeUserContext {
     this.proteinGoal,
     this.carbsGoal,
     this.fatGoal,
+    this.smartFoodsV2Enabled = false,
     this.weeklyInsightsEnabled = false,
   });
 
@@ -77,5 +112,6 @@ class HomeUserContext {
   final double? proteinGoal;
   final double? carbsGoal;
   final double? fatGoal;
+  final bool smartFoodsV2Enabled;
   final bool weeklyInsightsEnabled;
 }

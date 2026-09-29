@@ -14,9 +14,17 @@ appId: ${APP_ID}
     visible:
       id: "screen.onboarding"
     timeout: 10000
+# Onboarding: one question per screen. Pickers (birth year, height, weight)
+# keep their defaults so the path is deterministic; the ruler/wheel values
+# are committed on Continue. Maintain skips target weight and pace.
+- assertVisible:
+    id: "onboarding.step.welcome"
+- tapOn:
+    id: "onboarding.next"           # Get started
 - tapOn:
     id: "onboarding.display_name"
 - inputText: "${E2E_DISPLAY_NAME}"
+- hideKeyboard
 - tapOn:
     id: "onboarding.next"
 - tapOn:
@@ -24,13 +32,43 @@ appId: ${APP_ID}
 - tapOn:
     id: "onboarding.next"
 - tapOn:
-    id: "onboarding.weight"
-- inputText: "70"
-- tapOn:
-    id: "onboarding.height"
-- inputText: "175"
+    id: "onboarding.sex.unspecified"
 - tapOn:
     id: "onboarding.next"
+- assertVisible:
+    id: "onboarding.step.birth_year"
+- tapOn:
+    id: "onboarding.next"
+- assertVisible:
+    id: "onboarding.height"
+- tapOn:
+    id: "onboarding.next"
+- assertVisible:
+    id: "onboarding.weight"
+- tapOn:
+    id: "onboarding.next"
+- tapOn:
+    id: "onboarding.activity.moderate"
+- tapOn:
+    id: "onboarding.next"
+- tapOn:
+    id: "onboarding.cuisine.indian"
+- tapOn:
+    id: "onboarding.cuisine.mediterranean"
+- tapOn:
+    id: "onboarding.next"
+- assertVisible:
+    id: "onboarding.timezone"
+- tapOn:
+    id: "onboarding.camera_primer"
+- tapOn:
+    id: "onboarding.next"           # Build my plan
+- extendedWaitUntil:
+    visible:
+      id: "onboarding.plan_card"
+    timeout: 10000
+- tapOn:
+    id: "onboarding.adjust_targets"
 - tapOn:
     id: "onboarding.calories"
 - eraseText: 100
@@ -39,24 +77,12 @@ appId: ${APP_ID}
     id: "onboarding.protein"
 - eraseText: 100
 - inputText: "130"
+- hideKeyboard
 - tapOn:
-    id: "onboarding.next"
+    id: "onboarding.adjust.save"
 - tapOn:
-    id: "onboarding.cuisines"
-- eraseText: 100
-- inputText: "Indian, Mediterranean"
-- tapOn:
-    id: "onboarding.timezone"
-- eraseText: 100
-- inputText: "Asia/Kolkata"
-- pressKey: "enter"
-- tapOn:
-    id: "onboarding.next"
-- tapOn:
-    id: "onboarding.camera_primer"
-- tapOn:
-    id: "onboarding.finish"
+    id: "onboarding.finish"         # Start logging
 - extendedWaitUntil:
     visible:
-      id: "scaffold.today"
+      id: "screen.day_thread"
     timeout: 15000

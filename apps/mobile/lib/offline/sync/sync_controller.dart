@@ -6,7 +6,9 @@ import 'package:snapgrub/app/env/app_config_provider.dart';
 import 'package:snapgrub/features/auth/application/auth_controller.dart';
 import 'package:snapgrub/features/auth/domain/auth_state.dart';
 import 'package:snapgrub/features/custom_foods/data/custom_food_repository.dart';
+import 'package:snapgrub/features/conversation/data/conversation_repository.dart';
 import 'package:snapgrub/features/meal_editor/data/meal_repository.dart';
+import 'package:snapgrub/features/meal_visuals/data/meal_visual_repository.dart';
 import 'package:snapgrub/data/repositories/profile_repository.dart';
 import 'package:snapgrub/features/templates/data/template_repository.dart';
 import 'package:snapgrub/offline/outbox/outbox_repository.dart';
@@ -68,6 +70,8 @@ class SyncController extends AsyncNotifier<SyncStatus> {
       await ref.read(customFoodRepositoryProvider).drainOutbox(userId);
       await ref.read(templateRepositoryProvider).drainOutbox(userId);
       await ref.read(mealRepositoryProvider).drainMealOutbox(userId);
+      await ref.read(conversationRepositoryProvider).drainOutbox(userId);
+      await ref.read(mealVisualRepositoryProvider).drainOutbox(userId);
       await ref
           .read(syncCommandRepositoryProvider)
           .drainDeferredCommands(userId);
