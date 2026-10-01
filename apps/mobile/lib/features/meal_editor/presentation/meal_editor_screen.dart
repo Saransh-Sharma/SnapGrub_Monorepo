@@ -13,9 +13,11 @@ import 'package:snapgrub/core/feedback/undo.dart';
 import 'package:snapgrub/features/custom_foods/data/custom_food_repository.dart';
 import 'package:snapgrub/features/home/application/home_controller.dart';
 import 'package:snapgrub/features/meal_editor/application/meal_actions.dart';
+import 'package:snapgrub/features/meal_editor/data/meal_draft_mapper.dart';
 import 'package:snapgrub/features/meal_editor/data/meal_repository.dart';
 import 'package:snapgrub/features/meal_editor/domain/meal.dart';
 import 'package:snapgrub/features/meal_editor/presentation/widgets/custom_food_picker.dart';
+import 'package:snapgrub/features/meal_editor/presentation/widgets/food_search_sheet.dart';
 import 'package:snapgrub/features/meal_editor/presentation/widgets/meal_fix_sentence.dart';
 import 'package:snapgrub/features/meal_editor/presentation/widgets/meal_item_row.dart';
 import 'package:snapgrub/features/meal_editor/presentation/widgets/meal_review_bottom_bar.dart';
@@ -319,6 +321,31 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
     }
   }
 
+  Future<void> _searchFood() async {
+    final draft = _draft!;
+    try {
+      final profile =
+          (await ref.read(profileControllerProvider.future)).profile;
+      if (profile == null || !mounted) return;
+      final remote = ref.read(multimodalRemoteServiceProvider);
+      final selected = await showFoodSearchSheet(
+        context,
+        search: (query) => remote.searchFoods(query: query, profile: profile),
+      );
+      if (selected == null || !mounted) return;
+      final item = mealItemFromFoodResult(selected);
+      setState(() {
+        if (_onlyBlankItem(draft)) draft.items.clear();
+        draft.items.add(item);
+      });
+      _flash({item.id});
+    } catch (error) {
+      if (!mounted) return;
+      showSgToast(context, friendlyError(error).message,
+          icon: Icons.info_outline_rounded);
+    }
+  }
+
   void _flash(Set<String> ids) {
     if (ids.isEmpty) return;
     _highlightTimer?.cancel();
@@ -344,11 +371,13 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
       if (user == null || profile == null) {
         throw ArgumentError('Finish setting up your profile first.');
       }
-      final revised = await ref.read(multimodalRemoteServiceProvider).parseText(
-            userId: user.userId,
-            profile: profile,
-            text: correctionPrompt(draft, correction),
-          );
+      final revised =
+          await ref.read(multimodalRemoteServiceProvider).correctDraft(
+                userId: user.userId,
+                profile: profile,
+                draft: draft,
+                correction: correction,
+              );
       if (!mounted) return;
       final before = draft.items.map(itemContentSignature).toSet();
       final changed = {
@@ -641,6 +670,19 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
               spacing: SnapGrubDesignTokens.space8,
               runSpacing: SnapGrubDesignTokens.space8,
               children: [
+                if (remote.isConfigured || remote.e2eMock)
+                  E2eId(
+                    id: 'meal.search_food',
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        minimumSize:
+                            const Size(0, SnapGrubDesignTokens.minTapTarget),
+                      ),
+                      onPressed: _fixing ? null : _searchFood,
+                      icon: const Icon(Icons.search_rounded),
+                      label: const Text('Search foods'),
+                    ),
+                  ),
                 E2eId(
                   id: 'meal.add_item',
                   child: OutlinedButton.icon(

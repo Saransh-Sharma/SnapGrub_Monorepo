@@ -39,6 +39,61 @@ void main() {
     expect(draft.provenanceType, 'voice_parser');
     expect(draft.items.single.name, 'Roti');
   });
+
+  test('a picked catalog food keeps its reference and serving', () {
+    final item = mealItemFromFoodResult(_food('canonical'));
+
+    expect(item.foodRefKind, 'canonical');
+    expect(item.canonicalFoodId, 'food-1');
+    expect(item.customFoodId, isNull);
+    expect(item.quantity, 1);
+    expect(item.unit, 'katori');
+    expect(item.gramsEstimated, 180);
+    expect(item.caloriesKcal, 212);
+    expect(item.sourceType, 'curated');
+    // A food the user chose carries no model confidence.
+    expect(item.confidence, isNull);
+  });
+
+  test('a past entry from search becomes a plain item', () {
+    final item = mealItemFromFoodResult(_food('recent'));
+
+    expect(item.foodRefKind, 'manual');
+    expect(item.canonicalFoodId, isNull);
+    expect(item.brandedProductId, isNull);
+    expect(item.customFoodId, isNull);
+  });
+
+  test('a correction sends named items with their references', () {
+    final draft = MealDraft(
+      userId: 'user-a',
+      timezone: 'UTC',
+      title: ' Lunch ',
+      items: [
+        MealDraftItem(
+          name: 'Roti',
+          foodRefKind: 'canonical',
+          canonicalFoodId: 'food-roti',
+          quantity: 2,
+          unit: 'roti',
+          caloriesKcal: 238,
+        ),
+        MealDraftItem(),
+      ],
+    );
+
+    final json = correctionBaseDraft(draft).toJson();
+    final items = json['items'] as List;
+
+    expect(json['title'], 'Lunch');
+    // The untouched placeholder row is not part of the meal.
+    expect(items, hasLength(1));
+    final roti = items.single as Map;
+    expect(roti['position'], 0);
+    expect(roti['food_ref_kind'], 'canonical');
+    expect(roti['canonical_food_id'], 'food-roti');
+    expect(roti['quantity'], 2);
+  });
 }
 
 EditableMealDraftDto _editableDraft() {
@@ -84,3 +139,21 @@ EditableMealDraftDto _editableDraft() {
     provenance: const {'source': 'test'},
   );
 }
+
+FoodSearchResultDto _food(String resultType) => FoodSearchResultDto(
+      id: 'food-1',
+      resultType: resultType,
+      name: 'Dal tadka',
+      servingQuantity: 1,
+      servingUnit: 'katori',
+      servingGrams: 180,
+      caloriesKcal: 212,
+      proteinG: 10.8,
+      carbsG: 28.8,
+      fatG: 6.1,
+      confidence: .82,
+      provenance: const CatalogProvenanceDto(
+        sourceType: 'curated',
+        sourceId: 'curated:dal_tadka',
+      ),
+    );

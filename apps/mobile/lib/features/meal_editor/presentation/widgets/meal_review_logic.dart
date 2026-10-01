@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:snapgrub/core/design_system/design_system.dart';
+import 'package:snapgrub/core/feedback/labels.dart';
 import 'package:snapgrub/features/meal_editor/domain/meal.dart';
 
 /// Items under this confidence get a gentle "Check portion" nudge.
@@ -64,6 +65,15 @@ String portionLabel(MealDraftItem item) {
   return '$amount · ${grams.round()} g';
 }
 
+/// Where an item's numbers come from, for the collapsed row: a catalog or
+/// saved food, or a model estimate. Null for hand-entered items.
+String? itemSourceLabel(MealDraftItem item) {
+  if (item.foodRefKind != 'manual') {
+    return Labels.foodReference(item.foodRefKind);
+  }
+  return (item.sourceType?.startsWith('ai_') ?? false) ? 'Estimated' : null;
+}
+
 /// Screen-reader summary for a row: "Rice, 1 cup, 206 calories".
 String itemSemanticLabel(MealDraftItem item) {
   final name = item.name.trim().isEmpty ? 'New item' : item.name.trim();
@@ -110,20 +120,3 @@ String itemContentSignature(MealDraftItem item) => [
       item.carbsG.round(),
       item.fatG.round(),
     ].join('|');
-
-/// The text sent to the parser when the user fixes a draft with a sentence:
-/// the current items plus their correction, so the parser returns a whole
-/// revised meal rather than just the correction.
-String correctionPrompt(MealDraft draft, String correction) {
-  final items =
-      draft.items.where((item) => item.name.trim().isNotEmpty).map((item) {
-    final unit = item.unit.trim();
-    final quantity = formatNumber(item.quantity, decimals: 2);
-    return unit.isEmpty
-        ? '$quantity ${item.name.trim()}'
-        : '$quantity $unit ${item.name.trim()}';
-  }).join(', ');
-  final title = draft.title.trim();
-  final meal = title.isEmpty ? items : '$title: $items';
-  return '$meal. Correction: ${correction.trim()}';
-}

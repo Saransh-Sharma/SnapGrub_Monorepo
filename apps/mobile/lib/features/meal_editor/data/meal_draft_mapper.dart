@@ -60,3 +60,62 @@ String _provenanceTypeFor(MealSource source) {
     MealSource.duplicate => 'duplicate',
   };
 }
+
+/// A meal item for a food the user picked from search. Catalog, packaged and
+/// "My foods" results keep their reference; a past entry is a plain item.
+MealDraftItem mealItemFromFoodResult(FoodSearchResultDto food) {
+  final kind = switch (food.resultType) {
+    'canonical' || 'branded' || 'custom' => food.resultType,
+    _ => 'manual',
+  };
+  return MealDraftItem(
+    name: food.name,
+    foodRefKind: kind,
+    canonicalFoodId: kind == 'canonical' ? food.id : null,
+    brandedProductId: kind == 'branded' ? food.id : null,
+    customFoodId: kind == 'custom' ? food.id : null,
+    quantity: food.servingQuantity ?? 1,
+    unit: food.servingUnit ?? 'serving',
+    gramsEstimated: food.servingGrams,
+    caloriesKcal: food.caloriesKcal,
+    proteinG: food.proteinG,
+    carbsG: food.carbsG,
+    fatG: food.fatG,
+    sourceType: food.provenance.sourceType,
+    sourceId: food.provenance.sourceId,
+    notes: food.brand,
+  );
+}
+
+/// The draft's named items as sent with a correction, so the server can
+/// return untouched items exactly as they are.
+CorrectionBaseDraftDto correctionBaseDraft(MealDraft draft) {
+  final items = draft.items.where((item) => item.name.trim().isNotEmpty);
+  final title = draft.title.trim();
+  return CorrectionBaseDraftDto(
+    title: title.isEmpty ? null : title,
+    items: [
+      for (final (position, item) in items.indexed)
+        MealItemWriteDto(
+          clientId: item.clientId,
+          position: position,
+          name: item.name.trim(),
+          foodRefKind: item.foodRefKind,
+          canonicalFoodId: item.canonicalFoodId,
+          brandedProductId: item.brandedProductId,
+          customFoodId: item.customFoodId,
+          quantity: item.quantity,
+          unit: item.unit,
+          gramsEstimated: item.gramsEstimated,
+          caloriesKcal: item.caloriesKcal,
+          proteinG: item.proteinG,
+          carbsG: item.carbsG,
+          fatG: item.fatG,
+          confidence: item.confidence,
+          sourceType: item.sourceType,
+          sourceId: item.sourceId,
+          notes: item.notes,
+        ),
+    ],
+  );
+}

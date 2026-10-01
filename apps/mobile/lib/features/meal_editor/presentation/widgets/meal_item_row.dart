@@ -214,7 +214,10 @@ class _MealItemRowState extends State<MealItemRow> {
                       ),
                       const SizedBox(height: SnapGrubDesignTokens.space4),
                       Text(
-                        portionLabel(item),
+                        [
+                          portionLabel(item),
+                          if (itemSourceLabel(item) case final source?) source,
+                        ].join(' · '),
                         style: theme.textTheme.bodySmall
                             ?.copyWith(color: scheme.onSurfaceVariant),
                       ),

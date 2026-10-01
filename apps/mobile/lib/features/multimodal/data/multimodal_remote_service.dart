@@ -57,6 +57,64 @@ class MultimodalRemoteService {
     );
   }
 
+  /// Applies a plain-language [correction] to [draft] and returns the whole
+  /// revised meal. Items the correction does not touch come back unchanged.
+  Future<MealDraft> correctDraft({
+    required String userId,
+    required UserProfile profile,
+    required MealDraft draft,
+    required String correction,
+  }) async {
+    if (e2eMock) {
+      return E2eData.mockDraft(
+        userId: userId,
+        timezone: profile.timezone,
+        source: MealSource.text,
+        title: correction,
+        provenanceType: 'text_parser',
+      );
+    }
+    final response = await _invokeMultimodal(
+      'analysis-text-create',
+      TextAnalysisCreateRequestDto(
+        clientRequestId: const Uuid().v4(),
+        text: correction,
+        locale: profile.locale,
+        timezone: profile.timezone,
+        cuisineHints: profile.cuisinePreferences,
+        baseDraft: correctionBaseDraft(draft),
+      ).toJson(),
+    );
+    return mealDraftFromEditableDto(
+      result: response.result,
+      userId: userId,
+      source: draft.source,
+      provenanceType: draft.provenanceType,
+    );
+  }
+
+  /// Foods matching [query] from the catalog and the user's own foods.
+  Future<List<FoodSearchResultDto>> searchFoods({
+    required String query,
+    required UserProfile profile,
+    int limit = 15,
+  }) async {
+    if (e2eMock) return E2eData.mockFoodResults(query);
+    final client = _requireClient();
+    final response = await client.functions.invoke(
+      'foods-search',
+      body: FoodSearchRequestDto(
+        query: query,
+        locale: profile.locale,
+        region: profile.countryCode,
+        limit: limit,
+      ).toJson(),
+    );
+    return FoodsSearchResponseDto.fromJson(
+            Map<String, dynamic>.from(response.data as Map))
+        .results;
+  }
+
   Future<MealDraft> parseVoiceTranscript({
     required String userId,
     required UserProfile profile,

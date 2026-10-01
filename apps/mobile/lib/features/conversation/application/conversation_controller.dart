@@ -149,7 +149,8 @@ class ConversationController extends Notifier<ConversationComposerState> {
       }
 
       if (draft != null) {
-        _placeDraftOnDay(draft, day);
+        // An update or delete keeps the time the meal was logged at.
+        if (operation == ProposalOperation.create) _placeDraftOnDay(draft, day);
         final message = await repository.addMessage(
           thread: thread,
           role: ThreadMessageRole.assistant,

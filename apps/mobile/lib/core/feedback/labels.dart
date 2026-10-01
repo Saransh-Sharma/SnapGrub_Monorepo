@@ -61,7 +61,7 @@ class Labels {
         'manual' => 'Entered manually',
         'duplicate' => 'Logged again',
         'template' => 'From a saved meal',
-        'agent' || 'conversation' => 'From chat',
+        'agent' || 'conversation' || 'conversation_agent' => 'From chat',
         _ => 'Estimate',
       };
 
@@ -70,6 +70,14 @@ class Labels {
         'branded' => 'Packaged product',
         'custom' => 'Your food',
         _ => 'Estimated',
+      };
+
+  /// Where a food search result comes from.
+  static String foodResult(String resultType) => switch (resultType) {
+        'canonical' => 'Verified food',
+        'branded' => 'Packaged product',
+        'custom' => 'Your food',
+        _ => 'Logged before',
       };
 
   /// "High confidence" style wording from a 0..1 score.

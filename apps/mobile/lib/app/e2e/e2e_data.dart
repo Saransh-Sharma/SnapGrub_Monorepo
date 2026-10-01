@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:snapgrub/data/db/drift/app_database.dart';
 import 'package:snapgrub/features/capture/domain/capture_asset.dart';
 import 'package:snapgrub/features/meal_editor/domain/meal.dart';
+import 'package:snapgrub_api_contracts/snapgrub_api_contracts.dart';
 import 'package:uuid/uuid.dart';
 
 class E2eData {
@@ -77,6 +78,50 @@ class E2eData {
         ),
       ],
     );
+  }
+
+  /// Canned food search results for mock runs, filtered by [query].
+  static List<FoodSearchResultDto> mockFoodResults(String query) {
+    const provenance = CatalogProvenanceDto(
+      sourceType: 'curated',
+      sourceId: 'e2e',
+      sourceQuality: 'starter',
+    );
+    const foods = [
+      FoodSearchResultDto(
+        id: '00000000-0000-4000-8000-000000000001',
+        resultType: 'canonical',
+        name: 'Roti',
+        servingQuantity: 1,
+        servingUnit: 'roti',
+        servingGrams: 40,
+        caloriesKcal: 119,
+        proteinG: 3.9,
+        carbsG: 18.4,
+        fatG: 3,
+        confidence: .82,
+        provenance: provenance,
+      ),
+      FoodSearchResultDto(
+        id: '00000000-0000-4000-8000-000000000002',
+        resultType: 'canonical',
+        name: 'Dal tadka',
+        servingQuantity: 1,
+        servingUnit: 'katori',
+        servingGrams: 180,
+        caloriesKcal: 212,
+        proteinG: 10.8,
+        carbsG: 28.8,
+        fatG: 6.1,
+        confidence: .82,
+        provenance: provenance,
+      ),
+    ];
+    final needle = query.trim().toLowerCase();
+    return [
+      for (final food in foods)
+        if (food.name.toLowerCase().contains(needle)) food,
+    ];
   }
 
   static Future<CaptureAsset> fixtureAsset(String userId) async {

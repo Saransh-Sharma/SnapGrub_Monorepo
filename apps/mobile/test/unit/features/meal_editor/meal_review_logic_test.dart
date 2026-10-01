@@ -71,16 +71,15 @@ void main() {
     expect(mealDraftFingerprint(draft), isNot(before));
   });
 
-  test('correction prompt carries the current items and the fix', () {
-    final draft = MealDraft(
-      userId: 'u',
-      timezone: 'UTC',
-      title: 'Lunch',
-      items: [_rice(), MealDraftItem(name: 'Dal', quantity: 2, unit: 'bowl')],
+  test('item source label separates catalog, estimate and hand entry', () {
+    expect(
+      itemSourceLabel(MealDraftItem(name: 'Roti', foodRefKind: 'canonical')),
+      'Verified food',
     );
     expect(
-      correctionPrompt(draft, 'it was brown rice'),
-      'Lunch: 1 cup Rice, 2 bowl Dal. Correction: it was brown rice',
+      itemSourceLabel(MealDraftItem(name: 'Salmon', sourceType: 'ai_text')),
+      'Estimated',
     );
+    expect(itemSourceLabel(MealDraftItem(name: 'Rice')), isNull);
   });
 }

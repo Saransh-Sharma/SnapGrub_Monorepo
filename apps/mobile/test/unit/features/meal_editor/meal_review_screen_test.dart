@@ -340,6 +340,7 @@ void main() {
       'meal.item.0.protein',
       'meal.item.0.carbs',
       'meal.item.0.fat',
+      'meal.search_food',
       'meal.add_item',
       'meal.add_custom_food',
       'meal.save',
@@ -396,6 +397,42 @@ void main() {
     expect(find.text('Paneer'), findsOneWidget);
     expect(find.text('New item'), findsNothing);
     expect(find.text('265 kcal'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 3));
+  });
+
+  testWidgets('food search adds a catalog food with its reference',
+      (tester) async {
+    _tallView(tester);
+    final harness = await MobileTestHarness.create();
+    addTearDown(harness.dispose);
+    final draft = testMealDraft(title: 'Lunch');
+
+    await harness.pumpScreen(tester, MealEditorScreen(initialDraft: draft));
+    await tester.tap(find.byKey(const ValueKey('meal.search_food')));
+    await tester.pumpAndSettle();
+    expect(find.text('Search foods'), findsWidgets);
+    expect(find.text('Find a food'), findsOneWidget);
+
+    await tester.enterText(_field('meal.food_search.field'), 'zzz');
+    await _steps(tester);
+    expect(find.text('No matches'), findsOneWidget);
+
+    await tester.enterText(_field('meal.food_search.field'), 'dal');
+    await _steps(tester);
+    expect(find.text('Dal tadka'), findsOneWidget);
+    expect(find.text('Verified food'), findsOneWidget);
+
+    await tester.tap(find.text('Dal tadka'));
+    await _steps(tester);
+
+    expect(find.text('Find a food'), findsNothing);
+    final added = draft.items.last;
+    expect(added.name, 'Dal tadka');
+    expect(added.foodRefKind, 'canonical');
+    expect(added.canonicalFoodId, isNotNull);
+    expect(added.caloriesKcal, 212);
+    // The collapsed row says where the numbers come from.
+    expect(find.textContaining('Verified food'), findsOneWidget);
     await tester.pump(const Duration(seconds: 3));
   });
 
