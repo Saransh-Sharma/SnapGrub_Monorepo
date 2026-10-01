@@ -341,8 +341,13 @@ export function buildDraftFromText(input: {
   locale: string;
   cuisineHints: string[];
   transcriptConfidence?: number | null;
+  /// Set when the rule parser stands in for an unavailable model.
+  fallback?: boolean;
 }): EditableMealDraft {
-  const components = parseMealPhrase(input.text, input.source);
+  const { items: components, unmatched } = parseMealPhrase(
+    input.text,
+    input.source,
+  );
   if (components.length === 0) {
     throw new ApiError(
       "INVALID_INPUT",
@@ -351,13 +356,16 @@ export function buildDraftFromText(input: {
       false,
     );
   }
-  const warnings = [{
+  const warnings: EditableMealDraft["confidence"]["warnings"] = [{
     code: "review_estimate",
     message: input.source === "voice"
       ? "Voice entry was converted from transcript. Please review quantities before saving."
       : "Text entry was parsed as an estimate. Please review quantities before saving.",
     severity: "review" as const,
   }];
+  if (unmatched.length > 0) {
+    warnings.push(unmatchedWarning(unmatched));
+  }
   if (input.transcriptConfidence != null && input.transcriptConfidence < 0.75) {
     warnings.push({
       code: "low_transcript_confidence",
@@ -376,12 +384,26 @@ export function buildDraftFromText(input: {
     warnings,
     provenance: {
       source_type: input.source,
-      parser: "phase5_rule_parser",
+      parser: input.fallback ? "rule_fallback" : "phase5_rule_parser",
       input_text: input.text,
       locale: input.locale,
       cuisine_hints: input.cuisineHints,
+      unmatched,
     },
   });
+}
+
+/// Warning shown when part of the message could not be turned into a food.
+export function unmatchedWarning(
+  unmatched: string[],
+): EditableMealDraft["confidence"]["warnings"][number] {
+  return {
+    code: "unmatched_words",
+    message: `Not included: ${
+      unmatched.slice(0, 6).join(", ")
+    }. Enter manually if you ate it.`,
+    severity: "high",
+  };
 }
 
 export function buildDraftFromLabel(input: {
@@ -514,7 +536,7 @@ export function brandedProductToFoodResult(
 function parseMealPhrase(
   text: string,
   source: "text" | "voice",
-): MealItemWrite[] {
+): { items: MealItemWrite[]; unmatched: string[] } {
   const normalized = normalize(text);
   const chunks = normalized
     .replace(/\bwith\b/g, ",")
@@ -523,55 +545,137 @@ function parseMealPhrase(
     .map((part) => part.trim())
     .filter(Boolean);
   const items: MealItemWrite[] = [];
+  const unmatched: string[] = [];
   for (const chunk of chunks.length ? chunks : [normalized]) {
-    const keysInChunk = Object.keys(localFoods).filter((candidate) =>
-      chunk.includes(candidate)
-    );
+    const keysInChunk = foodKeysIn(chunk);
+    unmatched.push(...unmatchedTokens(chunk, keysInChunk));
     if (
       keysInChunk.length > 1 &&
       !/(\d+(?:\.\d+)?)\s*(g|gram|grams)\b/.test(chunk)
     ) {
       for (const key of keysInChunk) {
-        const parsed = itemFromFood(
-          localFoods[key],
-          key,
-          1,
-          null,
-          null,
-          source,
-          items.length,
+        items.push(
+          itemFromFood(
+            localFoods[key],
+            key,
+            1,
+            null,
+            null,
+            source,
+            items.length,
+          ),
         );
-        if (parsed) items.push(parsed);
       }
       continue;
     }
-    const parsed = parseChunk(chunk, source, items.length);
+    const parsed = parseChunk(chunk, keysInChunk[0], source, items.length);
     if (parsed) items.push(parsed);
   }
-  return items;
+  return { items, unmatched: [...new Set(unmatched)] };
+}
+
+/// Whole-word match with simple plurals, so "pineapple" is not "apple".
+function keyPattern(key: string) {
+  return new RegExp(`\\b${key}(?:s|es)?\\b`);
+}
+
+/// Dictionary keys present in the chunk, one per distinct food.
+function foodKeysIn(chunk: string) {
+  const seen = new Set<string>();
+  return Object.keys(localFoods).filter((key) => {
+    if (!keyPattern(key).test(chunk)) return false;
+    const name = localFoods[key].name;
+    if (seen.has(name)) return false;
+    seen.add(name);
+    return true;
+  });
+}
+
+const quantityWords: Record<string, number> = {
+  one: 1,
+  two: 2,
+  three: 3,
+  four: 4,
+  five: 5,
+  half: 0.5,
+};
+
+const fillerWords = new Set([
+  ...Object.keys(quantityWords),
+  "a",
+  "an",
+  "the",
+  "of",
+  "some",
+  "i",
+  "had",
+  "ate",
+  "have",
+  "having",
+  "for",
+  "my",
+  "plus",
+  "also",
+  "then",
+  "just",
+  "was",
+  "it",
+  "to",
+  "in",
+  "at",
+  "breakfast",
+  "lunch",
+  "dinner",
+  "snack",
+  "today",
+  "small",
+  "medium",
+  "large",
+  "plain",
+  "g",
+  "gram",
+  "grams",
+  "katori",
+  "bowl",
+  "cup",
+  "piece",
+  "plate",
+  "serving",
+  "glass",
+  "slice",
+]);
+
+/// Words in the chunk that are neither a known food, an amount nor filler.
+function unmatchedTokens(chunk: string, keys: string[]) {
+  let rest = chunk;
+  for (const key of Object.keys(localFoods)) {
+    if (keys.some((match) => localFoods[match].name === localFoods[key].name)) {
+      rest = rest.replace(new RegExp(keyPattern(key).source, "g"), " ");
+    }
+  }
+  return rest.split(/[\s.]+/).filter((token) =>
+    token.length > 1 &&
+    !/^\d+(\.\d+)?(g|gram|grams)?$/.test(token) &&
+    !fillerWords.has(token) &&
+    !fillerWords.has(token.replace(/s$/, ""))
+  );
 }
 
 function parseChunk(
   chunk: string,
+  key: string | undefined,
   source: "text" | "voice",
   position: number,
 ): MealItemWrite | null {
+  if (!key) return null;
   const tokens = chunk.split(/\s+/).filter(Boolean);
   let quantity = 1;
   let grams: number | null = null;
   let unit: string | null = null;
   const numeric = tokens.find((token) => /^\d+(\.\d+)?$/.test(token));
   if (numeric) quantity = Number(numeric);
-  const wordQuantity: Record<string, number> = {
-    one: 1,
-    two: 2,
-    three: 3,
-    four: 4,
-    five: 5,
-    half: 0.5,
-  };
-  const word = tokens.find((token) => token in wordQuantity);
-  if (!numeric && word) quantity = wordQuantity[word];
+  const word = tokens.find((token) => token in quantityWords);
+  if (!numeric && word) quantity = quantityWords[word];
   const gramMatch = chunk.match(/(\d+(?:\.\d+)?)\s*(g|gram|grams)\b/);
   if (gramMatch) {
     grams = Number(gramMatch[1]);
@@ -582,12 +686,7 @@ function parseChunk(
     /\b(katori|bowl|cup|piece|pieces|plate|serving|roti|rotis)\b/,
   );
   if (unitMatch && unit == null) unit = unitMatch[1].replace(/s$/, "");
-  const key = Object.keys(localFoods).find((candidate) =>
-    chunk.includes(candidate)
-  );
-  if (!key) return null;
-  const food = localFoods[key];
-  return itemFromFood(food, key, quantity, grams, unit, source, position);
+  return itemFromFood(localFoods[key], key, quantity, grams, unit, source, position);
 }
 
 function itemFromFood(
