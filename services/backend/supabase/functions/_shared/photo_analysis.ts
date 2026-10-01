@@ -1,4 +1,12 @@
 import { ApiError } from "./errors.ts";
+import {
+  callJsonModel,
+  type JsonModelResult,
+  type ModelDeps,
+  type ModelSchema,
+} from "./llm.ts";
+
+export { estimatedCost } from "./llm.ts";
 
 export type MealItemWrite = {
   client_id: string;
@@ -67,6 +75,7 @@ type AnalysisInput = {
 
 export async function analyzePhoto(
   input: AnalysisInput,
+  deps: ModelDeps = {},
 ): Promise<ProviderResult> {
   const providerEnv = Deno.env.get("AI_PROVIDER")?.trim();
   if (!providerEnv) {
@@ -82,8 +91,22 @@ export async function analyzePhoto(
   if (provider === "mock") {
     return mockAnalysis(input);
   }
-  if (provider === "openai") return analyzeWithOpenAI(input);
-  if (provider === "gemini") return analyzeWithGemini(input);
+  if (provider === "openai") {
+    return analyzeWithModel(
+      input,
+      "openai",
+      Deno.env.get("OPENAI_FALLBACK_MODEL") ?? "gpt-4.1-mini",
+      deps,
+    );
+  }
+  if (provider === "gemini") {
+    return analyzeWithModel(
+      input,
+      "gemini",
+      Deno.env.get("GEMINI_PRIMARY_MODEL") ?? "gemini-3.1-flash-lite",
+      deps,
+    );
+  }
   throw new ApiError(
     "UNKNOWN",
     "AI provider is not configured correctly",
@@ -93,203 +116,133 @@ export async function analyzePhoto(
   );
 }
 
-async function analyzeWithGemini(
+async function analyzeWithModel(
   input: AnalysisInput,
+  provider: JsonModelResult["provider"],
+  model: string,
+  deps: ModelDeps,
 ): Promise<ProviderResult> {
-  const apiKey = Deno.env.get("GEMINI_API_KEY");
-  if (!apiKey) {
-    throw new ApiError(
-      "UNKNOWN",
-      "Gemini API key is not configured",
-      500,
-      true,
-    );
-  }
+  const reply = await callJsonModel({
+    provider,
+    model,
+    purpose: "Photo analysis",
+    prompt: promptFor(input),
+    schema: PHOTO_SCHEMA,
+    image: { bytes: input.imageBytes, mimeType: input.mimeType },
+    temperature: 0.2,
+    timeoutMs: 12_000,
+  }, deps);
+  return {
+    provider,
+    model,
+    result: normalizeDraft(reply.json, input, { provider, model }),
+    raw: reply.raw,
+    inputTokens: reply.inputTokens,
+    outputTokens: reply.outputTokens,
+  };
+}
 
-  const model = Deno.env.get("GEMINI_PRIMARY_MODEL") ?? "gemini-3.1-flash-lite";
-  const body = {
-    contents: [
-      {
-        role: "user",
-        parts: [
-          { text: promptFor(input) },
-          {
-            inlineData: {
-              mimeType: input.mimeType,
-              data: base64(input.imageBytes),
+const CONFIDENCE: ModelSchema = {
+  type: "NUMBER",
+  description: "0 to 1",
+};
+
+const PHOTO_SCHEMA: ModelSchema = {
+  type: "OBJECT",
+  properties: {
+    title: { type: "STRING" },
+    meal_type: {
+      type: "STRING",
+      enum: ["breakfast", "lunch", "dinner", "snack", "unknown"],
+    },
+    confidence: {
+      type: "OBJECT",
+      properties: {
+        overall: CONFIDENCE,
+        item_identification: CONFIDENCE,
+        portion_estimation: CONFIDENCE,
+        nutrition_source_quality: CONFIDENCE,
+        warnings: {
+          type: "ARRAY",
+          items: {
+            type: "OBJECT",
+            properties: {
+              code: { type: "STRING" },
+              message: { type: "STRING" },
+              severity: { type: "STRING", enum: ["info", "review", "high"] },
             },
+            required: ["code", "message", "severity"],
           },
+        },
+      },
+      required: [
+        "overall",
+        "item_identification",
+        "portion_estimation",
+        "nutrition_source_quality",
+        "warnings",
+      ],
+    },
+    components: {
+      type: "ARRAY",
+      items: {
+        type: "OBJECT",
+        properties: {
+          name: { type: "STRING" },
+          quantity: { type: "NUMBER" },
+          unit: { type: "STRING" },
+          grams_estimated: { type: "NUMBER", nullable: true },
+          calories_kcal: { type: "NUMBER" },
+          protein_g: { type: "NUMBER" },
+          carbs_g: { type: "NUMBER" },
+          fat_g: { type: "NUMBER" },
+          confidence: CONFIDENCE,
+          notes: { type: "STRING", nullable: true },
+        },
+        required: [
+          "name",
+          "quantity",
+          "unit",
+          "grams_estimated",
+          "calories_kcal",
+          "protein_g",
+          "carbs_g",
+          "fat_g",
+          "confidence",
         ],
       },
-    ],
-    generationConfig: {
-      temperature: 0.2,
-      responseMimeType: "application/json",
     },
-  };
-
-  const response = await fetchWithTimeout(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(body),
-    },
-  );
-  const raw = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new ApiError(
-      "UNKNOWN",
-      "Gemini photo analysis failed",
-      response.status,
-      response.status >= 500,
-      raw,
-    );
-  }
-  const text = String(raw?.candidates?.[0]?.content?.parts?.[0]?.text ?? "");
-  const result = parseAndValidateModelJson(text, input, {
-    provider: "gemini",
-    model,
-  });
-  return {
-    provider: "gemini",
-    model,
-    result,
-    raw,
-    inputTokens: numberOrNull(raw?.usageMetadata?.promptTokenCount),
-    outputTokens: numberOrNull(raw?.usageMetadata?.candidatesTokenCount),
-  };
-}
-
-async function analyzeWithOpenAI(
-  input: AnalysisInput,
-): Promise<ProviderResult> {
-  const apiKey = Deno.env.get("OPENAI_API_KEY");
-  if (!apiKey) {
-    throw new ApiError(
-      "UNKNOWN",
-      "OpenAI API key is not configured",
-      500,
-      true,
-    );
-  }
-
-  const model = Deno.env.get("OPENAI_FALLBACK_MODEL") ?? "gpt-4.1-mini";
-  const body = {
-    model,
-    input: [
-      {
-        role: "user",
-        content: [
-          { type: "input_text", text: promptFor(input) },
-          {
-            type: "input_image",
-            image_url: `data:${input.mimeType};base64,${
-              base64(input.imageBytes)
-            }`,
-          },
-        ],
+    alternatives: {
+      type: "ARRAY",
+      items: {
+        type: "OBJECT",
+        properties: {
+          title: { type: "STRING" },
+          confidence: CONFIDENCE,
+        },
+        required: ["title", "confidence"],
       },
-    ],
-    text: { format: { type: "json_object" } },
-  };
-  const response = await fetchWithTimeout(
-    "https://api.openai.com/v1/responses",
-    {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify(body),
     },
-  );
-  const raw = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new ApiError(
-      "UNKNOWN",
-      "OpenAI photo analysis failed",
-      response.status,
-      response.status >= 500,
-      raw,
-    );
-  }
-  const text = String(
-    raw?.output_text ?? raw?.output?.[0]?.content?.[0]?.text ?? "",
-  );
-  const result = parseAndValidateModelJson(text, input, {
-    provider: "openai",
-    model,
-  });
-  return {
-    provider: "openai",
-    model,
-    result,
-    raw,
-    inputTokens: numberOrNull(raw?.usage?.input_tokens),
-    outputTokens: numberOrNull(raw?.usage?.output_tokens),
-  };
-}
-
-async function fetchWithTimeout(
-  url: string,
-  init: RequestInit,
-  timeoutMs = 12_000,
-) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    return await fetch(url, { ...init, signal: controller.signal });
-  } catch (error) {
-    if (error instanceof DOMException && error.name === "AbortError") {
-      throw new ApiError(
-        "UNKNOWN",
-        "Photo analysis provider timed out",
-        504,
-        true,
-      );
-    }
-    throw error;
-  } finally {
-    clearTimeout(timeout);
-  }
-}
+  },
+  required: ["title", "meal_type", "confidence", "components", "alternatives"],
+};
 
 function promptFor(input: AnalysisInput) {
   return [
     "You are SnapGrub's food photo analysis engine.",
     "Return JSON only. Do not wrap the JSON in Markdown.",
-    "The JSON must contain: title, meal_type, total, confidence, components, alternatives, provenance.",
+    "The JSON must contain: title, meal_type, confidence, components, alternatives.",
     "Use conservative estimates. Never imply certainty for hidden oil, sauces, dressings, or unclear portions.",
     "Split mixed plates into components. Include household units and estimated grams when possible.",
     "For Indian foods, prefer realistic serving units such as roti, katori, bowl, cup, piece, plate.",
-    "Each component must include client_id, position, name, food_ref_kind, quantity, unit, grams_estimated, calories_kcal, protein_g, carbs_g, fat_g, confidence, source_type, source_id, notes.",
-    "Use food_ref_kind='manual', source_type='ai_photo', source_id=null.",
+    "Each component must include name, quantity, unit, grams_estimated, calories_kcal, protein_g, carbs_g, fat_g, confidence, notes.",
+    "Name each component with its plain, singular food name so it can be matched to a nutrition database.",
     "Confidence values must be 0..1. Warnings must be objects with code, message, severity.",
     `Locale: ${input.locale}. Timezone: ${input.timezone}.`,
     `Meal type hint: ${input.mealTypeHint ?? "unknown"}.`,
     `Cuisine hints: ${input.cuisineHints.join(", ") || "none"}.`,
     `User hint: ${input.userHintText ?? "none"}.`,
   ].join("\n");
-}
-
-function parseAndValidateModelJson(
-  text: string,
-  input: AnalysisInput,
-  provenance: Record<string, unknown>,
-): EditableMealDraft {
-  let parsed: Record<string, unknown>;
-  try {
-    parsed = JSON.parse(stripJsonFence(text)) as Record<string, unknown>;
-  } catch (_) {
-    throw new ApiError(
-      "INVALID_INPUT",
-      "Model returned invalid JSON",
-      502,
-      true,
-    );
-  }
-  return normalizeDraft(parsed, input, provenance);
 }
 
 function normalizeDraft(
@@ -453,31 +406,6 @@ function mockAnalysis(input: AnalysisInput): ProviderResult {
     inputTokens: null,
     outputTokens: null,
   };
-}
-
-export function estimatedCost(
-  inputTokens: number | null,
-  outputTokens: number | null,
-) {
-  if (inputTokens == null && outputTokens == null) return null;
-  const inputPrice = Number(Deno.env.get("AI_INPUT_PRICE_PER_1M") ?? "0.25");
-  const outputPrice = Number(Deno.env.get("AI_OUTPUT_PRICE_PER_1M") ?? "1.50");
-  return ((inputTokens ?? 0) * inputPrice + (outputTokens ?? 0) * outputPrice) /
-    1_000_000;
-}
-
-function stripJsonFence(value: string) {
-  return value.trim().replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
-}
-
-function base64(bytes: Uint8Array) {
-  let binary = "";
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary);
-}
-
-function numberOrNull(value: unknown) {
-  return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
 function nullableNumber(value: unknown) {
