@@ -9,6 +9,8 @@ import 'package:snapgrub/features/custom_foods/domain/custom_food.dart';
 import 'package:snapgrub/features/meal_editor/data/meal_repository.dart';
 import 'package:snapgrub/features/meal_editor/domain/meal.dart';
 import 'package:snapgrub/features/meal_editor/presentation/meal_editor_screen.dart';
+import 'package:snapgrub/features/meal_editor/presentation/widgets/food_search_sheet.dart';
+import 'package:snapgrub_api_contracts/snapgrub_api_contracts.dart';
 
 import '../../../helpers/mobile_test_harness.dart';
 
@@ -434,6 +436,46 @@ void main() {
     // The collapsed row says where the numbers come from.
     expect(find.textContaining('Verified food'), findsOneWidget);
     await tester.pump(const Duration(seconds: 3));
+  });
+
+  testWidgets('offline search says it is showing your own foods',
+      (tester) async {
+    _tallView(tester);
+    final harness = await MobileTestHarness.create();
+    addTearDown(harness.dispose);
+    const food = FoodSearchResultDto(
+      id: 'custom-1',
+      resultType: 'custom',
+      name: 'Dal makhani',
+      caloriesKcal: 288,
+      proteinG: 12,
+      carbsG: 32,
+      fatG: 12,
+      confidence: 1,
+      provenance: CatalogProvenanceDto(sourceType: 'custom_food'),
+    );
+
+    await harness.pumpScreen(
+      tester,
+      Scaffold(
+        body: FoodSearchSheet(
+          search: (query) async => FoodSearchPage(
+            query == 'dal' ? const [food] : const [],
+            offline: true,
+          ),
+        ),
+      ),
+    );
+    await tester.enterText(_field('meal.food_search.field'), 'dal');
+    await _steps(tester);
+    expect(find.text('Offline. Showing your foods.'), findsOneWidget);
+    expect(find.text('Dal makhani'), findsOneWidget);
+    expect(find.text('Your food'), findsOneWidget);
+
+    await tester.enterText(_field('meal.food_search.field'), 'zzz');
+    await _steps(tester);
+    expect(find.text('No matches'), findsOneWidget);
+    expect(find.textContaining('only your own foods'), findsOneWidget);
   });
 
   testWidgets('fix with a sentence replaces items through the parser',

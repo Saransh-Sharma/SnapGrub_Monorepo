@@ -13,6 +13,7 @@ import 'package:snapgrub/core/feedback/undo.dart';
 import 'package:snapgrub/features/custom_foods/data/custom_food_repository.dart';
 import 'package:snapgrub/features/home/application/home_controller.dart';
 import 'package:snapgrub/features/meal_editor/application/meal_actions.dart';
+import 'package:snapgrub/features/meal_editor/data/local_food_search.dart';
 import 'package:snapgrub/features/meal_editor/data/meal_draft_mapper.dart';
 import 'package:snapgrub/features/meal_editor/data/meal_repository.dart';
 import 'package:snapgrub/features/meal_editor/domain/meal.dart';
@@ -324,13 +325,30 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
   Future<void> _searchFood() async {
     final draft = _draft!;
     try {
+      final user = await ref.read(homeUserContextProvider.future);
       final profile =
           (await ref.read(profileControllerProvider.future)).profile;
-      if (profile == null || !mounted) return;
+      if (user == null || profile == null || !mounted) return;
       final remote = ref.read(multimodalRemoteServiceProvider);
+      final local = ref.read(localFoodSearchProvider);
       final selected = await showFoodSearchSheet(
         context,
-        search: (query) => remote.searchFoods(query: query, profile: profile),
+        search: (query) async {
+          if (remote.isConfigured || remote.e2eMock) {
+            try {
+              return FoodSearchPage(
+                await remote.searchFoods(query: query, profile: profile),
+              );
+            } catch (error) {
+              // Only a lost connection falls back to the phone's own foods.
+              if (!friendlyError(error).offline) rethrow;
+            }
+          }
+          return FoodSearchPage(
+            await local.search(userId: user.userId, query: query),
+            offline: true,
+          );
+        },
       );
       if (selected == null || !mounted) return;
       final item = mealItemFromFoodResult(selected);
@@ -670,19 +688,18 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
               spacing: SnapGrubDesignTokens.space8,
               runSpacing: SnapGrubDesignTokens.space8,
               children: [
-                if (remote.isConfigured || remote.e2eMock)
-                  E2eId(
-                    id: 'meal.search_food',
-                    child: OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        minimumSize:
-                            const Size(0, SnapGrubDesignTokens.minTapTarget),
-                      ),
-                      onPressed: _fixing ? null : _searchFood,
-                      icon: const Icon(Icons.search_rounded),
-                      label: const Text('Search foods'),
+                E2eId(
+                  id: 'meal.search_food',
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      minimumSize:
+                          const Size(0, SnapGrubDesignTokens.minTapTarget),
                     ),
+                    onPressed: _fixing ? null : _searchFood,
+                    icon: const Icon(Icons.search_rounded),
+                    label: const Text('Search foods'),
                   ),
+                ),
                 E2eId(
                   id: 'meal.add_item',
                   child: OutlinedButton.icon(
