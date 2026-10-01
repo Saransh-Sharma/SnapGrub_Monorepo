@@ -5,7 +5,7 @@
   },
   "02_snap": {
     "headline": "Just snap it.",
-    "subline": "SnapGrub reads your plate in seconds — in the background.",
+    "subline": "SnapGrub reads your plate in seconds, in the background.",
     "accent": "titanium"
   },
   "03_chat": {
@@ -28,7 +28,7 @@
   },
   "07_consistency": {
     "headline": "Consistency,\ncelebrated.",
-    "subline": "Streaks reward showing up — never perfection.",
+    "subline": "Streaks reward showing up, never perfection.",
     "accent": "copper"
   },
   "08_milestones": {
@@ -43,6 +43,6 @@
   },
   "10_atlas": {
     "headline": "A visual diary\nof how you eat.",
-    "subline": "Every meal, beautifully kept."
+    "subline": "Every meal, kept in one place."
   }
 }
