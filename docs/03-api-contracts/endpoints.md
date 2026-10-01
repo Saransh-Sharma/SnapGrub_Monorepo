@@ -74,10 +74,34 @@ These are the public meal write endpoints exposed by the `meals` Edge Function. 
 ### Phase 5 parser/search endpoints
 
 - `POST /barcode-resolve`: local cache, Open Food Facts fallback, and custom-product fallback.
-- `POST /foods-search`: catalog, branded, custom, and recent-food search.
-- `POST /analysis-text-create`: typed phrase to editable meal draft.
+- `POST /foods-search`: catalog, branded, custom, and recent-food search, best match first.
+- `POST /analysis-text-create`: typed phrase to editable meal draft. With `base_draft`, `text` is a correction and the response is the whole revised meal; untouched items come back unchanged. Returns `422` when no food is found, `429` at the hourly limit or daily AI budget, `503` when the model is unavailable.
 - `POST /analysis-label-create`: OCR label text to editable packaged-food draft.
 - `POST /analysis-voice-create`: edited voice transcript to editable meal draft.
+
+Drafts from text, voice, photo and conversation carry `food_ref_kind` per item: `canonical`, `branded` or `custom` when the nutrition came from the catalog or the user's foods, `manual` when it is an estimate. A `unmatched_words` warning lists anything that could not be turned into a food.
+
+## Conversation
+
+### `POST /agent-runs`
+
+- Validate JWT; require `client_request_id`, `message`, `day` (YYYY-MM-DD), `timezone` and `locale`.
+- Replay the stored events when `client_request_id` was seen before.
+- Read the day's meals and stage one proposal: `create`, `update` or `delete`. An update or delete may only target a meal on that day.
+- When the target is unclear, or the message is not about food, reply with a question and stage nothing. The stream then has `assistant.delta` events and no `proposal.ready`.
+- A new meal is stamped on the requested local day; an update keeps the meal's original time.
+
+### `GET /agent-runs/{agent_run_id}`
+
+- Validate JWT and ownership. Return the run, its thread, messages and replayable events.
+
+### `POST /agent-proposals/{proposal_id}/acknowledge`
+
+- Record that the app confirmed, edited, rejected or undid a proposal. The meal itself is written through `meals`.
+
+### `POST /meal-visuals`, `GET /meal-visuals/{meal_visual_id}`
+
+- Generate or fetch artwork for an owned meal. Returns `503` when no image provider is configured.
 
 ## Privacy, Export, Delete
 

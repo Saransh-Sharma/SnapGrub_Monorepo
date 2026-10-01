@@ -101,21 +101,23 @@ All paths produce a **MealDraft** and route to Meal Editor for user confirmation
 - Scan packaged food → backend catalog lookup (Open Food Facts + cache)
 - Not found → manual nutrition entry or **Label OCR** (camera + ML Kit → backend parse)
 
-### Text Entry
+### Text and chat
 
-- [`/text-entry`](../../apps/mobile/lib/features/text_entry/)
-- Natural language: e.g. "2 rotis and dal"
-- Backend text parser → editable draft → Meal Editor
+- Typed into the Today composer, or the Describe mode of Capture
+- Natural language: e.g. "2 rotis and dal", "salmon, rice and greens"
+- The backend asks the model first, then takes nutrition from the catalog for foods it recognises. Each item is labelled "Verified food", "Your food" or "Estimated"
+- In chat the assistant can also change or delete a meal logged that day. It stages a proposal to confirm; if it cannot tell which meal is meant, it asks
+- Anything it could not turn into a food is listed in a warning rather than dropped
 
 ### Voice Entry
 
-- [`/voice-entry`](../../apps/mobile/lib/features/voice_entry/)
-- Push-to-talk (speech-to-text) → editable transcript → backend voice parser
-- Fallback link to Text Entry
+- Inline dictation in the composer; [`/voice-entry`](../../apps/mobile/lib/features/voice_entry/) is the fallback screen
+- Speech-to-text on the phone → editable transcript → the same backend path as text
 
 ### Manual Entry
 
-- Quick Actions "Manual" or Journal "+" → Meal Editor with empty draft
+- The "Manual" chip in the Today composer tray → Meal Editor with an empty draft
+- "Search foods" looks up the catalog and the user's own foods. Offline, it searches the foods already on the phone and says so
 
 **Feature flags** ([`apps/mobile/lib/core/feature_flags/feature_flags.dart`](../../apps/mobile/lib/core/feature_flags/feature_flags.dart)): `photo_analysis`, `barcode`, `ocr_assist`, `voice_capture`, `smart_foods_v2`, and `weekly_insights` can be toggled per user/server.
 
@@ -129,7 +131,8 @@ Central hub for all meal creation and editing:
 
 - Accept drafts from photo / barcode / text / voice / templates / frequent foods / Smart repeats
 - Edit title, meal type, time, line items, macros
-- Add items or insert from custom foods
+- Add items by search, by hand, or from My foods
+- "Fix with a sentence": describe a correction in plain words. Only the items it touches change; the rest keep their numbers and catalog link
 - Save locally + enqueue outbox sync
 - Save as template (toolbar)
 - Delete existing meal
@@ -222,6 +225,9 @@ See also: [Offline sync architecture](../02-architecture/offline-sync.md) and [F
 | Meals CRUD + day rollups | `meals` |
 | Photo analysis | `analysis-photo-create`, `analysis-get` |
 | Barcode / label OCR / text / voice | `barcode-resolve`, `analysis-label-create`, `analysis-text-create`, `analysis-voice-create` |
+| Food search in manual entry | `foods-search` |
+| Chat on Today | `agent-runs`, `agent-proposals` |
+| Meal artwork in Atlas | `meal-visuals` |
 | Custom foods / templates | `custom-foods`, `meal-templates` |
 | Smart repeats | Local cache of meals, templates, and `user_food_defaults`; confirmed saves use `meals` |
 | Weekly check-in | `weekly-insights-generate` |

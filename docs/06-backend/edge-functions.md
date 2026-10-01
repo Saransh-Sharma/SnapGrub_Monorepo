@@ -13,11 +13,14 @@ Edge Functions are the current callable backend API surface. Deploy names intent
 - `body-measurements`: authenticated idempotent body-measurement create API.
 - `analysis-photo-create`: authenticated photo analysis API with storage ownership validation and backend-only model orchestration.
 - `analysis-get`: authenticated analysis lookup API for polling or recovering one user's analysis job/result.
-- `foods-search`: authenticated search across catalog, branded products, custom foods, and recent meal items.
+- `foods-search`: authenticated search across catalog, branded products, custom foods, and recent meal items. Catalog foods are ranked in the database by `search_canonical_foods` (exact, prefix, whole word, then similarity); the user's own foods lead on a tie.
 - `barcode-resolve`: authenticated barcode resolver with local cache and Open Food Facts fallback.
-- `analysis-text-create`: authenticated typed meal parser.
-- `analysis-label-create`: authenticated nutrition-label OCR text parser.
-- `analysis-voice-create`: authenticated edited voice-transcript parser.
+- `analysis-text-create`: authenticated typed meal parser. Model-first; also applies a plain-language correction to an editor draft when `base_draft` is sent.
+- `analysis-label-create`: authenticated nutrition-label OCR text parser (rule-based).
+- `analysis-voice-create`: authenticated edited voice-transcript parser. Model-first.
+- `agent-runs`: authenticated conversational run. Streams server-sent events and stages a meal change proposal, or replies with a question when the request is unclear. Replays by `client_request_id`.
+- `agent-proposals`: authenticated acknowledgement of a proposal after the app has applied it locally.
+- `meal-visuals`: authenticated meal artwork generation and lookup. Each generation is logged in `model_invocations` and capped per user per day.
 - `weekly-insights-generate`: service-role insight generation for one user or a batch of due users.
 - `exports-create`: authenticated idempotent export artifact creation and export status polling.
 - `account-delete`: authenticated destructive account deletion with explicit confirmation.
@@ -105,6 +108,19 @@ Generated rows keep the existing six `insight_type` values and enrich `payload` 
 - `highest_variance_meal_slot`: meal type, variance, and sample count.
 - `next_week_suggestion`: deterministic action id, action title/body, and `based_on` context.
 
+## Model-Backed Parsing
+
+Text, voice, conversation and corrections share one path (see [ADR-0012](../12-decisions/adr-0012-model-first-parsing-and-catalog-grounding.md)):
+
+1. `_shared/llm.ts` calls the configured provider with an enforced reply schema and retries once if the reply is not parseable JSON.
+2. `_shared/meal_llm.ts` turns the reply into an editable draft. In a correction or a chat update, items the model marks as kept or rescaled are rebuilt from the original item.
+3. `_shared/catalog_grounding.ts` replaces the estimate with catalog values for items whose name exactly matches a catalog food, an alias, or one of the user's own foods, and sets `food_ref_kind`. Items carried over from the user's meal are never re-grounded.
+4. Words that could not be turned into a food come back as an `unmatched_words` warning.
+
+The rule parser in `_shared/multimodal.ts` answers when `AI_PROVIDER=mock`, when `MEAL_TEXT_MODEL=off`, or when the provider fails and the parser understood every word. Otherwise a provider failure returns `503 PROVIDER_UNAVAILABLE`.
+
+Limits: the existing hourly rate limits, plus `AI_DAILY_CALL_LIMIT` model calls and `AI_DAILY_IMAGE_LIMIT` generated images per user per UTC day.
+
 ## Photo Analysis Provider Env
 
 Backend-only AI/provider configuration lives in Supabase/Vercel runtime secrets, never in mobile:
@@ -120,7 +136,14 @@ OPENAI_API_KEY=
 OPENAI_FALLBACK_MODEL=gpt-4.1-mini
 AI_INPUT_PRICE_PER_1M=0.25
 AI_OUTPUT_PRICE_PER_1M=1.50
+AGENT_MODEL=gemini-3.1-flash-lite
+AI_DAILY_CALL_LIMIT=100
+AI_DAILY_IMAGE_LIMIT=20
+AI_IMAGE_PRICE_USD=
+MEAL_TEXT_MODEL=
 ```
+
+`AGENT_MODEL` is the model for text, voice and conversation. `MEAL_TEXT_MODEL=off` is the kill switch for those three paths; it takes effect on the next request and leaves photo analysis alone.
 
 `CORS_ALLOW_ORIGIN` and `AI_PROVIDER` are required runtime settings. Use `AI_PROVIDER=mock` for local development without external provider keys. Real Gemini/OpenAI runs require provider keys configured outside the repository.
 

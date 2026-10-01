@@ -1,6 +1,6 @@
 # Database Schema
 
-Migration SQL is the final source of truth. This page summarizes the current Phase 0-8 schema plus backend hardening migrations through `000019` so developers can understand ownership, access patterns, and safe changes.
+Migration SQL is the final source of truth. This page summarizes the current Phase 0-8 schema plus backend hardening and later migrations through `000022` so developers can understand ownership, access patterns, and safe changes.
 
 ## Identity And Settings
 
@@ -95,6 +95,8 @@ Private buckets exist for meal originals, thumbnails, and exports.
 - `export_requests` uses `(user_id, client_request_id)` uniqueness plus idempotency keys to avoid duplicate server work.
 - `weekly_insights` is unique by `(user_id, week_start, insight_type)`.
 - `user_food_defaults` is unique by `(user_id, food_ref_kind, food_ref_id)`.
+- Trigram GIN indexes on `canonical_foods.normalized_name`, `food_aliases.normalized_alias` and `branded_products.normalized_name` keep substring search fast as the catalog grows (`000022`).
+- `search_canonical_foods(p_query, p_limit)` is a service-role function that returns catalog food ids ranked by match quality.
 - `meals.source = photo` requires a completed owned `analysis_job_id` and owned `photo_asset_id` through the service-role meal RPC.
 
 ## Safe Change Rules

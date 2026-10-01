@@ -14,7 +14,10 @@ Supabase is the Phase 0-8 backend. It provides auth, Postgres, RLS, private stor
 - `upsert_user_meal`, `delete_user_meal`, and `refresh_daily_rollup` keep meal writes transactional and refresh rollups.
 - `analysis-photo-create` validates private storage ownership for originals and thumbnails, rate-limits expensive analysis, runs the configured backend provider, records backend-only model invocations, and returns editable photo drafts.
 - `analysis-get` recovers one user's analysis job/result.
-- `foods-search`, `barcode-resolve`, `analysis-text-create`, `analysis-label-create`, and `analysis-voice-create` provide Phase 5 multimodal entry support.
+- `foods-search`, `barcode-resolve`, `analysis-text-create`, `analysis-label-create`, and `analysis-voice-create` provide Phase 5 multimodal entry support. Text and voice call the model first and fall back to the rule parser only in mock mode or a provider outage.
+- `agent-runs`, `agent-proposals` and `meal-visuals` back the conversational journal. The agent proposes changes; the app applies them through `meals` after the user confirms.
+- Every model-produced item is grounded against the catalog and the user's own foods before it is returned. See [ADR-0012](../12-decisions/adr-0012-model-first-parsing-and-catalog-grounding.md).
+- Model calls are logged in `model_invocations` and capped per user per day.
 - `custom-foods`, `meal-templates`, `body-measurements`, and `exports-create` provide idempotent outbox replay surfaces. `exports-create` now starts MVP export artifact generation after the request reaches the backend.
 - Weekly insight and learned-default RPC paths are available behind Phase 7 feature flags; scheduled generation remains an ops/staging gate.
 - `account-delete` performs confirmed destructive account removal through recursive service-role storage cleanup and auth operations.

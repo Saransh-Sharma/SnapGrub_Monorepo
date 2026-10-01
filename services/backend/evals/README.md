@@ -1,7 +1,8 @@
 # Accuracy evals
 
-Scores the text-logging pipeline against meals whose nutrition is known, so a
+Scores the meal-logging pipeline against meals whose nutrition is known, so a
 prompt, model or catalog change can be judged by a number instead of by feel.
+Past runs are kept in `results/`.
 
 ## Run
 
@@ -31,6 +32,8 @@ on every pull request.
 - Protein error: the same, mean only.
 - Items found: share of the reference items present in the result.
 - Extra items: parsed items that match nothing in the reference.
+- Items grounded: share of parsed items whose nutrition came from the catalog
+  or the user's own foods. Endpoint mode only; model-only runs report 0%.
 
 ## Cases
 
@@ -45,4 +48,17 @@ weigh each component, compute nutrition from a trusted table, and record it
 in the same shape under `cases/`. Aim for 100 or more, weighted toward the
 cuisines the app serves.
 
-Photo cases are not covered yet. They need stored images and an upload step.
+## Photo cases
+
+A case with `image` instead of `text` is a photo case. The path is relative to
+the case file, and `hint` is sent as the note a user can attach.
+
+```json
+{ "cases": [ { "id": "thali-1", "image": "photos/thali-1.jpg",
+  "expected": { "calories_kcal": 640, "protein_g": 22,
+    "items": [ { "name": "Roti", "match": ["roti", "chapati"] } ] } } ] }
+```
+
+Photo cases need endpoint mode: each image is uploaded to the caller's private
+storage prefix and sent through `analysis-photo-create`. No photo cases ship
+with the repo; they need real meal photos with weighed reference values.

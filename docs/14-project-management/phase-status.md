@@ -9,6 +9,14 @@ Detailed reviews:
 - [Phase 0-7 implementation review](phase-0-7-implementation-review-2026-05-21.md)
 - [Phase 8-10 implementation review](phase-8-10-implementation-review-2026-05-21.md)
 
+## October 2026 Update
+
+The trust-core slice from the [October product assessment](product-assessment-2026-10-01.md) is implemented: model-first text, voice and chat parsing, catalog grounding, structured corrections, food search in manual entry, per-user AI budgets, and an accuracy eval harness ([ADR-0012](../12-decisions/adr-0012-model-first-parsing-and-catalog-grounding.md)).
+
+Verified locally on 2026-10-01 with `AI_PROVIDER=mock`: contracts, typecheck, migration lint, backend unit tests, the API end-to-end suite, all backend smoke suites, `flutter analyze` and `flutter test`. Not yet verified: behaviour against a real model provider, on-device acceptance, and the deployed dev project.
+
+The sections below describe the state as of May 2026 and predate the September redesign (tabs, conversational Today, 14-step onboarding).
+
 ## Capability Map
 
 ```mermaid
