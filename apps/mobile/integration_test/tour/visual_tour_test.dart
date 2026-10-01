@@ -153,6 +153,32 @@ void main() {
             MealType.lunch,
             [('Chicken biryani', 610, 32, 70, 20), ('Raita', 90, 5, 7, 4)]));
     await shot(tester, '08_meal_review', settle: 2200);
+
+    // Food search from the review screen, against the mock catalog.
+    final searchButton = find.byKey(const ValueKey('meal.search_food'));
+    // The buttons sit below the fold and the list builds lazily.
+    await tester.scrollUntilVisible(
+      searchButton,
+      320,
+      scrollable: find
+          .descendant(
+            of: find.byKey(const ValueKey('scaffold.meal_editor')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    await tester.tap(searchButton);
+    await shot(tester, '08b_food_search', settle: 1400);
+    await tester.enterText(
+      find.descendant(
+        of: find.byKey(const ValueKey('meal.food_search.field')),
+        matching: find.byType(TextField),
+      ),
+      'dal',
+    );
+    await shot(tester, '08c_food_results', settle: 1600);
+    await tester.tap(find.text('Dal tadka'));
+    await shot(tester, '08d_food_added', settle: 1600);
     router.pop();
 
     router.push('/capture?mode=describe');
