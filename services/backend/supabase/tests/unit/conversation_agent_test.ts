@@ -33,7 +33,7 @@ Deno.test("conversation agent stages a delete without mutating the ledger", asyn
         fat_g: 10,
       }],
     }],
-  });
+  }, { config: null });
 
   assert(
     result.operation === "delete",
@@ -45,26 +45,23 @@ Deno.test("conversation agent stages a delete without mutating the ledger", asyn
   );
   assert(result.expectedRevision === 3, "delete should carry revision safety");
   assert(
-    result.draft.title === "Breakfast",
+    result.draft?.title === "Breakfast",
     "delete should preserve a review snapshot",
   );
 });
 
-Deno.test("conversation agent refuses mutation when no day meal can be targeted", async () => {
-  let code = "";
-  try {
-    await createConversationProposal({
-      message: "Delete lunch",
-      timezone: "UTC",
-      locale: "en",
-      cuisineHints: [],
-      mealTypeHint: null,
-      calorieGoal: null,
-      recentMeals: [],
-      dayMeals: [],
-    });
-  } catch (error) {
-    code = (error as { code?: string }).code ?? "";
-  }
-  assert(code === "NOT_FOUND", "missing targets must fail closed");
+Deno.test("conversation agent stages nothing when no day meal can be targeted", async () => {
+  const result = await createConversationProposal({
+    message: "Delete lunch",
+    timezone: "UTC",
+    locale: "en",
+    cuisineHints: [],
+    mealTypeHint: null,
+    calorieGoal: null,
+    recentMeals: [],
+    dayMeals: [],
+  }, { config: null });
+  assert(result.operation === "clarify", "missing targets must fail closed");
+  assert(result.draft === null, "a clarifying reply carries no draft");
+  assert(result.targetMealId === null, "a clarifying reply targets nothing");
 });

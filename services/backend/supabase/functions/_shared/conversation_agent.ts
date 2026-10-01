@@ -1,4 +1,12 @@
 import { ApiError } from "./errors.ts";
+import { type ModelProvider, textModelConfig } from "./llm.ts";
+import {
+  type DayMealContext,
+  draftFromModelOutput,
+  type MealModelDeps,
+  requestAgentMeal,
+  type UserFoodHint,
+} from "./meal_llm.ts";
 import {
   buildDraftFromText,
   type EditableMealDraft,
@@ -7,8 +15,12 @@ import {
 
 export type ConversationAgentResult = {
   assistantText: string;
-  draft: EditableMealDraft;
-  operation: "create" | "update" | "delete";
+  /// Null for "clarify": the assistant asks a question and proposes nothing.
+  draft: EditableMealDraft | null;
+  /// client_ids of draft items produced in this run; null means all of them.
+  /// Items kept from the existing meal are not listed.
+  freshItemIds: string[] | null;
+  operation: "create" | "update" | "delete" | "clarify";
   targetMealId: string | null;
   expectedRevision: number | null;
   provider: string;
@@ -17,7 +29,7 @@ export type ConversationAgentResult = {
   outputTokens: number | null;
 };
 
-export async function createConversationProposal(input: {
+type ProposalInput = {
   message: string;
   timezone: string;
   locale: string;
@@ -26,133 +38,198 @@ export async function createConversationProposal(input: {
   dayMeals: unknown[];
   recentMeals: unknown[];
   calorieGoal: number | null;
-}): Promise<ConversationAgentResult> {
-  const operation = operationFor(input.message);
-  const target = operation === "create"
-    ? null
-    : targetMeal(input.message, input.dayMeals);
-  if (operation !== "create" && !target) {
-    throw new ApiError(
-      "NOT_FOUND",
-      "I could not find a meal on this day to change",
-      404,
-      false,
-    );
-  }
-  if (operation === "delete") {
-    const draft = draftFromExisting(target!, input.timezone);
-    return {
-      assistantText:
-        `I found ${draft.title}. Confirm below if you want to remove it.`,
-      draft,
-      operation,
-      targetMealId: String(target!.id),
-      expectedRevision: numberOrNull(target!.revision),
-      provider: "nutrition-tools",
-      model: "ledger-tools-v1",
-      inputTokens: null,
-      outputTokens: null,
-    };
-  }
+  userFoods?: UserFoodHint[];
+};
+
+type DayMeal = DayMealContext & { revision: number | null };
+
+/// Reads a conversation message and stages a meal change for the user to
+/// confirm. Never mutates the ledger itself.
+export async function createConversationProposal(
+  input: ProposalInput,
+  deps: MealModelDeps = {},
+): Promise<ConversationAgentResult> {
+  const meals = dayMealsFrom(input.dayMeals);
+  const config = deps.config !== undefined ? deps.config : textModelConfig();
+  if (!config) return proposeWithRules(input, meals, false);
   try {
-    const draft = buildDraftFromText({
-      text: input.message,
-      source: "text",
+    return await proposeWithModel(input, meals, config, deps);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 422) throw error;
+    console.error(JSON.stringify({
+      level: "error",
+      scope: "conversation_agent.fallback",
+      message: error instanceof Error ? error.message : String(error),
+    }));
+    try {
+      return proposeWithRules(input, meals, true);
+    } catch (_) {
+      throw new ApiError(
+        "PROVIDER_UNAVAILABLE",
+        "The food assistant is temporarily unavailable",
+        503,
+        true,
+      );
+    }
+  }
+}
+
+async function proposeWithModel(
+  input: ProposalInput,
+  meals: DayMeal[],
+  config: { provider: ModelProvider; model: string },
+  deps: MealModelDeps,
+): Promise<ConversationAgentResult> {
+  const { output, usage } = await requestAgentMeal({
+    message: input.message,
+    locale: input.locale,
+    timezone: input.timezone,
+    cuisineHints: input.cuisineHints,
+    mealTypeHint: input.mealTypeHint,
+    dayMeals: meals,
+    recentMealTitles: recentTitles(input.recentMeals),
+    userFoods: input.userFoods ?? [],
+  }, config, deps);
+
+  if (output.operation === "clarify") {
+    return clarify(output.assistantText || whichMealQuestion(meals), usage);
+  }
+  if (output.operation === "create") {
+    const { draft, freshItemIds } = draftFromModelOutput(output, {
+      source: "conversation",
       timezone: input.timezone,
       locale: input.locale,
       cuisineHints: input.cuisineHints,
       mealTypeHint: input.mealTypeHint,
+      usage,
     });
     return {
-      assistantText: friendlySummary(draft),
+      assistantText: output.assistantText || friendlySummary(draft),
       draft,
-      operation,
-      targetMealId: target == null ? null : String(target.id),
-      expectedRevision: target == null ? null : numberOrNull(target.revision),
-      provider: "nutrition-tools",
-      model: "catalog-rule-v2",
-      inputTokens: null,
-      outputTokens: null,
+      freshItemIds,
+      operation: "create",
+      targetMealId: null,
+      expectedRevision: null,
+      ...usage,
     };
-  } catch (error) {
-    const key = Deno.env.get("GEMINI_API_KEY");
-    if (!key) throw error;
-    return await createWithGemini(input, key, operation, target);
   }
+
+  // The model may only target a meal that is really on this day.
+  const target = meals.find((meal) => meal.id === output.targetMealId);
+  if (!target) return clarify(whichMealQuestion(meals), usage);
+  if (output.operation === "delete") {
+    return deleteProposal(target, input.timezone, usage);
+  }
+  const { draft, freshItemIds } = draftFromModelOutput(output, {
+    source: "conversation",
+    timezone: input.timezone,
+    locale: input.locale,
+    cuisineHints: input.cuisineHints,
+    mealTypeHint: target.mealType,
+    baseItems: target.items,
+    baseTitle: target.title,
+    usage,
+  });
+  draft.logged_at = target.loggedAt;
+  return {
+    assistantText: output.assistantText || friendlySummary(draft),
+    draft,
+    freshItemIds,
+    operation: "update",
+    targetMealId: target.id,
+    expectedRevision: target.revision,
+    ...usage,
+  };
 }
 
-async function createWithGemini(
-  input: Parameters<typeof createConversationProposal>[0],
-  apiKey: string,
-  operation: "create" | "update" | "delete",
-  target: Record<string, unknown> | null,
-): Promise<ConversationAgentResult> {
-  const model = Deno.env.get("AGENT_MODEL") ?? "gemini-3.1-flash-lite";
-  const prompt = [
-    "You are SnapGrub, a warm and concise food logging assistant.",
-    "Return JSON only with assistant_text and draft.",
-    "draft must contain title, meal_type, total, confidence, components, alternatives, provenance.",
-    "Every component needs name, quantity, unit, grams_estimated, calories_kcal, protein_g, carbs_g, fat_g.",
-    "Use conservative nutrition estimates and never claim certainty about hidden oil or unclear portions.",
-    "Do not say the meal was logged; the user must confirm the proposal.",
-    `User message: ${input.message}`,
-    `Local day meals: ${JSON.stringify(input.dayMeals).slice(0, 6000)}`,
-    `Recent meals: ${JSON.stringify(input.recentMeals).slice(0, 4000)}`,
-    `Daily calorie goal: ${input.calorieGoal ?? "unknown"}`,
-    `Locale: ${input.locale}; timezone: ${input.timezone}; cuisines: ${
-      input.cuisineHints.join(", ") || "none"
-    }`,
-  ].join("\n");
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.25,
-          responseMimeType: "application/json",
-        },
-      }),
-      signal: AbortSignal.timeout(15_000),
-    },
-  );
-  const raw = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new ApiError(
-      "UNKNOWN",
-      "The food assistant is temporarily unavailable",
-      response.status,
-      response.status >= 500,
-    );
-  }
-  const text = String(raw?.candidates?.[0]?.content?.parts?.[0]?.text ?? "");
-  let parsed: Record<string, unknown>;
-  try {
-    parsed = JSON.parse(text.replace(/^```json\s*|\s*```$/g, ""));
-  } catch (_) {
-    throw new ApiError(
-      "INVALID_INPUT",
-      "The assistant returned an invalid meal",
-      502,
-      true,
-    );
-  }
-  const draft = normalizeDraft(parsed.draft as Record<string, unknown>, input);
-  return {
-    assistantText: typeof parsed.assistant_text === "string"
-      ? parsed.assistant_text
-      : friendlySummary(draft),
-    draft,
-    operation,
-    targetMealId: target == null ? null : String(target.id),
-    expectedRevision: target == null ? null : numberOrNull(target.revision),
-    provider: "gemini",
-    model,
-    inputTokens: numberOrNull(raw?.usageMetadata?.promptTokenCount),
-    outputTokens: numberOrNull(raw?.usageMetadata?.candidatesTokenCount),
+/// Keyword-based stand-in used in mock mode and when the model is down.
+function proposeWithRules(
+  input: ProposalInput,
+  meals: DayMeal[],
+  fallback: boolean,
+): ConversationAgentResult {
+  const usage = {
+    provider: "nutrition-tools",
+    model: fallback ? "rule_fallback" : "catalog-rule-v2",
+    inputTokens: null,
+    outputTokens: null,
   };
+  const operation = operationFor(input.message);
+  const target = operation === "create"
+    ? null
+    : targetMeal(input.message, meals);
+  if (operation !== "create" && !target) {
+    return clarify(whichMealQuestion(meals), usage);
+  }
+  if (operation === "delete") {
+    return deleteProposal(target!, input.timezone, usage);
+  }
+  const draft = buildDraftFromText({
+    text: input.message,
+    source: "text",
+    timezone: input.timezone,
+    locale: input.locale,
+    cuisineHints: input.cuisineHints,
+    mealTypeHint: input.mealTypeHint,
+    fallback,
+  });
+  const unmatched = draft.provenance.unmatched as string[] | undefined;
+  if (fallback && unmatched && unmatched.length > 0) {
+    throw new ApiError("PROVIDER_UNAVAILABLE", "Partial rule parse", 503, true);
+  }
+  if (target) draft.logged_at = target.loggedAt;
+  return {
+    assistantText: friendlySummary(draft),
+    draft,
+    freshItemIds: null,
+    operation,
+    targetMealId: target?.id ?? null,
+    expectedRevision: target?.revision ?? null,
+    ...usage,
+  };
+}
+
+function deleteProposal(
+  target: DayMeal,
+  timezone: string,
+  usage: Pick<
+    ConversationAgentResult,
+    "provider" | "model" | "inputTokens" | "outputTokens"
+  >,
+): ConversationAgentResult {
+  return {
+    assistantText: `I found ${target.title}. Confirm below to delete it.`,
+    draft: draftFromExisting(target, timezone),
+    freshItemIds: [],
+    operation: "delete",
+    targetMealId: target.id,
+    expectedRevision: target.revision,
+    ...usage,
+  };
+}
+
+function clarify(
+  assistantText: string,
+  usage: Pick<
+    ConversationAgentResult,
+    "provider" | "model" | "inputTokens" | "outputTokens"
+  >,
+): ConversationAgentResult {
+  return {
+    assistantText,
+    draft: null,
+    freshItemIds: [],
+    operation: "clarify",
+    targetMealId: null,
+    expectedRevision: null,
+    ...usage,
+  };
+}
+
+function whichMealQuestion(meals: DayMeal[]) {
+  if (meals.length === 0) return "Nothing is logged for this day yet.";
+  const titles = meals.slice(0, 4).map((meal) => meal.title);
+  return `Which meal do you mean: ${titles.join(", ")}?`;
 }
 
 function operationFor(message: string): "create" | "update" | "delete" {
@@ -163,59 +240,101 @@ function operationFor(message: string): "create" | "update" | "delete" {
   return "create";
 }
 
-function targetMeal(message: string, meals: unknown[]) {
-  const rows = meals.filter((meal): meal is Record<string, unknown> =>
-    meal != null && typeof meal === "object"
-  );
+/// The meal a rule-parsed message refers to: by title, then by meal type,
+/// then the only meal of the day. Never guesses between several.
+function targetMeal(message: string, meals: DayMeal[]) {
   const normalized = message.toLowerCase();
-  return rows.find((meal) => {
-    const title = String(meal.title ?? "").toLowerCase();
+  const byTitle = meals.filter((meal) => {
+    const title = meal.title.toLowerCase();
     return title.length > 2 && normalized.includes(title);
-  }) ?? rows[0] ?? null;
+  });
+  if (byTitle.length === 1) return byTitle[0];
+  const byType = meals.filter((meal) =>
+    meal.mealType !== "unknown" &&
+    new RegExp(`\\b${meal.mealType}\\b`).test(normalized)
+  );
+  if (byType.length === 1) return byType[0];
+  return meals.length === 1 ? meals[0] : null;
+}
+
+function dayMealsFrom(rows: unknown[]): DayMeal[] {
+  return rows.filter((row): row is Record<string, unknown> =>
+    row != null && typeof row === "object" &&
+    (row as Record<string, unknown>).id != null
+  ).map((meal) => {
+    const nested = Array.isArray(meal.items)
+      ? meal.items
+      : Array.isArray(meal.meal_items)
+      ? meal.meal_items
+      : [];
+    return {
+      id: String(meal.id),
+      title: String(meal.title ?? "Meal"),
+      mealType: mealType(meal.meal_type),
+      loggedAt: String(meal.logged_at ?? new Date().toISOString()),
+      revision: numberOrNull(meal.revision),
+      items: nested.map((value, position) =>
+        itemFromRow(value as Record<string, unknown>, String(meal.id), position)
+      ),
+    };
+  });
+}
+
+/// Keeps the saved item's catalog reference so an untouched item survives an
+/// update unchanged.
+function itemFromRow(
+  item: Record<string, unknown>,
+  mealId: string,
+  position: number,
+): MealItemWrite {
+  const canonical = stringOrNull(item.canonical_food_id);
+  const branded = stringOrNull(item.branded_product_id);
+  const custom = stringOrNull(item.custom_food_id);
+  const kind = canonical
+    ? "canonical"
+    : branded
+    ? "branded"
+    : custom
+    ? "custom"
+    : "manual";
+  return {
+    client_id: crypto.randomUUID(),
+    position,
+    name: String(item.name ?? "Food"),
+    food_ref_kind: kind,
+    canonical_food_id: kind === "canonical" ? canonical : null,
+    branded_product_id: kind === "branded" ? branded : null,
+    custom_food_id: kind === "custom" ? custom : null,
+    quantity: positive(item.quantity, 1),
+    unit: stringOr(item.unit, "serving"),
+    grams_estimated: nullableNumber(item.grams_estimated),
+    calories_kcal: nonNegative(item.calories_kcal),
+    protein_g: nonNegative(item.protein_g),
+    carbs_g: nonNegative(item.carbs_g),
+    fat_g: nonNegative(item.fat_g),
+    confidence: nullableNumber(item.confidence),
+    source_type: stringOrNull(item.source_type) ?? "existing_meal",
+    source_id: stringOrNull(item.source_id) ?? mealId,
+    notes: stringOrNull(item.notes),
+  };
 }
 
 function draftFromExisting(
-  meal: Record<string, unknown>,
+  meal: DayMeal,
   timezone: string,
 ): EditableMealDraft {
-  const nested = Array.isArray(meal.items)
-    ? meal.items
-    : Array.isArray(meal.meal_items)
-    ? meal.meal_items
-    : [];
-  const components = nested.map((value, position) => {
-    const item = value as Record<string, unknown>;
-    return {
-      client_id: crypto.randomUUID(),
-      position,
-      name: String(item.name ?? "Food"),
-      food_ref_kind: "manual" as const,
-      canonical_food_id: null,
-      branded_product_id: null,
-      custom_food_id: null,
-      quantity: positive(item.quantity, 1),
-      unit: stringOr(item.unit, "serving"),
-      grams_estimated: nullableNumber(item.grams_estimated),
-      calories_kcal: nonNegative(item.calories_kcal),
-      protein_g: nonNegative(item.protein_g),
-      carbs_g: nonNegative(item.carbs_g),
-      fat_g: nonNegative(item.fat_g),
-      confidence: nullableNumber(item.confidence),
-      source_type: "existing_meal",
-      source_id: String(meal.id),
-      notes: null,
-    } satisfies MealItemWrite;
-  });
+  const sum = (key: "calories_kcal" | "protein_g" | "carbs_g" | "fat_g") =>
+    Number(meal.items.reduce((total, item) => total + item[key], 0).toFixed(2));
   return {
-    title: String(meal.title ?? "Meal"),
-    meal_type: mealType(meal.meal_type),
-    logged_at: String(meal.logged_at ?? new Date().toISOString()),
+    title: meal.title,
+    meal_type: mealType(meal.mealType),
+    logged_at: meal.loggedAt,
     timezone,
     total: {
-      calories_kcal: nonNegative(meal.calories_kcal),
-      protein_g: nonNegative(meal.protein_g),
-      carbs_g: nonNegative(meal.carbs_g),
-      fat_g: nonNegative(meal.fat_g),
+      calories_kcal: sum("calories_kcal"),
+      protein_g: sum("protein_g"),
+      carbs_g: sum("carbs_g"),
+      fat_g: sum("fat_g"),
     },
     confidence: {
       overall: 1,
@@ -224,87 +343,26 @@ function draftFromExisting(
       nutrition_source_quality: 1,
       warnings: [],
     },
-    components,
+    components: meal.items,
     alternatives: [],
     provenance: { source_type: "existing_meal", meal_id: meal.id },
   };
 }
 
-function normalizeDraft(
-  raw: Record<string, unknown>,
-  input: Parameters<typeof createConversationProposal>[0],
-): EditableMealDraft {
-  const componentsRaw = Array.isArray(raw?.components) ? raw.components : [];
-  const components = componentsRaw.map((value, index) => {
-    const item = value as Record<string, unknown>;
-    return {
-      client_id: crypto.randomUUID(),
-      position: index,
-      name: stringOr(item.name, ""),
-      food_ref_kind: "manual",
-      canonical_food_id: null,
-      branded_product_id: null,
-      custom_food_id: null,
-      quantity: positive(item.quantity, 1),
-      unit: stringOr(item.unit, "serving"),
-      grams_estimated: nullableNumber(item.grams_estimated),
-      calories_kcal: nonNegative(item.calories_kcal),
-      protein_g: nonNegative(item.protein_g),
-      carbs_g: nonNegative(item.carbs_g),
-      fat_g: nonNegative(item.fat_g),
-      confidence: 0.64,
-      source_type: "ai_conversation",
-      source_id: null,
-      notes: null,
-    } satisfies MealItemWrite;
-  }).filter((item) => item.name.length > 0);
-  if (components.length === 0) {
-    throw new ApiError(
-      "INVALID_INPUT",
-      "I could not identify a food in that message",
-      422,
-      false,
-    );
-  }
-  const sum = (key: keyof MealItemWrite) =>
-    components.reduce((total, item) => total + Number(item[key] ?? 0), 0);
-  return {
-    title: stringOr(
-      raw?.title,
-      components.map((item) => item.name).join(" + "),
-    ),
-    meal_type: mealType(raw?.meal_type ?? input.mealTypeHint),
-    logged_at: new Date().toISOString(),
-    timezone: input.timezone,
-    total: {
-      calories_kcal: sum("calories_kcal"),
-      protein_g: sum("protein_g"),
-      carbs_g: sum("carbs_g"),
-      fat_g: sum("fat_g"),
-    },
-    confidence: {
-      overall: 0.64,
-      item_identification: 0.68,
-      portion_estimation: 0.55,
-      nutrition_source_quality: 0.62,
-      warnings: [{
-        code: "review_estimate",
-        message:
-          "This conversational estimate should be reviewed before saving.",
-        severity: "review",
-      }],
-    },
-    components,
-    alternatives: [],
-    provenance: { provider: "gemini", source_type: "conversation" },
-  };
+function recentTitles(rows: unknown[]) {
+  const titles = rows.map((row) =>
+    row != null && typeof row === "object"
+      ? stringOrNull((row as Record<string, unknown>).title)
+      : null
+  ).filter((title): title is string => title != null);
+  return [...new Set(titles)];
 }
 
 function friendlySummary(draft: EditableMealDraft) {
   const count = draft.components.length;
   return count === 1
-    ? `I found ${draft.components[0].name}. Take a quick look before I add it.`
-    : `I separated that into ${count} foods. Take a quick look before I add it.`;
+    ? `I found ${draft.components[0].name}. Take a quick look before I log it.`
+    : `I found ${count} foods. Take a quick look before I log it.`;
 }
 
 function mealType(value: unknown): EditableMealDraft["meal_type"] {
@@ -315,6 +373,10 @@ function mealType(value: unknown): EditableMealDraft["meal_type"] {
 
 function stringOr(value: unknown, fallback: string) {
   return typeof value === "string" && value.trim() ? value.trim() : fallback;
+}
+
+function stringOrNull(value: unknown) {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
 function positive(value: unknown, fallback: number) {
@@ -334,5 +396,5 @@ function nullableNumber(value: unknown) {
 
 function numberOrNull(value: unknown) {
   const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : null;
+  return value == null || !Number.isFinite(parsed) ? null : parsed;
 }

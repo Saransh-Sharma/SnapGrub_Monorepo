@@ -1017,6 +1017,21 @@ class BarcodeResolveResponseDto {
       );
 }
 
+class CorrectionBaseDraftDto {
+  const CorrectionBaseDraftDto({
+    required this.items,
+    this.title,
+  });
+
+  final String? title;
+  final List<MealItemWriteDto> items;
+
+  JsonMap toJson() => {
+        'title': title,
+        'items': items.map((item) => item.toJson()).toList(),
+      };
+}
+
 class TextAnalysisCreateRequestDto {
   const TextAnalysisCreateRequestDto({
     required this.clientRequestId,
@@ -1025,6 +1040,7 @@ class TextAnalysisCreateRequestDto {
     required this.timezone,
     this.mealTypeHint,
     this.cuisineHints = const [],
+    this.baseDraft,
   });
 
   final String clientRequestId;
@@ -1033,6 +1049,7 @@ class TextAnalysisCreateRequestDto {
   final String locale;
   final String timezone;
   final List<String> cuisineHints;
+  final CorrectionBaseDraftDto? baseDraft;
 
   JsonMap toJson() => {
         'client_request_id': clientRequestId,
@@ -1041,6 +1058,7 @@ class TextAnalysisCreateRequestDto {
         'locale': locale,
         'timezone': timezone,
         'cuisine_hints': cuisineHints,
+        'base_draft': baseDraft?.toJson(),
       };
 }
 
@@ -1589,6 +1607,11 @@ export type BarcodeResolveResponse = {
   request_id: string;
 };
 
+export type CorrectionBaseDraft = {
+  title?: string | null;
+  items: MealItemWrite[];
+};
+
 export type TextAnalysisCreateRequest = {
   client_request_id: string;
   text: string;
@@ -1596,6 +1619,7 @@ export type TextAnalysisCreateRequest = {
   locale: string;
   timezone: string;
   cuisine_hints?: string[];
+  base_draft?: CorrectionBaseDraft | null;
 };
 
 export type LabelAnalysisCreateRequest = {

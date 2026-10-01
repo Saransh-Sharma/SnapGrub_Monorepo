@@ -1,8 +1,18 @@
+import { buildRunEvents } from "../_shared/agent_events.ts";
+import { groundDraftSafely } from "../_shared/catalog_grounding.ts";
 import { corsHeaders, jsonResponse, optionsResponse } from "../_shared/cors.ts";
 import { createConversationProposal } from "../_shared/conversation_agent.ts";
 import { ApiError, errorBody } from "../_shared/errors.ts";
+import { textModelConfig } from "../_shared/llm.ts";
+import {
+  consumeDailyAiBudget,
+  insertInvocation,
+} from "../_shared/model_invocations.ts";
+import type { EditableMealDraft } from "../_shared/multimodal.ts";
 import { consumeRateLimit } from "../_shared/rate_limit.ts";
 import { requireUser, serviceClient } from "../_shared/supabase.ts";
+import { loggedAtForDay } from "../_shared/time.ts";
+import { readUserFoodHints } from "../_shared/user_foods.ts";
 import { optionalString, requireString } from "../_shared/validation.ts";
 
 Deno.serve(async (req) => {
@@ -37,6 +47,11 @@ Deno.serve(async (req) => {
     const timezone = requireString(body.timezone, "timezone");
     const locale = requireString(body.locale, "locale");
     const requestedThreadId = optionalString(body.thread_id);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) {
+      throw new ApiError("INVALID_INPUT", "day must be YYYY-MM-DD", 400, false, {
+        field: "day",
+      });
+    }
 
     const existing = await client.from("agent_runs").select("*")
       .eq("user_id", user.id).eq("client_request_id", clientRequestId)
@@ -51,6 +66,8 @@ Deno.serve(async (req) => {
       return sseResponse(replay);
     }
     await consumeRateLimit(client, user.id, "agent:runs", 60 * 60, 120);
+    const modelConfigured = textModelConfig() != null;
+    if (modelConfigured) await consumeDailyAiBudget(client, user.id);
 
     const thread = await ensureThread(
       client,
@@ -90,7 +107,7 @@ Deno.serve(async (req) => {
     const startedAt = performance.now();
 
     try {
-      const [dayMeals, recentMeals, goal] = await Promise.all([
+      const [dayMeals, recentMeals, goal, userFoods] = await Promise.all([
         client.rpc("list_user_meals_for_day", {
           p_user_id: user.id,
           p_day: day,
@@ -101,6 +118,7 @@ Deno.serve(async (req) => {
           .order("logged_at", { ascending: false }).limit(12),
         client.from("nutrition_goals").select("calories_kcal")
           .eq("user_id", user.id).eq("is_active", true).maybeSingle(),
+        modelConfigured ? readUserFoodHints(client, user.id) : [],
       ]);
       const agent = await createConversationProposal({
         message: messageText,
@@ -113,6 +131,7 @@ Deno.serve(async (req) => {
         dayMeals: dayMeals.data ?? [],
         recentMeals: recentMeals.data ?? [],
         calorieGoal: Number(goal.data?.calories_kcal) || null,
+        userFoods,
       });
       const assistantSequence = await nextSequence(client, String(thread.id));
       const assistantId = crypto.randomUUID();
@@ -128,30 +147,51 @@ Deno.serve(async (req) => {
         delivery_state: "delivered",
       });
       if (assistantInsert.error) throw assistantInsert.error;
-      const proposalId = crypto.randomUUID();
-      const mobileDraft = mobileDraftPayload(
-        agent.draft,
-        user.id,
-        day,
-        timezone,
-        agent.targetMealId,
-        agent.expectedRevision,
-      );
-      const proposalInsert = await client.from("meal_change_proposals").insert({
-        id: proposalId,
-        thread_id: thread.id,
-        user_id: user.id,
-        agent_run_id: run.id,
-        message_id: assistantId,
-        operation: agent.operation,
-        target_meal_id: agent.targetMealId,
-        expected_revision: agent.expectedRevision,
-        draft_payload: mobileDraft,
-        status: "pending",
-        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-          .toISOString(),
-      });
-      if (proposalInsert.error) throw proposalInsert.error;
+
+      // A clarifying question has no draft and stages nothing.
+      let proposal: Parameters<typeof buildRunEvents>[0]["proposal"] = null;
+      if (agent.draft != null && agent.operation !== "clarify") {
+        const draft = agent.operation === "delete"
+          ? agent.draft
+          : await groundDraftSafely(client, user.id, agent.draft, {
+            preferCatalogPortions: true,
+            onlyItems: agent.freshItemIds,
+          });
+        const proposalId = crypto.randomUUID();
+        const mobileDraft = mobileDraftPayload(
+          draft,
+          user.id,
+          agent.operation === "create"
+            ? newMealLoggedAt(day, timezone)
+            : draft.logged_at,
+          timezone,
+          agent.targetMealId,
+          agent.expectedRevision,
+        );
+        const proposalInsert = await client.from("meal_change_proposals")
+          .insert({
+            id: proposalId,
+            thread_id: thread.id,
+            user_id: user.id,
+            agent_run_id: run.id,
+            message_id: assistantId,
+            operation: agent.operation,
+            target_meal_id: agent.targetMealId,
+            expected_revision: agent.expectedRevision,
+            draft_payload: mobileDraft,
+            status: "pending",
+            expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+              .toISOString(),
+          });
+        if (proposalInsert.error) throw proposalInsert.error;
+        proposal = {
+          proposalId,
+          draft: mobileDraft,
+          operation: agent.operation,
+          targetMealId: agent.targetMealId,
+          expectedRevision: agent.expectedRevision,
+        };
+      }
       const latencyMs = Math.round(performance.now() - startedAt);
       const completed = await client.from("agent_runs").update({
         status: "completed",
@@ -162,17 +202,32 @@ Deno.serve(async (req) => {
         latency_ms: latencyMs,
         cursor: 6,
         completed_at: new Date().toISOString(),
+        redacted_metadata: {
+          message_length: messageText.length,
+          day,
+          locale,
+          operation: agent.operation,
+          assistant_message_id: assistantId,
+        },
       }).eq("id", run.id);
       if (completed.error) throw completed.error;
-      return sseResponse(buildEvents({
+      if (agent.inputTokens != null || agent.outputTokens != null) {
+        await logAgentInvocation(client, {
+          userId: user.id,
+          provider: agent.provider,
+          model: agent.model,
+          latencyMs,
+          inputTokens: agent.inputTokens,
+          outputTokens: agent.outputTokens,
+          operation: agent.operation,
+          componentCount: agent.draft?.components.length ?? 0,
+        });
+      }
+      return sseResponse(buildRunEvents({
         runId: String(run.id),
         assistantId,
         assistantText: agent.assistantText,
-        proposalId,
-        draft: mobileDraft,
-        operation: agent.operation,
-        targetMealId: agent.targetMealId,
-        expectedRevision: agent.expectedRevision,
+        proposal,
       }));
     } catch (error) {
       await client.from("agent_runs").update({
@@ -213,73 +268,6 @@ function sseResponse(events: Record<string, unknown>[]) {
   });
 }
 
-function buildEvents(input: {
-  runId: string;
-  assistantId: string;
-  assistantText: string;
-  proposalId: string;
-  draft: Record<string, unknown>;
-  operation: "create" | "update" | "delete";
-  targetMealId: string | null;
-  expectedRevision: number | null;
-}) {
-  const chunks = input.assistantText.match(/.{1,28}(?:\s|$)/g) ??
-    [input.assistantText];
-  const events: Record<string, unknown>[] = [
-    event("run.started", input.runId, 1, { status: "streaming" }),
-    event("tool.started", input.runId, 2, {
-      tool: "nutrition_lookup",
-      label: "Checking your usual foods…",
-    }),
-    event("tool.completed", input.runId, 3, { tool: "nutrition_lookup" }),
-  ];
-  let sequence = 4;
-  for (const chunk of chunks) {
-    events.push(
-      event(
-        "assistant.delta",
-        input.runId,
-        sequence++,
-        { text: chunk },
-        input.assistantId,
-      ),
-    );
-  }
-  events.push(event("proposal.ready", input.runId, sequence++, {
-    proposal_id: input.proposalId,
-    draft: input.draft,
-    operation: input.operation,
-    target_meal_id: input.targetMealId,
-    expected_revision: input.expectedRevision,
-  }, input.assistantId));
-  events.push(
-    event(
-      "run.completed",
-      input.runId,
-      sequence,
-      { status: "completed" },
-      input.assistantId,
-    ),
-  );
-  return events;
-}
-
-function event(
-  type: string,
-  runId: string,
-  sequence: number,
-  data: Record<string, unknown>,
-  messageId?: string,
-) {
-  return {
-    event: type,
-    run_id: runId,
-    sequence,
-    ...(messageId ? { message_id: messageId } : {}),
-    data,
-  };
-}
-
 async function ensureThread(
   client: ReturnType<typeof serviceClient>,
   userId: string,
@@ -309,17 +297,13 @@ async function nextSequence(
 }
 
 function mobileDraftPayload(
-  draft: Awaited<ReturnType<typeof createConversationProposal>>["draft"],
+  draft: EditableMealDraft,
   userId: string,
-  day: string,
+  loggedAt: string,
   timezone: string,
   targetMealId: string | null,
   expectedRevision: number | null,
 ) {
-  const now = new Date();
-  const time = `${now.getUTCHours().toString().padStart(2, "0")}:${
-    now.getUTCMinutes().toString().padStart(2, "0")
-  }:00.000Z`;
   return {
     id: targetMealId ?? crypto.randomUUID(),
     user_id: userId,
@@ -327,7 +311,7 @@ function mobileDraftPayload(
     title: draft.title,
     meal_type: draft.meal_type,
     source: "text",
-    logged_at: `${day}T${time}`,
+    logged_at: loggedAt,
     timezone,
     expected_revision: expectedRevision,
     confidence_overall: draft.confidence.overall,
@@ -367,24 +351,87 @@ async function eventsForRun(
   const proposal = await client.from("meal_change_proposals").select("*")
     .eq("agent_run_id", runId).eq("user_id", userId).maybeSingle();
   if (proposal.error) throw proposal.error;
-  if (!proposal.data) {
-    return [
-      event("run.failed", runId, 1, { message: "This run has no proposal." }),
-    ];
+  const metadata = (run.data.redacted_metadata ?? {}) as Record<
+    string,
+    unknown
+  >;
+  const messageId = proposal.data?.message_id ?? metadata.assistant_message_id;
+  if (typeof messageId !== "string") {
+    return [{
+      event: "run.failed",
+      run_id: runId,
+      sequence: 1,
+      data: { message: "This run has no reply." },
+    }];
   }
   const message = await client.from("thread_messages").select("*")
-    .eq("id", proposal.data.message_id).single();
+    .eq("id", messageId).eq("user_id", userId).single();
   if (message.error) throw message.error;
-  return buildEvents({
+  return buildRunEvents({
     runId,
     assistantId: String(message.data.id),
     assistantText: String(message.data.text_content ?? ""),
-    proposalId: String(proposal.data.id),
-    draft: proposal.data.draft_payload as Record<string, unknown>,
-    operation: proposal.data.operation,
-    targetMealId: proposal.data.target_meal_id,
-    expectedRevision: proposal.data.expected_revision,
+    proposal: proposal.data
+      ? {
+        proposalId: String(proposal.data.id),
+        draft: proposal.data.draft_payload as Record<string, unknown>,
+        operation: proposal.data.operation,
+        targetMealId: proposal.data.target_meal_id,
+        expectedRevision: proposal.data.expected_revision,
+      }
+      : null,
   });
+}
+
+/// When a meal created from the thread for [day] is logged. A zone the
+/// runtime does not know falls back to the current instant, which is right
+/// for today's thread.
+function newMealLoggedAt(day: string, timezone: string) {
+  try {
+    return loggedAtForDay(day, timezone);
+  } catch (_) {
+    return new Date().toISOString();
+  }
+}
+
+/// Cost visibility for model-backed runs. Never fails the run.
+async function logAgentInvocation(
+  client: ReturnType<typeof serviceClient>,
+  input: {
+    userId: string;
+    provider: string;
+    model: string;
+    latencyMs: number;
+    inputTokens: number | null;
+    outputTokens: number | null;
+    operation: string;
+    componentCount: number;
+  },
+) {
+  try {
+    await insertInvocation(client, {
+      analysisJobId: null,
+      userId: input.userId,
+      provider: input.provider,
+      modelName: input.model,
+      purpose: "conversation_agent",
+      status: "completed",
+      latencyMs: input.latencyMs,
+      inputTokens: input.inputTokens,
+      outputTokens: input.outputTokens,
+      requestPayload: {},
+      responsePayload: {
+        operation: input.operation,
+        component_count: input.componentCount,
+      },
+    });
+  } catch (error) {
+    console.error(JSON.stringify({
+      level: "error",
+      scope: "agent-runs.invocation",
+      message: error instanceof Error ? error.message : String(error),
+    }));
+  }
 }
 
 async function replayPayload(

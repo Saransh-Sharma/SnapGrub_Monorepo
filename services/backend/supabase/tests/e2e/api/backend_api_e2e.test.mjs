@@ -5,9 +5,11 @@ import {
   anonKey,
   assertError,
   assertOk,
+  authToken,
   createSignedInUser,
   deleteUsers,
   fakeServiceRoleJwt,
+  functionsUrl,
   invoke,
   invokeAnon,
   invokeService,
@@ -445,6 +447,16 @@ test("backend API E2E covers critical Supabase Edge Function surface", async (t)
     assertResponseMatchesContract("analysisTextCreate", 200, textAnalysis);
     assert.equal(textAnalysis.status, "completed");
     assert.ok(textAnalysis.result.components.length >= 2);
+    const groundedRoti = textAnalysis.result.components.find((component) =>
+      component.name === "Roti"
+    );
+    assert.equal(
+      groundedRoti.food_ref_kind,
+      "canonical",
+      "a food in the catalog takes its nutrition from it",
+    );
+    assert.ok(groundedRoti.canonical_food_id);
+    assert.equal(groundedRoti.calories_kcal, 237.6);
 
     const textReplay = assertOk(
       await invokeUser(userA, "analysis-text-create", {
@@ -503,6 +515,64 @@ test("backend API E2E covers critical Supabase Edge Function surface", async (t)
     if (invocationError) throw invocationError;
     assert.equal(invocation.request_payload.text, undefined);
     assert.equal(typeof invocation.response_payload.component_count, "number");
+  });
+
+  await t.test("conversation agent stages proposals and asks when unsure", async () => {
+    const timezone = "Asia/Kolkata";
+    const day = localDay(timezone);
+    const createBody = {
+      client_request_id: crypto.randomUUID(),
+      day,
+      timezone,
+      locale: "en-IN",
+      message: "2 rotis and dal",
+    };
+    const created = await runAgent(userA, createBody);
+    const proposal = created.find((event) => event.event === "proposal.ready");
+    assert.ok(proposal, "a food message stages a proposal");
+    assert.equal(proposal.data.operation, "create");
+    assert.equal(
+      localDay(timezone, new Date(proposal.data.draft.logged_at)),
+      day,
+      "a new meal lands on the requested local day",
+    );
+    const roti = proposal.data.draft.items.find((item) => item.name === "Roti");
+    assert.equal(roti.food_ref_kind, "canonical");
+    assert.ok(roti.canonical_food_id);
+    assert.equal(created.at(-1).event, "run.completed");
+
+    const replayed = await runAgent(userA, createBody);
+    assert.equal(
+      replayed.find((event) => event.event === "proposal.ready").data
+        .proposal_id,
+      proposal.data.proposal_id,
+      "the same request replays the same proposal",
+    );
+
+    // userB has nothing logged, so there is no meal to delete.
+    const clarifyBody = {
+      client_request_id: crypto.randomUUID(),
+      day,
+      timezone,
+      locale: "en-IN",
+      message: "delete lunch",
+    };
+    for (const events of [
+      await runAgent(userB, clarifyBody),
+      await runAgent(userB, clarifyBody),
+    ]) {
+      const names = events.map((event) => event.event);
+      assert.ok(names.includes("assistant.delta"), "the assistant replies");
+      assert.ok(!names.includes("proposal.ready"), "nothing is staged");
+      assert.ok(!names.includes("run.failed"), "and the run does not fail");
+      assert.equal(names.at(-1), "run.completed");
+    }
+    const { count, error: proposalError } = await admin
+      .from("meal_change_proposals")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userB.id);
+    if (proposalError) throw proposalError;
+    assert.equal(count, 0, "a clarifying reply writes no proposal");
   });
 
   await t.test("photo analysis API and photo meal save protections", async () => {
@@ -893,4 +963,35 @@ function mealBody(
       fat_g: 10,
     }],
   };
+}
+
+/// Calendar day (YYYY-MM-DD) of [date] in an IANA time zone.
+function localDay(timezone, date = new Date()) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
+}
+
+/// Posts a conversation message and returns the run's stream events.
+async function runAgent(user, body) {
+  const response = await fetch(`${functionsUrl}/agent-runs`, {
+    method: "POST",
+    headers: {
+      apikey: anonKey,
+      authorization: `Bearer ${await authToken(user)}`,
+      "content-type": "application/json",
+      accept: "text/event-stream",
+    },
+    body: JSON.stringify(body),
+  });
+  const text = await response.text();
+  assert.equal(response.status, 200, text);
+  return text.split("\n")
+    .filter((line) => line.startsWith("data:"))
+    .map((line) => line.slice(5).trim())
+    .filter((payload) => payload && payload !== "[DONE]")
+    .map((payload) => JSON.parse(payload));
 }

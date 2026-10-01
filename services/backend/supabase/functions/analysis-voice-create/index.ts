@@ -1,10 +1,14 @@
 import { jsonResponse, optionsResponse } from "../_shared/cors.ts";
 import { ApiError, errorBody } from "../_shared/errors.ts";
 import { analysisResponseForJob, persistRuleAnalysis, readExistingAnalysisJob } from "../_shared/analysis_repository.ts";
+import { groundDraftSafely } from "../_shared/catalog_grounding.ts";
+import { textModelConfig } from "../_shared/llm.ts";
+import { parseMealText } from "../_shared/meal_llm.ts";
+import { consumeDailyAiBudget, recordAnalysisModelUsage } from "../_shared/model_invocations.ts";
 import { consumeRateLimit } from "../_shared/rate_limit.ts";
 import { requireUser, serviceClient } from "../_shared/supabase.ts";
+import { readUserFoodHints } from "../_shared/user_foods.ts";
 import { optionalString, requireString } from "../_shared/validation.ts";
-import { buildDraftFromText } from "../_shared/multimodal.ts";
 
 Deno.serve(async (req) => {
   const requestId = crypto.randomUUID();
@@ -24,9 +28,11 @@ Deno.serve(async (req) => {
     const existing = await readExistingAnalysisJob(client, user.id, clientRequestId);
     if (existing) return jsonResponse(await analysisResponseForJob(client, existing, requestId));
     await consumeRateLimit(client, user.id, "analysis:voice", 60 * 60, 120);
+    const modelConfigured = textModelConfig() != null;
+    if (modelConfigured) await consumeDailyAiBudget(client, user.id);
 
     const startedAt = performance.now();
-    const result = buildDraftFromText({
+    const parsed = await parseMealText({
       text: transcript,
       source: "voice",
       timezone,
@@ -34,6 +40,11 @@ Deno.serve(async (req) => {
       mealTypeHint: optionalString(body.meal_type_hint),
       cuisineHints: Array.isArray(body.cuisine_hints) ? body.cuisine_hints.map(String) : [],
       transcriptConfidence: typeof body.transcript_confidence === "number" ? body.transcript_confidence : null,
+      userFoods: modelConfigured ? await readUserFoodHints(client, user.id) : [],
+    });
+    const result = await groundDraftSafely(client, user.id, parsed.draft, {
+      preferCatalogPortions: true,
+      onlyItems: parsed.freshItemIds,
     });
     const job = await persistRuleAnalysis(client, {
       userId: user.id,
@@ -41,9 +52,10 @@ Deno.serve(async (req) => {
       mode: "voice",
       inputPayload: body,
       result,
-      modelName: "phase5-voice-parser",
+      modelName: parsed.provider === "snapgrub" ? "phase5-voice-parser" : parsed.model,
       latencyMs: Math.round(performance.now() - startedAt),
     });
+    await recordAnalysisModelUsage(client, String(job.id), parsed);
     return jsonResponse(await analysisResponseForJob(client, job, requestId));
   } catch (error) {
     const status = error instanceof ApiError ? error.status : 500;

@@ -80,5 +80,6 @@ function safeRuleRequestPayload(inputPayload: Record<string, unknown>) {
   delete copy.ocr_text;
   delete copy.text;
   delete copy.transcript;
+  delete copy.base_draft;
   return copy;
 }

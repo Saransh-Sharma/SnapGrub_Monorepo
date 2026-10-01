@@ -315,6 +315,11 @@ export type BarcodeResolveResponse = {
   request_id: string;
 };
 
+export type CorrectionBaseDraft = {
+  title?: string | null;
+  items: MealItemWrite[];
+};
+
 export type TextAnalysisCreateRequest = {
   client_request_id: string;
   text: string;
@@ -322,6 +327,7 @@ export type TextAnalysisCreateRequest = {
   locale: string;
   timezone: string;
   cuisine_hints?: string[];
+  base_draft?: CorrectionBaseDraft | null;
 };
 
 export type LabelAnalysisCreateRequest = {

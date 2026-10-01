@@ -2060,6 +2060,25 @@ components:
           type: array
           items:
             type: string
+        base_draft:
+          description: >-
+            Set when `text` is a correction to a meal already in the editor.
+            The response is the whole revised meal; items the correction does
+            not touch come back unchanged.
+          anyOf:
+            - $ref: "#/components/schemas/CorrectionBaseDraft"
+            - type: "null"
+    CorrectionBaseDraft:
+      type: object
+      required: [items]
+      properties:
+        title:
+          type: [string, "null"]
+        items:
+          type: array
+          maxItems: 50
+          items:
+            $ref: "#/components/schemas/MealItemWrite"
     LabelAnalysisCreateRequest:
       type: object
       required: [client_request_id, ocr_text, locale, timezone]

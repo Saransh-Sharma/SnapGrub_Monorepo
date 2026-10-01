@@ -1,5 +1,10 @@
+import { groundDraftSafely } from "../_shared/catalog_grounding.ts";
 import { jsonResponse, optionsResponse } from "../_shared/cors.ts";
 import { ApiError, errorBody } from "../_shared/errors.ts";
+import {
+  consumeDailyAiBudget,
+  insertInvocation,
+} from "../_shared/model_invocations.ts";
 import { consumeRateLimit } from "../_shared/rate_limit.ts";
 import { requireUser, serviceClient } from "../_shared/supabase.ts";
 import { optionalString, requireString } from "../_shared/validation.ts";
@@ -39,6 +44,9 @@ Deno.serve(async (req) => {
       return jsonResponse(await responseForJob(client, existing, requestId));
     }
     await consumeRateLimit(client, user.id, "analysis:photo", 60 * 60, 30);
+    if (Deno.env.get("AI_PROVIDER")?.trim().toLowerCase() !== "mock") {
+      await consumeDailyAiBudget(client, user.id);
+    }
 
     const image = await downloadImage(
       client,
@@ -110,10 +118,16 @@ Deno.serve(async (req) => {
         },
         responsePayload: providerResult.raw,
       });
+      const result = await groundDraftSafely(
+        client,
+        user.id,
+        providerResult.result,
+        { preferCatalogPortions: false },
+      );
       const resultPayload = {
-        ...providerResult.result,
+        ...result,
         provenance: {
-          ...providerResult.result.provenance,
+          ...result.provenance,
           invocation_id: invocationId,
           asset_id: asset.id,
           storage_bucket: storageBucket,
@@ -127,15 +141,15 @@ Deno.serve(async (req) => {
           analysis_job_id: job.id,
           user_id: user.id,
           revision_no: 1,
-          title: providerResult.result.title,
-          meal_type: providerResult.result.meal_type,
-          calories_kcal: providerResult.result.total.calories_kcal,
-          protein_g: providerResult.result.total.protein_g,
-          carbs_g: providerResult.result.total.carbs_g,
-          fat_g: providerResult.result.total.fat_g,
-          confidence_overall: providerResult.result.confidence.overall,
-          confidence_breakdown: providerResult.result.confidence,
-          warnings: providerResult.result.confidence.warnings.map((warning) =>
+          title: result.title,
+          meal_type: result.meal_type,
+          calories_kcal: result.total.calories_kcal,
+          protein_g: result.total.protein_g,
+          carbs_g: result.total.carbs_g,
+          fat_g: result.total.fat_g,
+          confidence_overall: result.confidence.overall,
+          confidence_breakdown: result.confidence,
+          warnings: result.confidence.warnings.map((warning) =>
             warning.message
           ),
           provenance: resultPayload.provenance,
@@ -148,7 +162,7 @@ Deno.serve(async (req) => {
       await insertCandidates(
         client,
         revision.id,
-        providerResult.result.alternatives,
+        result.alternatives,
       );
       const { data: completedJob, error: updateError } = await client
         .from("analysis_jobs")
@@ -383,45 +397,6 @@ async function responseForJob(
     server_time: new Date().toISOString(),
     request_id: requestId,
   };
-}
-
-async function insertInvocation(
-  client: ReturnType<typeof serviceClient>,
-  invocation: {
-    analysisJobId: string;
-    userId: string;
-    provider: string;
-    modelName: string;
-    status: "completed" | "failed";
-    latencyMs: number;
-    inputTokens: number | null;
-    outputTokens: number | null;
-    estimatedCostUsd: number | null;
-    errorCode?: string;
-    requestPayload: Record<string, unknown>;
-    responsePayload: Record<string, unknown> | null;
-  },
-) {
-  const { data, error } = await client
-    .from("model_invocations")
-    .insert({
-      analysis_job_id: invocation.analysisJobId,
-      user_id: invocation.userId,
-      provider: invocation.provider,
-      model_name: invocation.modelName,
-      status: invocation.status,
-      latency_ms: invocation.latencyMs,
-      input_tokens: invocation.inputTokens,
-      output_tokens: invocation.outputTokens,
-      estimated_cost_usd: invocation.estimatedCostUsd,
-      error_code: invocation.errorCode ?? null,
-      request_payload: invocation.requestPayload,
-      response_payload: invocation.responsePayload,
-    })
-    .select("id")
-    .single();
-  if (error) throw error;
-  return data.id as string;
 }
 
 async function insertCandidates(
