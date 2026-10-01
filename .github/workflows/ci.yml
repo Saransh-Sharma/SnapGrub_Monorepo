@@ -65,9 +65,10 @@ jobs:
       - run: npm run backend:test:remediation
         env:
           NODE_OPTIONS: --experimental-websocket
-      - run: npm run backend:test:remediation-unit
+      - run: npm run backend:test:unit
         env:
           NODE_OPTIONS: --experimental-websocket
+      - run: npm run catalog:test
 
   mobile:
     runs-on: ubuntu-latest

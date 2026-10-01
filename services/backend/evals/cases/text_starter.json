@@ -1,0 +1,271 @@
+{
+  "reference": "SnapGrub curated catalog (migration 000010), per 100 g values times the catalog's household portion. Not weighed meals.",
+  "cases": [
+    {
+      "id": "roti-dal",
+      "text": "2 rotis and a katori of dal tadka",
+      "locale": "en-IN",
+      "cuisine_hints": [
+        "indian"
+      ],
+      "expected": {
+        "calories_kcal": 450.0,
+        "protein_g": 18.6,
+        "items": [
+          {
+            "name": "Roti",
+            "match": [
+              "roti",
+              "chapati",
+              "phulka"
+            ]
+          },
+          {
+            "name": "Dal tadka",
+            "match": [
+              "dal"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "idli-sambar",
+      "text": "3 idlis with a katori of sambar",
+      "locale": "en-IN",
+      "cuisine_hints": [
+        "indian"
+      ],
+      "expected": {
+        "calories_kcal": 300.0,
+        "protein_g": 11.5,
+        "items": [
+          {
+            "name": "Idli",
+            "match": [
+              "idli"
+            ]
+          },
+          {
+            "name": "Sambar",
+            "match": [
+              "sambar",
+              "sambhar"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "eggs-banana",
+      "text": "2 boiled eggs and a banana",
+      "locale": "en-IN",
+      "cuisine_hints": [
+        "indian"
+      ],
+      "expected": {
+        "calories_kcal": 260.0,
+        "protein_g": 14.3,
+        "items": [
+          {
+            "name": "Boiled egg",
+            "match": [
+              "egg"
+            ]
+          },
+          {
+            "name": "Banana",
+            "match": [
+              "banana"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "rice-curd",
+      "text": "one bowl of steamed rice with a katori of curd",
+      "locale": "en-IN",
+      "cuisine_hints": [
+        "indian"
+      ],
+      "expected": {
+        "calories_kcal": 268.2,
+        "protein_g": 8.2,
+        "items": [
+          {
+            "name": "Steamed rice",
+            "match": [
+              "rice",
+              "chawal"
+            ]
+          },
+          {
+            "name": "Curd",
+            "match": [
+              "curd",
+              "yogurt",
+              "dahi"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chicken-biryani",
+      "text": "a plate of chicken biryani",
+      "locale": "en-IN",
+      "cuisine_hints": [
+        "indian"
+      ],
+      "expected": {
+        "calories_kcal": 510.0,
+        "protein_g": 24.0,
+        "items": [
+          {
+            "name": "Chicken biryani",
+            "match": [
+              "biryani"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "poha-milk",
+      "text": "a bowl of poha and a cup of milk",
+      "locale": "en-IN",
+      "cuisine_hints": [
+        "indian"
+      ],
+      "expected": {
+        "calories_kcal": 472.8,
+        "protein_g": 14.1,
+        "items": [
+          {
+            "name": "Poha",
+            "match": [
+              "poha"
+            ]
+          },
+          {
+            "name": "Milk",
+            "match": [
+              "milk"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "naan-paneer",
+      "text": "1 naan with a katori of paneer butter masala",
+      "locale": "en-IN",
+      "cuisine_hints": [
+        "indian"
+      ],
+      "expected": {
+        "calories_kcal": 675.0,
+        "protein_g": 24.3,
+        "items": [
+          {
+            "name": "Naan",
+            "match": [
+              "naan"
+            ]
+          },
+          {
+            "name": "Paneer butter masala",
+            "match": [
+              "paneer"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "dosa-sambar",
+      "text": "2 dosas with a katori of sambar",
+      "locale": "en-IN",
+      "cuisine_hints": [
+        "indian"
+      ],
+      "expected": {
+        "calories_kcal": 462.0,
+        "protein_g": 14.1,
+        "items": [
+          {
+            "name": "Dosa",
+            "match": [
+              "dosa"
+            ]
+          },
+          {
+            "name": "Sambar",
+            "match": [
+              "sambar",
+              "sambhar"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chole-rice",
+      "text": "a katori of chole with one bowl of steamed rice",
+      "locale": "en-IN",
+      "cuisine_hints": [
+        "indian"
+      ],
+      "expected": {
+        "calories_kcal": 465.0,
+        "protein_g": 16.6,
+        "items": [
+          {
+            "name": "Chole",
+            "match": [
+              "chole",
+              "chana",
+              "chickpea"
+            ]
+          },
+          {
+            "name": "Steamed rice",
+            "match": [
+              "rice",
+              "chawal"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "rajma-chawal",
+      "text": "rajma chawal, one katori of rajma and one bowl of rice",
+      "locale": "en-IN",
+      "cuisine_hints": [
+        "indian"
+      ],
+      "expected": {
+        "calories_kcal": 420.0,
+        "protein_g": 15.8,
+        "items": [
+          {
+            "name": "Rajma curry",
+            "match": [
+              "rajma",
+              "kidney"
+            ]
+          },
+          {
+            "name": "Steamed rice",
+            "match": [
+              "rice",
+              "chawal"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
