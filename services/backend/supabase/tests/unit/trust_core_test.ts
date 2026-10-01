@@ -6,6 +6,7 @@ import {
 } from "../../functions/_shared/catalog_grounding.ts";
 import { createConversationProposal } from "../../functions/_shared/conversation_agent.ts";
 import { rankFoodResults } from "../../functions/_shared/food_lookup.ts";
+import { textModelConfig } from "../../functions/_shared/llm.ts";
 import { parseMealText } from "../../functions/_shared/meal_llm.ts";
 import {
   buildDraftFromText,
@@ -733,6 +734,35 @@ Deno.test("search puts the user's own food first on a tie", () => {
     food("Dal", "custom"),
   ]).map((result) => result.result_type);
   assertEquals(ranked, ["custom", "canonical"], "own foods lead");
+});
+
+Deno.test("a food found through an alias keeps the database's rank", () => {
+  const ranked = rankFoodResults(
+    "chapati",
+    [food("Chapati masala mix", "branded"), food("Roti", "canonical")],
+    new Map([["Roti", 4.6]]),
+  ).map((result) => result.name);
+  assertEquals(
+    ranked,
+    ["Roti", "Chapati masala mix"],
+    "an exact alias match outranks a prefix match on another name",
+  );
+});
+
+// --- Kill switch -----------------------------------------------------------
+
+Deno.test("MEAL_TEXT_MODEL=off returns text parsing to the rule parser", () => {
+  const previous = Deno.env.get("AI_PROVIDER");
+  Deno.env.set("AI_PROVIDER", "gemini");
+  try {
+    assertEquals(textModelConfig()?.provider, "gemini", "model is configured");
+    Deno.env.set("MEAL_TEXT_MODEL", "off");
+    assertEquals(textModelConfig(), null, "the switch turns it off");
+  } finally {
+    Deno.env.delete("MEAL_TEXT_MODEL");
+    if (previous == null) Deno.env.delete("AI_PROVIDER");
+    else Deno.env.set("AI_PROVIDER", previous);
+  }
 });
 
 // --- Agent events ----------------------------------------------------------

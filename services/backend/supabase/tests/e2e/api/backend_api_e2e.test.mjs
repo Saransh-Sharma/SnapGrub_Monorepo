@@ -391,6 +391,70 @@ test("backend API E2E covers critical Supabase Edge Function surface", async (t)
       ),
     );
 
+    // More foods contain the query than one page holds; the exact name and
+    // an alias must still come first.
+    const fillers = Array.from({ length: 45 }, (_, index) => ({
+      name: `Zzfood filler ${String(index).padStart(2, "0")}`,
+      normalized_name: `zzfood filler ${String(index).padStart(2, "0")}`,
+      source_type: "e2e_search",
+      source_id: `e2e:${index}`,
+      default_unit: "g",
+      default_quantity: 100,
+      default_grams: 100,
+    }));
+    const { data: seeded, error: seedError } = await admin
+      .from("canonical_foods")
+      .insert([...fillers, {
+        name: "Zzfood",
+        normalized_name: "zzfood",
+        source_type: "e2e_search",
+        source_id: "e2e:exact",
+        default_unit: "g",
+        default_quantity: 100,
+        default_grams: 100,
+      }])
+      .select("id, name");
+    if (seedError) throw seedError;
+    try {
+      const exact = seeded.find((food) => food.name === "Zzfood");
+      const { error: nutrientError } = await admin.from("food_nutrients")
+        .insert(seeded.map((food) => ({
+          canonical_food_id: food.id,
+          per_grams: 100,
+          calories_kcal: 100,
+          protein_g: 5,
+          carbs_g: 10,
+          fat_g: 3,
+        })));
+      if (nutrientError) throw nutrientError;
+      const { error: aliasError } = await admin.from("food_aliases").insert({
+        canonical_food_id: exact.id,
+        alias: "Zzalias",
+        normalized_alias: "zzalias",
+      });
+      if (aliasError) throw aliasError;
+
+      const ranked = assertOk(
+        await invokeUser(userA, "foods-search", {
+          body: { query: "zzfood", limit: 5 },
+        }),
+      );
+      assert.equal(ranked.results.length, 5);
+      assert.equal(ranked.results[0].name, "Zzfood", "exact name ranks first");
+      assert.equal(ranked.results[0].calories_kcal, 100);
+
+      const byAlias = assertOk(
+        await invokeUser(userA, "foods-search", {
+          body: { query: "zzalias", limit: 5 },
+        }),
+      );
+      assert.equal(byAlias.results[0].name, "Zzfood", "aliases are searched");
+    } finally {
+      const { error: cleanupError } = await admin.from("canonical_foods")
+        .delete().eq("source_type", "e2e_search");
+      if (cleanupError) throw cleanupError;
+    }
+
     const searchRecent = assertOk(
       await invokeUser(userA, "foods-search", {
         body: { query: "dal", limit: 10 },
@@ -471,6 +535,21 @@ test("backend API E2E covers critical Supabase Edge Function surface", async (t)
       }),
     );
     assert.equal(textReplay.analysis_id, textAnalysis.analysis_id);
+
+    // The rule parser cannot apply a correction, so mock mode refuses it.
+    const correction = await invokeUser(userA, "analysis-text-create", {
+      body: {
+        client_request_id: crypto.randomUUID(),
+        text: "it was 3 rotis",
+        locale: "en-IN",
+        timezone: "Asia/Kolkata",
+        base_draft: {
+          title: "Lunch",
+          items: textAnalysis.result.components,
+        },
+      },
+    });
+    assertError(correction, 503, "PROVIDER_UNAVAILABLE");
 
     const labelAnalysis = assertOk(
       await invokeUser(userA, "analysis-label-create", {
@@ -573,6 +652,38 @@ test("backend API E2E covers critical Supabase Edge Function surface", async (t)
       .eq("user_id", userB.id);
     if (proposalError) throw proposalError;
     assert.equal(count, 0, "a clarifying reply writes no proposal");
+  });
+
+  await t.test("meal artwork fails closed without an image provider", async () => {
+    const signature = `e2e-${crypto.randomUUID()}`;
+    const artwork = await invokeUser(userA, "meal-visuals", {
+      body: { meal_id: state.activeMealId, prompt_signature: signature },
+    });
+    assertError(artwork, 503, "PROVIDER_UNAVAILABLE");
+
+    const { data: visual, error: visualError } = await admin
+      .from("meal_visuals")
+      .select("status, error_code, retry_count")
+      .eq("meal_id", state.activeMealId)
+      .eq("prompt_signature", signature)
+      .single();
+    if (visualError) throw visualError;
+    assert.equal(visual.status, "failed");
+    assert.equal(visual.error_code, "PROVIDER_UNAVAILABLE");
+    assert.equal(visual.retry_count, 1);
+
+    const { count, error: invocationError } = await admin
+      .from("model_invocations")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userA.id)
+      .eq("purpose", "meal_visual");
+    if (invocationError) throw invocationError;
+    assert.equal(count, 0, "no provider was called, so nothing is billed");
+
+    const otherUsers = await invokeUser(userB, "meal-visuals", {
+      body: { meal_id: state.activeMealId, prompt_signature: signature },
+    });
+    assertError(otherUsers, 404, "NOT_FOUND");
   });
 
   await t.test("photo analysis API and photo meal save protections", async () => {

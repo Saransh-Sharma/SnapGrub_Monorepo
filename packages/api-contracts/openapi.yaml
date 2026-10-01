@@ -521,6 +521,17 @@ paths:
           $ref: "#/components/responses/Error"
         "401":
           $ref: "#/components/responses/Error"
+        "422":
+          description: No food could be identified in the text
+          $ref: "#/components/responses/Error"
+        "429":
+          description: Hourly rate limit or daily AI budget reached
+          $ref: "#/components/responses/Error"
+        "503":
+          description: >-
+            The model is unavailable and the request could not be answered
+            in full, or a correction was sent while no model is configured
+          $ref: "#/components/responses/Error"
   /analysis-label-create:
     post:
       operationId: analysisLabelCreate

@@ -80,10 +80,15 @@ export async function callJsonModel(
 
 /// Provider for text, voice and conversation parsing. Null means no model is
 /// configured (or AI_PROVIDER=mock) and callers use the rule parser instead.
+/// MEAL_TEXT_MODEL=off is the kill switch: it returns these paths to the
+/// rule parser without touching photo analysis and without a redeploy.
 export function textModelConfig(): {
   provider: ModelProvider;
   model: string;
 } | null {
+  if (Deno.env.get("MEAL_TEXT_MODEL")?.trim().toLowerCase() === "off") {
+    return null;
+  }
   const provider = Deno.env.get("AI_PROVIDER")?.trim().toLowerCase();
   if (provider === "mock") return null;
   if (provider === "openai") {

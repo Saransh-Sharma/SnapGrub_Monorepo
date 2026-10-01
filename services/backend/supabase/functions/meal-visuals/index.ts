@@ -1,5 +1,10 @@
 import { jsonResponse, optionsResponse } from "../_shared/cors.ts";
 import { ApiError, errorBody } from "../_shared/errors.ts";
+import {
+  consumeDailyImageBudget,
+  imagePriceUsd,
+  insertInvocation,
+} from "../_shared/model_invocations.ts";
 import { consumeRateLimit } from "../_shared/rate_limit.ts";
 import { isRecord, parseJsonBody } from "../_shared/request.ts";
 import { requireUser, serviceClient } from "../_shared/supabase.ts";
@@ -58,15 +63,26 @@ Deno.serve(async (req) => {
         ? body.style_version
         : STYLE_VERSION,
     });
+    if (imageProviderConfigured()) {
+      await consumeDailyImageBudget(client, user.id);
+    }
     const claimed = await updateVisual(client, String(visual.id), {
       status: "generating",
       error_code: null,
     });
 
+    const startedAt = performance.now();
     try {
       const items = await mealItems(client, user.id, mealId);
       const prompt = studioPrompt(meal, items);
       const generated = await generateArtwork(prompt);
+      await logGeneration(client, {
+        userId: user.id,
+        provider: generated.provider,
+        model: generated.model,
+        status: "completed",
+        latencyMs: Math.round(performance.now() - startedAt),
+      });
       const extension = generated.mimeType.includes("png") ? "png" : "jpg";
       const storagePath = `${user.id}/${mealId}/${signature}.${extension}`;
       const thumbPath = `${user.id}/${mealId}/${signature}-thumb.${extension}`;
@@ -92,6 +108,16 @@ Deno.serve(async (req) => {
         retry_count: Number(claimed.retry_count ?? 0) + 1,
         error_code: providerErrorCode(error),
       });
+      if (imageProviderConfigured()) {
+        await logGeneration(client, {
+          userId: user.id,
+          provider: "image",
+          model: "unknown",
+          status: "failed",
+          latencyMs: Math.round(performance.now() - startedAt),
+          errorCode: providerErrorCode(error),
+        });
+      }
       throw error;
     }
   } catch (error) {
@@ -107,10 +133,13 @@ async function generateArtwork(prompt: string) {
       const model = Deno.env.get("GEMINI_IMAGE_MODEL") ??
         "gemini-3.1-flash-image";
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
         {
           method: "POST",
-          headers: { "content-type": "application/json" },
+          headers: {
+            "content-type": "application/json",
+            "x-goog-api-key": geminiKey,
+          },
           body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }],
             generationConfig: {
@@ -176,6 +205,49 @@ async function generateArtwork(prompt: string) {
     provider: "openai",
     model,
   };
+}
+
+function imageProviderConfigured() {
+  return Boolean(
+    Deno.env.get("GEMINI_API_KEY") || Deno.env.get("OPENAI_API_KEY"),
+  );
+}
+
+/// Cost visibility for artwork. Never fails the request.
+async function logGeneration(
+  client: ReturnType<typeof serviceClient>,
+  input: {
+    userId: string;
+    provider: string;
+    model: string;
+    status: "completed" | "failed";
+    latencyMs: number;
+    errorCode?: string;
+  },
+) {
+  try {
+    await insertInvocation(client, {
+      analysisJobId: null,
+      userId: input.userId,
+      provider: input.provider,
+      modelName: input.model,
+      purpose: "meal_visual",
+      status: input.status,
+      latencyMs: input.latencyMs,
+      inputTokens: null,
+      outputTokens: null,
+      estimatedCostUsd: input.status === "completed" ? imagePriceUsd() : null,
+      errorCode: input.errorCode,
+      requestPayload: {},
+      responsePayload: null,
+    });
+  } catch (error) {
+    console.error(JSON.stringify({
+      level: "error",
+      scope: "meal-visuals.invocation",
+      message: error instanceof Error ? error.message : String(error),
+    }));
+  }
 }
 
 function studioPrompt(

@@ -4,8 +4,9 @@ import type { serviceClient } from "./supabase.ts";
 type Client = ReturnType<typeof serviceClient>;
 type Row = Record<string, unknown>;
 
-/// How many rows to pull per source before ranking. Substring matches come
-/// back unordered, so ranking needs more than the page it returns.
+/// How many rows to pull per source before ranking. Substring matches on
+/// the user's own tables come back unordered, so ranking needs more than the
+/// page it returns. Catalog foods arrive already ranked by the database.
 const CANDIDATES_PER_SOURCE = 40;
 
 /// Foods matching [query] across the catalog and the user's own foods, best
@@ -19,82 +20,94 @@ export async function searchFoods(
   const normalized = normalizeFoodName(query);
   const pattern = `%${normalized.replace(/[%_]/g, "")}%`;
 
-  const [canonical, aliases, branded, custom, defaults, recent] = await Promise
-    .all([
-      client
-        .from("canonical_foods")
-        .select("*, food_nutrients(*), food_portions(*)")
-        .eq("is_active", true)
-        .ilike("normalized_name", pattern)
-        .limit(CANDIDATES_PER_SOURCE),
-      client
-        .from("food_aliases")
-        .select(
-          "alias, canonical_foods(*, food_nutrients(*), food_portions(*))",
-        )
-        .ilike("normalized_alias", pattern)
-        .limit(CANDIDATES_PER_SOURCE),
-      client
-        .from("branded_products")
-        .select("*")
-        .or(`normalized_name.ilike.${pattern},brand.ilike.${pattern}`)
-        .limit(CANDIDATES_PER_SOURCE),
-      client
-        .from("custom_foods")
-        .select("*")
-        .eq("user_id", userId)
-        .is("deleted_at", null)
-        .ilike("name", pattern)
-        .limit(CANDIDATES_PER_SOURCE),
-      client
-        .from("user_food_defaults")
-        .select("*")
-        .eq("user_id", userId)
-        .ilike("food_name", pattern)
-        .order("use_count", { ascending: false })
-        .limit(limit),
-      client
-        .from("meal_items")
-        .select(
-          "name, quantity, unit, grams_estimated, calories_kcal, protein_g, carbs_g, fat_g, source_type, source_id, created_at",
-        )
-        .eq("user_id", userId)
-        .ilike("name", pattern)
-        .order("created_at", { ascending: false })
-        .limit(limit),
-    ]);
-
-  for (const result of [canonical, aliases, branded, custom, defaults, recent]) {
+  const [catalog, branded, custom, defaults, recent] = await Promise.all([
+    client.rpc("search_canonical_foods", {
+      p_query: normalized,
+      p_limit: CANDIDATES_PER_SOURCE,
+    }),
+    client
+      .from("branded_products")
+      .select("*")
+      .or(`normalized_name.ilike.${pattern},brand.ilike.${pattern}`)
+      .limit(CANDIDATES_PER_SOURCE),
+    client
+      .from("custom_foods")
+      .select("*")
+      .eq("user_id", userId)
+      .is("deleted_at", null)
+      .ilike("name", pattern)
+      .limit(CANDIDATES_PER_SOURCE),
+    client
+      .from("user_food_defaults")
+      .select("*")
+      .eq("user_id", userId)
+      .ilike("food_name", pattern)
+      .order("use_count", { ascending: false })
+      .limit(limit),
+    client
+      .from("meal_items")
+      .select(
+        "name, quantity, unit, grams_estimated, calories_kcal, protein_g, carbs_g, fat_g, source_type, source_id, created_at",
+      )
+      .eq("user_id", userId)
+      .ilike("name", pattern)
+      .order("created_at", { ascending: false })
+      .limit(limit),
+  ]);
+  for (const result of [catalog, branded, custom, defaults, recent]) {
     if (result.error) throw result.error;
+  }
+
+  // The RPC returns ids and scores; a food found through an alias may not
+  // contain the query in its own name, so its database score is kept.
+  const catalogScores = new Map<string, number>(
+    ((catalog.data ?? []) as Row[]).map((row) => [
+      String(row.canonical_food_id),
+      Number(row.score) || 1,
+    ]),
+  );
+  let canonical: Row[] = [];
+  if (catalogScores.size > 0) {
+    const foods = await client
+      .from("canonical_foods")
+      .select("*, food_nutrients(*), food_portions(*)")
+      .in("id", [...catalogScores.keys()]);
+    if (foods.error) throw foods.error;
+    canonical = (foods.data ?? []) as Row[];
   }
 
   const results = dedupe([
     ...((custom.data ?? []) as Row[]).map(customToResult),
     ...((defaults.data ?? []) as Row[]).map(defaultToResult),
-    ...((canonical.data ?? []) as Row[]).map((row) =>
-      canonicalFoodToResult(row)
-    ),
-    ...((aliases.data ?? []) as Row[])
-      .filter((row) => row.canonical_foods != null)
-      .map((row) => canonicalFoodToResult(row.canonical_foods as Row, 0.78)),
+    ...canonical.map((row) => canonicalFoodToResult(row)),
     ...((branded.data ?? []) as Row[]).map(brandedToResult),
     ...((recent.data ?? []) as Row[]).map(recentToResult),
   ]);
-  return rankFoodResults(normalized, results).slice(0, limit);
+  return rankFoodResults(normalized, results, catalogScores).slice(0, limit);
 }
 
 /// Orders results by how closely the name matches the query: exact, then
 /// prefix, then whole-word, then substring. Ties keep source order, which
-/// puts the user's own foods ahead of the shared catalog.
-export function rankFoodResults(query: string, results: FoodResult[]) {
+/// puts the user's own foods ahead of the shared catalog. [catalogScores]
+/// carries the database's score for catalog foods, by id.
+export function rankFoodResults(
+  query: string,
+  results: FoodResult[],
+  catalogScores: Map<string, number> = new Map(),
+) {
   const normalized = normalizeFoodName(query);
   return results
     .map((result, index) => ({
       result,
       index,
-      score: matchScore(normalized, result),
+      score: result.result_type === "canonical" &&
+          catalogScores.has(result.id)
+        ? catalogScores.get(result.id)!
+        : matchScore(normalized, result),
     }))
     .sort((a, b) =>
+      tier(b.score) - tier(a.score) ||
+      Number(isOwn(b.result)) - Number(isOwn(a.result)) ||
       b.score - a.score ||
       a.result.name.length - b.result.name.length ||
       a.index - b.index
@@ -102,17 +115,24 @@ export function rankFoodResults(query: string, results: FoodResult[]) {
     .map((entry) => entry.result);
 }
 
+/// The match class of a score: 4 exact, 3 prefix, 2 whole word, 1 the rest.
+/// Database scores add a similarity fraction on top of the class.
+function tier(score: number) {
+  return score >= 4 ? 4 : score >= 3 ? 3 : score >= 2 ? 2 : 1;
+}
+
+function isOwn(result: FoodResult) {
+  return result.result_type === "custom" ||
+    result.provenance.source_type === "user_food_default";
+}
+
 function matchScore(query: string, result: FoodResult) {
   const name = normalizeFoodName(result.name);
-  const own = result.result_type === "custom" ||
-      result.provenance.source_type === "user_food_default"
-    ? 0.5
-    : 0;
-  if (name === query) return 4 + own;
-  if (name.startsWith(`${query} `)) return 3 + own;
-  if (name.split(" ").includes(query)) return 2 + own;
-  if (name.startsWith(query)) return 1.5 + own;
-  return 1 + own;
+  if (name === query) return 4;
+  if (name.startsWith(`${query} `)) return 3;
+  if (name.split(" ").includes(query)) return 2;
+  if (name.startsWith(query)) return 1.5;
+  return 1;
 }
 
 /// Lower-case, punctuation-free, single-spaced food name.

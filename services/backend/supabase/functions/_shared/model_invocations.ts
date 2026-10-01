@@ -17,6 +17,25 @@ export async function consumeDailyAiBudget(client: Client, userId: string) {
   );
 }
 
+/// Per-user ceiling on generated images per UTC day. Kept apart from the
+/// logging budget so artwork can never use up a user's meal logging.
+export async function consumeDailyImageBudget(client: Client, userId: string) {
+  const limit = Number(Deno.env.get("AI_DAILY_IMAGE_LIMIT") ?? "20");
+  await consumeRateLimit(
+    client,
+    userId,
+    "ai:image:daily",
+    24 * 60 * 60,
+    Number.isFinite(limit) && limit > 0 ? limit : 20,
+  );
+}
+
+/// Configured price of one generated image, or null when it is not set.
+export function imagePriceUsd() {
+  const price = Number(Deno.env.get("AI_IMAGE_PRICE_USD"));
+  return Number.isFinite(price) && price > 0 ? price : null;
+}
+
 export async function insertInvocation(
   client: Client,
   invocation: {
