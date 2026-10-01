@@ -220,7 +220,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Set a new password'), findsOneWidget);
-    final signInInstead = find.widgetWithText(OutlinedButton, 'Sign in instead');
+    final signInInstead =
+        find.widgetWithText(OutlinedButton, 'Sign in instead');
     await tester.ensureVisible(signInInstead);
     await tester.tap(signInInstead);
     await tester.pumpAndSettle();
@@ -279,8 +280,7 @@ void main() {
 
     expect(find.text('Email me a code'), findsOneWidget);
     expect(find.text('Forgot password?'), findsOneWidget);
-    expect(
-        find.byKey(const ValueKey('auth.signin_send_code')), findsOneWidget);
+    expect(find.byKey(const ValueKey('auth.signin_send_code')), findsOneWidget);
     expect(find.byKey(const ValueKey('auth.forgot_password')), findsOneWidget);
   });
 
@@ -298,8 +298,7 @@ void main() {
     await tester.enterText(_otpField, '111111');
     await tester.pumpAndSettle();
 
-    expect(find.text('Code expired. Get a new one.'),
-        findsOneWidget);
+    expect(find.text('Code expired. Get a new one.'), findsOneWidget);
     expect(find.byKey(const ValueKey('auth.error')), findsOneWidget);
     expect(tester.widget<TextField>(_otpField).controller!.text, isEmpty);
 
@@ -313,8 +312,7 @@ void main() {
     );
   });
 
-  testWidgets('pasting a formatted code keeps only six digits',
-      (tester) async {
+  testWidgets('pasting a formatted code keeps only six digits', (tester) async {
     await _pumpAuthScreen(tester);
     await tester.enterText(
         find.widgetWithText(TextField, 'Email'), 'user@example.com');

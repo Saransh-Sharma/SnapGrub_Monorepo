@@ -80,8 +80,7 @@ class PhotoAnalysisRepository {
       ),
     );
     if (response.status != 'completed' || response.result == null) {
-      throw StateError(
-          response.errorCode ?? 'Photo analysis didn’t finish.');
+      throw StateError(response.errorCode ?? 'Photo analysis didn’t finish.');
     }
     if (response.assetId == null) {
       throw StateError('Photo analysis didn’t return a result.');

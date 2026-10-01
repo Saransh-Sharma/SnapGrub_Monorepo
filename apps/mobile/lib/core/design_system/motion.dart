@@ -5,12 +5,9 @@ import 'package:snapgrub/app/theme/premium_motion.dart';
 class SgSprings {
   const SgSprings._();
 
-  static const snappy =
-      SpringDescription(mass: 1, stiffness: 500, damping: 30);
-  static const bouncy =
-      SpringDescription(mass: 1, stiffness: 300, damping: 15);
-  static const gentle =
-      SpringDescription(mass: 1, stiffness: 180, damping: 24);
+  static const snappy = SpringDescription(mass: 1, stiffness: 500, damping: 30);
+  static const bouncy = SpringDescription(mass: 1, stiffness: 300, damping: 15);
+  static const gentle = SpringDescription(mass: 1, stiffness: 180, damping: 24);
 }
 
 /// Reduce-motion aware access to the motion tokens.
@@ -38,13 +35,13 @@ class SgMotion {
   Duration of(Duration duration) => _d(duration);
 
   Curve get standard => PremiumMotion.standard;
-  Curve get emphasized => reduced ? PremiumMotion.standard : PremiumMotion.emphasized;
+  Curve get emphasized =>
+      reduced ? PremiumMotion.standard : PremiumMotion.emphasized;
   Curve get gentle => PremiumMotion.gentle;
 
   /// Stagger delay for list entrance (max 8 staggered items).
-  Duration stagger(int index) => reduced
-      ? Duration.zero
-      : Duration(milliseconds: 40 * index.clamp(0, 8));
+  Duration stagger(int index) =>
+      reduced ? Duration.zero : Duration(milliseconds: 40 * index.clamp(0, 8));
 
   Duration _d(Duration value) => reduced ? Duration.zero : value;
 }

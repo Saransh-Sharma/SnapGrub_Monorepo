@@ -7,8 +7,10 @@ import 'package:snapgrub/features/progress/domain/weight_trend.dart';
 MilestoneStatus byId(List<MilestoneStatus> all, String id) =>
     all.firstWhere((s) => s.id == id);
 
-Set<DateTime> run(DateTime start, int days) =>
-    {for (var i = 0; i < days; i++) DateTime(start.year, start.month, start.day + i)};
+Set<DateTime> run(DateTime start, int days) => {
+      for (var i = 0; i < days; i++)
+        DateTime(start.year, start.month, start.day + i)
+    };
 
 void main() {
   test('every definition has a unique id and is evaluated', () {
@@ -31,7 +33,8 @@ void main() {
 
   test('meal count milestones use the Nth meal as the earned date', () {
     final times = [
-      for (var i = 0; i < 60; i++) DateTime(2026, 6, 1).add(Duration(hours: i * 8)),
+      for (var i = 0; i < 60; i++)
+        DateTime(2026, 6, 1).add(Duration(hours: i * 8)),
     ];
     final all = evaluateMilestones(MilestoneFacts(mealTimes: times));
     final fifty = byId(all, 'meals_50');
@@ -66,7 +69,10 @@ void main() {
     });
 
     test('two missed days break the run', () {
-      final days = {...run(DateTime(2026, 9, 1), 2), ...run(DateTime(2026, 9, 5), 1)};
+      final days = {
+        ...run(DateTime(2026, 9, 1), 2),
+        ...run(DateTime(2026, 9, 5), 1)
+      };
       expect(bestStreakRun(days), 2);
     });
 
@@ -100,17 +106,23 @@ void main() {
     test('earn 25/50% on the smoothed trend, not a single light day', () {
       final weights = [
         for (var i = 0; i < 60; i++)
-          WeightSample(at: DateTime(2026, 6, 1).add(Duration(days: i)), kg: 90 - i * .1),
+          WeightSample(
+              at: DateTime(2026, 6, 1).add(Duration(days: i)), kg: 90 - i * .1),
       ];
-      final all = evaluateMilestones(MilestoneFacts(weights: weights, goalWeightKg: 80));
+      final all = evaluateMilestones(
+          MilestoneFacts(weights: weights, goalWeightKg: 80));
       // Raw reaches 84.1 (59%) but the lagging trend sits a little higher.
       expect(byId(all, 'goal_25').earned, isTrue);
       expect(byId(all, 'goal_50').earned, isTrue);
       expect(byId(all, 'goal_75').earned, isFalse);
       expect(byId(all, 'goal_100').earned, isFalse);
-      expect(byId(all, 'goal_25').earnedAt!.isBefore(byId(all, 'goal_50').earnedAt!),
+      expect(
+          byId(all, 'goal_25')
+              .earnedAt!
+              .isBefore(byId(all, 'goal_50').earnedAt!),
           isTrue);
-      expect(byId(all, 'goal_75').progressLabel, matches(RegExp(r'^\d+% there$')));
+      expect(
+          byId(all, 'goal_75').progressLabel, matches(RegExp(r'^\d+% there$')));
     });
 
     test('one outlier weigh-in does not award a milestone', () {
@@ -125,9 +137,11 @@ void main() {
     test('works for gain goals too', () {
       final weights = [
         for (var i = 0; i < 90; i++)
-          WeightSample(at: DateTime(2026, 6, 1).add(Duration(days: i)), kg: 60 + i * .1),
+          WeightSample(
+              at: DateTime(2026, 6, 1).add(Duration(days: i)), kg: 60 + i * .1),
       ];
-      final all = evaluateMilestones(MilestoneFacts(weights: weights, goalWeightKg: 66));
+      final all = evaluateMilestones(
+          MilestoneFacts(weights: weights, goalWeightKg: 66));
       expect(byId(all, 'goal_100').earned, isTrue);
     });
   });
@@ -149,7 +163,8 @@ void main() {
 
     test('returns earned milestones not yet celebrated, oldest first', () {
       final fresh = newlyEarned(evaluateMilestones(facts), {});
-      expect(fresh.map((s) => s.id), ['first_weight', 'first_meal', 'streak_3']);
+      expect(
+          fresh.map((s) => s.id), ['first_weight', 'first_meal', 'streak_3']);
     });
 
     test('excludes celebrated ones', () {

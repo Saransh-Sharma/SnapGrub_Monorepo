@@ -66,7 +66,9 @@ StreakSummary computeStreak(Set<DateTime> loggedDays, DateTime today) {
         final week = _isoWeekKey(cursor);
         final previous = cursor.subtract(const Duration(days: 1));
         // A freeze only bridges a single gap between logged days.
-        if (!freezesByWeek.contains(week) && days.contains(previous) && count > 0) {
+        if (!freezesByWeek.contains(week) &&
+            days.contains(previous) &&
+            count > 0) {
           freezesByWeek.add(week);
           frozen.add(cursor);
         } else {

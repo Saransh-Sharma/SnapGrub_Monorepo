@@ -34,7 +34,8 @@ import 'package:snapgrub/features/milestones/presentation/milestone_medal.dart';
 ///   only the most recent is celebrated; the rest are marked and appear in
 ///   the gallery.
 class MilestoneCelebrator extends ConsumerStatefulWidget {
-  const MilestoneCelebrator({required this.child, this.enabled = true, super.key});
+  const MilestoneCelebrator(
+      {required this.child, this.enabled = true, super.key});
 
   final Widget child;
 
@@ -56,7 +57,8 @@ class _MilestoneCelebratorState extends ConsumerState<MilestoneCelebrator> {
     super.initState();
     _subs
       ..add(ref.listenManual(milestonesProvider, (_, __) => _check()))
-      ..add(ref.listenManual(celebratedMilestonesProvider, (_, __) => _check()));
+      ..add(
+          ref.listenManual(celebratedMilestonesProvider, (_, __) => _check()));
     WidgetsBinding.instance.addPostFrameCallback((_) => _check());
   }
 
@@ -85,7 +87,10 @@ class _MilestoneCelebratorState extends ConsumerState<MilestoneCelebrator> {
     final set = celebrated.requireValue;
     if (set == null) {
       _busy = true;
-      await notifier.mark([for (final s in statuses) if (s.earned) s.id]);
+      await notifier.mark([
+        for (final s in statuses)
+          if (s.earned) s.id
+      ]);
       _busy = false;
       return;
     }
@@ -220,8 +225,8 @@ class _MilestoneToastState extends State<MilestoneToast>
                   padding: const EdgeInsets.fromLTRB(10, 10, 18, 10),
                   decoration: BoxDecoration(
                     color: tokens.hero,
-                    borderRadius: BorderRadius.circular(
-                        SnapGrubDesignTokens.radiusPill),
+                    borderRadius:
+                        BorderRadius.circular(SnapGrubDesignTokens.radiusPill),
                     boxShadow: tokens.elevation3,
                   ),
                   child: Row(

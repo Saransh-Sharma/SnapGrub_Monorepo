@@ -420,7 +420,8 @@ class _BarcodeScreenState extends ConsumerState<BarcodeScreen> {
       setState(() {
         _notFound = true;
         _notFoundReason = null;
-        _error = 'Couldn’t look up this barcode. ${friendlyError(error).message}';
+        _error =
+            'Couldn’t look up this barcode. ${friendlyError(error).message}';
       });
     } finally {
       if (mounted) setState(() => _handling = false);

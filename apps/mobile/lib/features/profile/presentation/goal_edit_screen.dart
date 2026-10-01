@@ -81,7 +81,8 @@ class _GoalEditScreenState extends ConsumerState<GoalEditScreen> {
     _profile = state.profile;
     final goal = state.activeGoal;
     if (goal != null) {
-      _goalType = _goalLabels.containsKey(goal.goalType) ? goal.goalType : 'custom';
+      _goalType =
+          _goalLabels.containsKey(goal.goalType) ? goal.goalType : 'custom';
       _calories = goal.caloriesKcal.roundToDouble();
       _protein = goal.proteinG.roundToDouble();
       _carbs = goal.carbsG.roundToDouble();
@@ -426,9 +427,8 @@ class _PreviewCard extends StatelessWidget {
     final tokens = context.sg;
     final kcal = calories ?? 0;
     final energy = protein * 4 + carbs * 4 + fat * 9;
-    String pct(double grams, double factor) => energy <= 0
-        ? '–'
-        : '${(grams * factor / energy * 100).round()}%';
+    String pct(double grams, double factor) =>
+        energy <= 0 ? '–' : '${(grams * factor / energy * 100).round()}%';
     return SgCard(
       variant: SgCardVariant.hero,
       padding: const EdgeInsets.all(20),
@@ -522,9 +522,9 @@ class _HeroLegend extends StatelessWidget {
             child: Text(
               text,
               style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: context.sg.onHero,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  ),
+                color: context.sg.onHero,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
             ),
           ),
         ],
@@ -706,8 +706,7 @@ class _RecalculateCardState extends State<_RecalculateCard> {
                           children: [
                             Text('Suggested',
                                 style: theme.textTheme.labelMedium?.copyWith(
-                                    color:
-                                        theme.colorScheme.onSurfaceVariant)),
+                                    color: theme.colorScheme.onSurfaceVariant)),
                             const SizedBox(height: 2),
                             Text(
                               '${NumberFormat.decimalPattern().format(plan.caloriesKcal.round())} kcal',

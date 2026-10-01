@@ -79,15 +79,15 @@ class _CalorieCardState extends State<CalorieCard>
     final days = s.days;
     final avg = s.avgKcal.round();
     final today = days.isEmpty ? null : days.last;
-    final focus = _touched == null || _touched! >= days.length
-        ? today
-        : days[_touched!];
+    final focus =
+        _touched == null || _touched! >= days.length ? today : days[_touched!];
 
-    final semantics = StringBuffer('Calories chart for the last ${widget.range.label}. ')
-      ..write(s.daysLogged == 0
-          ? 'No days logged yet.'
-          : 'Average ${_kcal.format(avg)} kilocalories per logged day, '
-              '${s.daysLogged} of ${days.length} days logged.');
+    final semantics =
+        StringBuffer('Calories chart for the last ${widget.range.label}. ')
+          ..write(s.daysLogged == 0
+              ? 'No days logged yet.'
+              : 'Average ${_kcal.format(avg)} kilocalories per logged day, '
+                  '${s.daysLogged} of ${days.length} days logged.');
     if (target != null) {
       semantics.write(' Target ${_kcal.format(target.round())} per day.');
     }
@@ -168,7 +168,11 @@ class _CalorieCardState extends State<CalorieCard>
     final peak = days.fold<double>(0, (m, d) => math.max(m, d.kcal));
     final maxY = math.max(peak, target ?? 0) * 1.15;
     final safeMax = maxY <= 0 ? 2000.0 : maxY;
-    final barWidth = n <= 7 ? 22.0 : n <= 30 ? 7.0 : 2.6;
+    final barWidth = n <= 7
+        ? 22.0
+        : n <= 30
+            ? 7.0
+            : 2.6;
     // Stagger: each bar starts a little after the previous one.
     final step = math.min(.045, .5 / math.max(1, n));
     final t = _grow.value;
@@ -270,8 +274,8 @@ class _CalorieCardState extends State<CalorieCard>
       barGroups: [
         for (var i = 0; i < n; i++)
           () {
-            final local =
-                ((t - i * step) / math.max(.001, 1 - (n - 1) * step)).clamp(0.0, 1.0);
+            final local = ((t - i * step) / math.max(.001, 1 - (n - 1) * step))
+                .clamp(0.0, 1.0);
             final grow = Curves.easeOutCubic.transform(local);
             final kcal = days[i].kcal * grow;
             final over = target != null && kcal > target;
@@ -289,8 +293,12 @@ class _CalorieCardState extends State<CalorieCard>
                       alpha: _touched == null || selected ? 1 : .45),
                   rodStackItems: over
                       ? [
-                          BarChartRodStackItem(0, target, energy.withValues(
-                              alpha: _touched == null || selected ? 1 : .45)),
+                          BarChartRodStackItem(
+                              0,
+                              target,
+                              energy.withValues(
+                                  alpha:
+                                      _touched == null || selected ? 1 : .45)),
                           BarChartRodStackItem(target, kcal,
                               tokens.overTarget.withValues(alpha: .55)),
                         ]

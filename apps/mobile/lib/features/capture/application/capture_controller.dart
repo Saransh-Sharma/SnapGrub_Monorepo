@@ -61,8 +61,8 @@ class CaptureController extends Notifier<CaptureState> {
     try {
       granted = await _camera.requestPermission();
     } catch (error) {
-      state =
-          CaptureState(status: CaptureStatus.error, message: captureErrorMessage(error));
+      state = CaptureState(
+          status: CaptureStatus.error, message: captureErrorMessage(error));
       return;
     }
     if (!granted) {
@@ -100,8 +100,8 @@ class CaptureController extends Notifier<CaptureState> {
       await _analytics.track('snapstrip_preview_started');
       state = const CaptureState(status: CaptureStatus.cameraReady);
     } catch (error) {
-      state =
-          CaptureState(status: CaptureStatus.error, message: captureErrorMessage(error));
+      state = CaptureState(
+          status: CaptureStatus.error, message: captureErrorMessage(error));
     }
   }
 
@@ -132,8 +132,8 @@ class CaptureController extends Notifier<CaptureState> {
       state = const CaptureState(status: CaptureStatus.cameraReady);
       return asset;
     } catch (error) {
-      state =
-          CaptureState(status: CaptureStatus.error, message: captureErrorMessage(error));
+      state = CaptureState(
+          status: CaptureStatus.error, message: captureErrorMessage(error));
       return null;
     }
   }

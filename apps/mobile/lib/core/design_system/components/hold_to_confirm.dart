@@ -100,11 +100,12 @@ class _HoldToConfirmButtonState extends State<HoldToConfirmButton>
                         const SizedBox(width: 8),
                         Text(
                           _hold.value > 0 ? 'Keep holding…' : widget.label,
-                          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                                color: _hold.value > .5
-                                    ? scheme.onError
-                                    : scheme.error,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.labelLarge?.copyWith(
+                                    color: _hold.value > .5
+                                        ? scheme.onError
+                                        : scheme.error,
+                                  ),
                         ),
                       ],
                     ),

@@ -59,9 +59,9 @@ class UiPreferencesController extends Notifier<UiPreferences> {
       state = UiPreferences(
         themeMode: _byName(ThemeMode.values, prefs.getString(_themeKey)) ??
             ThemeMode.system,
-        effects: _byName(
-                VisualEffectsLevel.values, prefs.getString(_effectsKey)) ??
-            VisualEffectsLevel.full,
+        effects:
+            _byName(VisualEffectsLevel.values, prefs.getString(_effectsKey)) ??
+                VisualEffectsLevel.full,
         haptics: prefs.getBool(_hapticsKey) ?? true,
         calorieFraming:
             _byName(CalorieFraming.values, prefs.getString(_framingKey)) ??
@@ -86,9 +86,8 @@ class UiPreferencesController extends Notifier<UiPreferences> {
     } catch (_) {}
   }
 
-  Future<void> setCalorieFraming(CalorieFraming framing) =>
-      _persist(state.copyWith(calorieFraming: framing), _framingKey,
-          framing.name);
+  Future<void> setCalorieFraming(CalorieFraming framing) => _persist(
+      state.copyWith(calorieFraming: framing), _framingKey, framing.name);
 
   Future<void> _persist(UiPreferences next, String key, String value) async {
     state = next;

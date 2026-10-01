@@ -51,7 +51,8 @@ Future<GoRouter> _pumpRouter(
         path: '/meal-editor',
         builder: (context, state) => MealEditorScreen(
           mealId: state.uri.queryParameters['id'],
-          initialDraft: state.extra is MealDraft ? state.extra! as MealDraft : null,
+          initialDraft:
+              state.extra is MealDraft ? state.extra! as MealDraft : null,
         ),
       ),
     ],

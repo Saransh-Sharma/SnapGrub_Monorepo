@@ -104,9 +104,7 @@ String? validateOnboardingStep(
           ? null
           : 'Choose a goal.';
     case OnboardingStep.sex:
-      return draft.sex == null
-          ? 'Choose one, or “Prefer not to say.”'
-          : null;
+      return draft.sex == null ? 'Choose one, or “Prefer not to say.”' : null;
     case OnboardingStep.birthYear:
       final age = today.year - OnboardingDefaults.birthYearOf(draft, today);
       if (age < OnboardingDefaults.minAge || age > OnboardingDefaults.maxAge) {

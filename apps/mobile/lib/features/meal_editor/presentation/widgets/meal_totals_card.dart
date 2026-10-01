@@ -22,7 +22,8 @@ class MealTotalsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = context.sg;
     final theme = Theme.of(context);
-    final muted = theme.textTheme.labelLarge?.copyWith(color: tokens.onHeroMuted);
+    final muted =
+        theme.textTheme.labelLarge?.copyWith(color: tokens.onHeroMuted);
     return E2eId(
       id: 'meal.totals',
       child: SgCard(
@@ -52,8 +53,8 @@ class MealTotalsCard extends StatelessWidget {
                 ),
                 const SizedBox(width: SnapGrubDesignTokens.space8),
                 Padding(
-                  padding:
-                      const EdgeInsets.only(bottom: SnapGrubDesignTokens.space4),
+                  padding: const EdgeInsets.only(
+                      bottom: SnapGrubDesignTokens.space4),
                   child: ExcludeSemantics(child: Text('kcal', style: muted)),
                 ),
               ],

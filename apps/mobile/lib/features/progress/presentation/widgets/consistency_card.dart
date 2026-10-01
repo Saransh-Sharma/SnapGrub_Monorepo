@@ -29,7 +29,8 @@ class ConsistencyCard extends StatelessWidget {
     final theme = Theme.of(context);
     final t = DateUtils.dateOnly(today);
     final monday = t.subtract(Duration(days: t.weekday - 1));
-    final start = DateTime(monday.year, monday.month, monday.day - 7 * (weeks - 1));
+    final start =
+        DateTime(monday.year, monday.month, monday.day - 7 * (weeks - 1));
     final logged = {for (final d in loggedDays) DateUtils.dateOnly(d)};
     final frozen = {for (final d in streak.frozenDays) DateUtils.dateOnly(d)};
     final inWindow = logged.where((d) => !d.isBefore(start) && !d.isAfter(t));
@@ -44,8 +45,8 @@ class ConsistencyCard extends StatelessWidget {
               Text('Consistency', style: theme.textTheme.titleMedium),
               const Spacer(),
               Text('Last $weeks weeks',
-                  style: theme.textTheme.labelMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant)),
+                  style: theme.textTheme.labelMedium
+                      ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
             ],
           ),
           const SizedBox(height: 14),
@@ -136,7 +137,8 @@ class _Heatmap extends StatelessWidget {
                         padding: const EdgeInsets.only(bottom: _gap),
                         child: _cell(
                           context,
-                          DateTime(start.year, start.month, start.day + w * 7 + r),
+                          DateTime(
+                              start.year, start.month, start.day + w * 7 + r),
                           cell,
                           scheme,
                           tokens,
@@ -164,12 +166,12 @@ class _Heatmap extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: on
-            ? tokens.energy.color
-            : scheme.onSurface.withValues(alpha: .06),
+        color:
+            on ? tokens.energy.color : scheme.onSurface.withValues(alpha: .06),
         borderRadius: radius,
         border: isToday
-            ? Border.all(color: scheme.onSurface.withValues(alpha: .7), width: 1.4)
+            ? Border.all(
+                color: scheme.onSurface.withValues(alpha: .7), width: 1.4)
             : null,
       ),
     );
@@ -263,8 +265,7 @@ class _StreakRow extends StatelessWidget {
     } else if (!streak.loggedToday) {
       note = 'Log today to keep your streak.';
     } else if (streak.frozenDays.isNotEmpty) {
-      final covered =
-          streak.frozenDays.reduce((a, b) => a.isAfter(b) ? a : b);
+      final covered = streak.frozenDays.reduce((a, b) => a.isAfter(b) ? a : b);
       note = 'A streak freeze covered ${DateFormat('EEEE').format(covered)}.';
     } else {
       note = 'Nice work. Keep it going.';
@@ -295,8 +296,7 @@ class _StreakRow extends StatelessWidget {
                     semanticsLabel: 'Current streak',
                   ),
                   const SizedBox(width: 6),
-                  Text('day streak',
-                      style: theme.textTheme.labelLarge),
+                  Text('day streak', style: theme.textTheme.labelLarge),
                   const Spacer(),
                   Text('Best ${streak.best}',
                       style: theme.textTheme.labelMedium?.copyWith(
@@ -307,8 +307,8 @@ class _StreakRow extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(note,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant)),
+                  style: theme.textTheme.bodySmall
+                      ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
             ],
           ),
         ),

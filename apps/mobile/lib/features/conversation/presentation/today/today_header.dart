@@ -39,7 +39,8 @@ class TodayHeader extends ConsumerWidget {
     final dayIdentifier =
         label.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_');
     final streak = ref.watch(streakProvider);
-    final sync = ref.watch(syncControllerProvider).valueOrNull ?? SyncStatus.idle;
+    final sync =
+        ref.watch(syncControllerProvider).valueOrNull ?? SyncStatus.idle;
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 4, 12, 2),
       child: Row(
@@ -66,8 +67,8 @@ class TodayHeader extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(999),
                   onTap: onCalendar,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 6, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [

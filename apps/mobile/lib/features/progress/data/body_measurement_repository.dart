@@ -116,7 +116,6 @@ class BodyMeasurementRepository {
         'source': 'manual',
       },
     );
-    return WeightEntry(
-        id: id, measuredAt: at.toLocal(), weightKg: weightKg);
+    return WeightEntry(id: id, measuredAt: at.toLocal(), weightKg: weightKg);
   }
 }

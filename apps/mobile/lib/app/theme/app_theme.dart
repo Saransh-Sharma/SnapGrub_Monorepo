@@ -37,9 +37,8 @@ ThemeData buildSnapGrubTheme({Brightness brightness = Brightness.light}) {
     outline: tokens.outlineStrong,
     outlineVariant:
         dark ? SnapGrubDesignTokens.nightBorder : SnapGrubDesignTokens.border,
-    onSurface: dark
-        ? SnapGrubDesignTokens.nightOnSurface
-        : SnapGrubDesignTokens.ink,
+    onSurface:
+        dark ? SnapGrubDesignTokens.nightOnSurface : SnapGrubDesignTokens.ink,
     onSurfaceVariant: dark
         ? SnapGrubDesignTokens.nightOnSurfaceMuted
         : SnapGrubDesignTokens.inkMuted,
@@ -135,10 +134,10 @@ ThemeData buildSnapGrubTheme({Brightness brightness = Brightness.light}) {
       surfaceTintColor: Colors.transparent,
       toolbarHeight: 64,
       systemOverlayStyle: dark
-          ? SystemUiOverlayStyle.light.copyWith(
-              statusBarColor: Colors.transparent)
-          : SystemUiOverlayStyle.dark.copyWith(
-              statusBarColor: Colors.transparent),
+          ? SystemUiOverlayStyle.light
+              .copyWith(statusBarColor: Colors.transparent)
+          : SystemUiOverlayStyle.dark
+              .copyWith(statusBarColor: Colors.transparent),
     ),
     cardTheme: CardThemeData(
       elevation: 0,
@@ -257,7 +256,8 @@ ThemeData buildSnapGrubTheme({Brightness brightness = Brightness.light}) {
       backgroundColor: scheme.inverseSurface,
       contentTextStyle:
           textTheme.bodyMedium?.copyWith(color: scheme.onInverseSurface),
-      actionTextColor: dark ? SnapGrubDesignTokens.sage : scheme.primaryContainer,
+      actionTextColor:
+          dark ? SnapGrubDesignTokens.sage : scheme.primaryContainer,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       insetPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
     ),

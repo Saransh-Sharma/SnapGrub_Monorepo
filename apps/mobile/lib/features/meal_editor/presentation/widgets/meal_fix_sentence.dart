@@ -59,8 +59,8 @@ class MealFixSentenceState extends State<MealFixSentence> {
                   size: SnapGrubDesignTokens.iconMd, color: scheme.primary),
               const SizedBox(width: SnapGrubDesignTokens.space8),
               Expanded(
-                child: Text('Describe a fix',
-                    style: theme.textTheme.titleSmall),
+                child:
+                    Text('Describe a fix', style: theme.textTheme.titleSmall),
               ),
             ],
           ),

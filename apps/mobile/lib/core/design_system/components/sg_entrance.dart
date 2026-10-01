@@ -23,8 +23,8 @@ class SgEntrance extends StatefulWidget {
 
 class _SgEntranceState extends State<SgEntrance>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _controller =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 520));
+  late final AnimationController _controller = AnimationController(
+      vsync: this, duration: const Duration(milliseconds: 520));
   bool _started = false;
 
   @override

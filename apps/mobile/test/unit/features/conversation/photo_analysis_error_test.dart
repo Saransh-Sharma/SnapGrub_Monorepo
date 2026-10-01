@@ -17,7 +17,8 @@ void main() {
   });
 
   test('offline errors keep the shared offline copy', () {
-    final error = photoAnalysisError(const SocketException('Failed host lookup'));
+    final error =
+        photoAnalysisError(const SocketException('Failed host lookup'));
     expect(error.offline, isTrue);
     expect(error.title, 'You’re offline');
   });

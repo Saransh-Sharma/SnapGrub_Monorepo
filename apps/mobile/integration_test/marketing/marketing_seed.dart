@@ -44,33 +44,47 @@ class Dish {
 }
 
 const _breakfasts = [
-  Dish('Overnight oats & berries', 'overnight-oats', MealType.breakfast, 380, 16, 58, 10),
-  Dish('Avocado toast & egg', 'avocado-toast', MealType.breakfast, 420, 18, 34, 24),
-  Dish('Greek yogurt bowl', 'greek-yogurt-bowl', MealType.breakfast, 330, 24, 40, 8),
-  Dish('Berry protein smoothie', 'berry-smoothie', MealType.breakfast, 290, 25, 38, 5),
+  Dish('Overnight oats & berries', 'overnight-oats', MealType.breakfast, 380,
+      16, 58, 10),
+  Dish('Avocado toast & egg', 'avocado-toast', MealType.breakfast, 420, 18, 34,
+      24),
+  Dish('Greek yogurt bowl', 'greek-yogurt-bowl', MealType.breakfast, 330, 24,
+      40, 8),
+  Dish('Berry protein smoothie', 'berry-smoothie', MealType.breakfast, 290, 25,
+      38, 5),
 ];
 const _coffee = Dish('Flat white', 'flat-white', MealType.snack, 120, 7, 10, 6);
 const _lunches = [
   Dish('Salmon poke bowl', 'poke-bowl', MealType.lunch, 610, 34, 68, 20),
-  Dish('Chicken shawarma wrap', 'chicken-shawarma-wrap', MealType.lunch, 560, 38, 52, 20),
+  Dish('Chicken shawarma wrap', 'chicken-shawarma-wrap', MealType.lunch, 560,
+      38, 52, 20),
   Dish('Chicken Caesar salad', 'caesar-salad', MealType.lunch, 480, 36, 22, 28),
   Dish('Sushi set', 'sushi-set', MealType.lunch, 520, 28, 74, 10),
   Dish('Rainbow grain bowl', 'hero-plate', MealType.lunch, 540, 24, 66, 18),
 ];
 const _dinners = [
-  Dish('Salmon, rice & greens', 'salmon-greens', MealType.dinner, 590, 40, 52, 22),
+  Dish('Salmon, rice & greens', 'salmon-greens', MealType.dinner, 590, 40, 52,
+      22),
   Dish('Dal, rice & roti', 'dal-rice', MealType.dinner, 540, 20, 88, 12),
-  Dish('Margherita pizza', 'margherita-pizza', MealType.dinner, 520, 22, 62, 18),
+  Dish(
+      'Margherita pizza', 'margherita-pizza', MealType.dinner, 520, 22, 62, 18),
   Dish('Tonkotsu ramen', 'ramen', MealType.dinner, 680, 32, 78, 24),
 ];
 const _snacks = [
-  Dish('Apple & peanut butter', 'apple-peanut-butter', MealType.snack, 250, 7, 28, 14),
+  Dish('Apple & peanut butter', 'apple-peanut-butter', MealType.snack, 250, 7,
+      28, 14),
   Dish('Dark chocolate', 'dark-chocolate', MealType.snack, 120, 2, 9, 9),
 ];
 
 /// Title → illustration id, used to override meal visuals.
 final Map<String, String> dishArt = {
-  for (final d in [..._breakfasts, _coffee, ..._lunches, ..._dinners, ..._snacks])
+  for (final d in [
+    ..._breakfasts,
+    _coffee,
+    ..._lunches,
+    ..._dinners,
+    ..._snacks
+  ])
     d.title: d.art,
 };
 
@@ -94,8 +108,8 @@ const heroDish = Dish(
 
 MealDraft draftFor(Dish d, DateTime at, String userId, String timezone,
     {String? photoAssetId, MealSource source = MealSource.manual}) {
-  final items = d.items ??
-      [(d.title, d.kcal, d.p, d.c, d.f, 1.0, 'serving', 0.0)];
+  final items =
+      d.items ?? [(d.title, d.kcal, d.p, d.c, d.f, 1.0, 'serving', 0.0)];
   return MealDraft(
     userId: userId,
     timezone: timezone,
@@ -117,7 +131,9 @@ MealDraft draftFor(Dish d, DateTime at, String userId, String timezone,
           proteinG: p,
           carbsG: math.max(0, c),
           fatG: f,
-          confidence: source == MealSource.photo ? (name == 'Chickpeas & kale' ? .62 : .9) : null,
+          confidence: source == MealSource.photo
+              ? (name == 'Chickpeas & kale' ? .62 : .9)
+              : null,
         ),
     ],
   );
@@ -168,7 +184,8 @@ Future<void> seedMarketingData({
     final d = _dinners[rnd.nextInt(_dinners.length)];
     await meals.saveDraft(draftFor(b, at(day, 7, 50), userId, timezone));
     if (rnd.nextDouble() < .6) {
-      await meals.saveDraft(draftFor(_coffee, at(day, 8, 20), userId, timezone));
+      await meals
+          .saveDraft(draftFor(_coffee, at(day, 8, 20), userId, timezone));
     }
     await meals.saveDraft(draftFor(l, at(day, 13, 5), userId, timezone));
     if (rnd.nextDouble() < .5) {
@@ -179,9 +196,12 @@ Future<void> seedMarketingData({
   }
 
   // Today (12:41): breakfast, coffee and a snack logged.
-  await meals.saveDraft(draftFor(_breakfasts[0], DateTime(2026, 5, 30, 8, 5), userId, timezone));
-  await meals.saveDraft(draftFor(_coffee, DateTime(2026, 5, 30, 8, 12), userId, timezone));
-  await meals.saveDraft(draftFor(_snacks[0], DateTime(2026, 5, 30, 11, 2), userId, timezone));
+  await meals.saveDraft(
+      draftFor(_breakfasts[0], DateTime(2026, 5, 30, 8, 5), userId, timezone));
+  await meals.saveDraft(
+      draftFor(_coffee, DateTime(2026, 5, 30, 8, 12), userId, timezone));
+  await meals.saveDraft(
+      draftFor(_snacks[0], DateTime(2026, 5, 30, 11, 2), userId, timezone));
 
   // Weigh-ins: 69.4 → 66.1 kg over six weeks, with realistic noise.
   final weights = container.read(bodyMeasurementRepositoryProvider);
@@ -191,8 +211,8 @@ Future<void> seedMarketingData({
     await weights.addWeight(
       userId: userId,
       weightKg: double.parse(kg.toStringAsFixed(1)),
-      measuredAt: DateTime(
-          marketingToday.year, marketingToday.month, marketingToday.day - back, 7, 10),
+      measuredAt: DateTime(marketingToday.year, marketingToday.month,
+          marketingToday.day - back, 7, 10),
     );
   }
 
@@ -210,12 +230,14 @@ Future<void> seedMarketingData({
     thread: thread,
     role: ThreadMessageRole.assistant,
     kind: ThreadMessageKind.text,
-    text: 'Nice choice — about 590 kcal with 40 g protein. Add it now or tweak the portions first.',
+    text:
+        'Nice choice — about 590 kcal with 40 g protein. Add it now or tweak the portions first.',
   );
   final proposal = await conversation.stageProposal(
     thread: thread,
     messageId: reply.id,
-    draft: draftFor(_dinners[0], DateTime(2026, 5, 30, 19, 30), userId, timezone,
+    draft: draftFor(
+        _dinners[0], DateTime(2026, 5, 30, 19, 30), userId, timezone,
         source: MealSource.text),
   );
   // Pin the chat to lunchtime so it sits in the right part of the day.
@@ -268,7 +290,8 @@ AnalysisJob heroJob(String userId, String artDir, AnalysisJobStatus status) {
     status: status,
     startedAt: DateTime(2026, 5, 30, 12, 20),
     draft: status == AnalysisJobStatus.ready
-        ? draftFor(heroDish, DateTime(2026, 5, 30, 12, 20), userId, 'Asia/Kolkata',
+        ? draftFor(
+            heroDish, DateTime(2026, 5, 30, 12, 20), userId, 'Asia/Kolkata',
             photoAssetId: marketingHeroAssetId, source: MealSource.photo)
         : null,
   );

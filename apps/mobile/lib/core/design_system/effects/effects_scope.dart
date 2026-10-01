@@ -1,4 +1,3 @@
-
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:snapgrub/core/design_system/effects/device_capabilities.dart';

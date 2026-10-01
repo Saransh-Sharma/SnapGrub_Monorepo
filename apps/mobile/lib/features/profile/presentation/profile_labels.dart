@@ -65,8 +65,8 @@ class ProfileLabels {
   static String locale(String raw) {
     final parts = raw.replaceAll('_', '-').split('-');
     if (parts.isEmpty || parts.first.isEmpty) return raw;
-    final lang = _languages[parts.first.toLowerCase()] ??
-        parts.first.toUpperCase();
+    final lang =
+        _languages[parts.first.toLowerCase()] ?? parts.first.toUpperCase();
     if (parts.length < 2) return lang;
     final code = parts[1].toUpperCase();
     final region = _regions[code] ?? code;

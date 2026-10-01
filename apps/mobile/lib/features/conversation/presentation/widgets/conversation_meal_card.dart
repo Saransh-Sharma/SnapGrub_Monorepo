@@ -76,7 +76,8 @@ class _ConfirmedMealCardState extends ConsumerState<ConfirmedMealCard>
       await _deleteWithDissolve();
     } else {
       await _drag.animateTo(0,
-          duration: const Duration(milliseconds: 260), curve: Curves.easeOutBack);
+          duration: const Duration(milliseconds: 260),
+          curve: Curves.easeOutBack);
     }
     _pastThreshold = false;
   }
@@ -179,7 +180,9 @@ class _ConfirmedMealCardState extends ConsumerState<ConfirmedMealCard>
                       ),
                       if (sync != null) ...[
                         const SizedBox(width: 6),
-                        Icon(sync.icon, size: 13, color: theme.colorScheme.onSurfaceVariant),
+                        Icon(sync.icon,
+                            size: 13,
+                            color: theme.colorScheme.onSurfaceVariant),
                       ],
                     ],
                   ),
@@ -216,7 +219,8 @@ class _ConfirmedMealCardState extends ConsumerState<ConfirmedMealCard>
                   child: AnimatedBuilder(
                     animation: _drag,
                     builder: (context, _) {
-                      final t = (_drag.value.abs() / _threshold).clamp(0.0, 1.0);
+                      final t =
+                          (_drag.value.abs() / _threshold).clamp(0.0, 1.0);
                       return Opacity(
                         opacity: t,
                         child: Container(
@@ -400,14 +404,18 @@ class _ProposalMealCardState extends ConsumerState<ProposalMealCard> {
                           : Icons.auto_awesome_rounded,
                       key: ValueKey(_committed),
                       size: 18,
-                      color: _committed ? tokens.success : theme.colorScheme.primary,
+                      color: _committed
+                          ? tokens.success
+                          : theme.colorScheme.primary,
                     ),
                   ),
                   const SizedBox(width: 8),
                   Text(
                     headline,
                     style: theme.textTheme.labelLarge?.copyWith(
-                      color: _committed ? tokens.success : theme.colorScheme.primary,
+                      color: _committed
+                          ? tokens.success
+                          : theme.colorScheme.primary,
                     ),
                   ),
                 ],
@@ -465,7 +473,8 @@ class _ProposalMealCardState extends ConsumerState<ProposalMealCard> {
                                 if (operation != ProposalOperation.delete) ...[
                                   Expanded(
                                     child: OutlinedButton(
-                                      onPressed: _working ? null : _editProposal,
+                                      onPressed:
+                                          _working ? null : _editProposal,
                                       child: const Text('Edit'),
                                     ),
                                   ),
@@ -488,7 +497,8 @@ class _ProposalMealCardState extends ConsumerState<ProposalMealCard> {
                                         ProposalOperation.create => 'Log meal',
                                         ProposalOperation.update =>
                                           'Save change',
-                                        ProposalOperation.delete => 'Delete meal',
+                                        ProposalOperation.delete =>
+                                          'Delete meal',
                                       }),
                                     ),
                                   ),
@@ -499,7 +509,8 @@ class _ProposalMealCardState extends ConsumerState<ProposalMealCard> {
                               onPressed: _working
                                   ? null
                                   : () => ref
-                                      .read(conversationControllerProvider.notifier)
+                                      .read(conversationControllerProvider
+                                          .notifier)
                                       .rejectProposal(widget.proposal),
                               child: const Text('Dismiss'),
                             ),

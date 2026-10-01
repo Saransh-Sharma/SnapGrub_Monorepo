@@ -302,8 +302,7 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
     try {
       final user = await ref.read(homeUserContextProvider.future);
       if (user == null || !mounted) return;
-      final foods =
-          await ref.read(customFoodsProvider(user.userId).future);
+      final foods = await ref.read(customFoodsProvider(user.userId).future);
       if (!mounted) return;
       final selected = await showCustomFoodPicker(context, foods);
       if (selected == null || !mounted) return;
@@ -340,7 +339,8 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
     });
     try {
       final user = await ref.read(homeUserContextProvider.future);
-      final profile = (await ref.read(profileControllerProvider.future)).profile;
+      final profile =
+          (await ref.read(profileControllerProvider.future)).profile;
       if (user == null || profile == null) {
         throw ArgumentError('Finish setting up your profile first.');
       }
@@ -506,8 +506,7 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
         child: IconButton(
           tooltip: _isNew ? 'Close' : 'Back',
           onPressed: _handleBack,
-          icon: Icon(
-              _isNew ? Icons.close_rounded : Icons.arrow_back_rounded),
+          icon: Icon(_isNew ? Icons.close_rounded : Icons.arrow_back_rounded),
         ),
       ),
       title: Text(_isNew ? 'Review meal' : 'Edit meal'),
@@ -587,8 +586,8 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
 
     return Center(
       child: ConstrainedBox(
-        constraints:
-            const BoxConstraints(maxWidth: SnapGrubDesignTokens.maxContentWidth),
+        constraints: const BoxConstraints(
+            maxWidth: SnapGrubDesignTokens.maxContentWidth),
         child: ListView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: const EdgeInsets.fromLTRB(
@@ -624,13 +623,12 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
               child: Row(
                 children: [
                   Expanded(
-                    child: Text('Items',
-                        style: theme.textTheme.titleMedium),
+                    child: Text('Items', style: theme.textTheme.titleMedium),
                   ),
                   Text(
                     Labels.count(itemCount, 'item'),
-                    style: theme.textTheme.labelMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant),
+                    style: theme.textTheme.labelMedium
+                        ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),
@@ -694,9 +692,8 @@ class _MealEditorScreenState extends ConsumerState<MealEditorScreen> {
           index: index,
           child: Dismissible(
             key: ValueKey('dismiss-${item.id}'),
-            direction: canRemove
-                ? DismissDirection.endToStart
-                : DismissDirection.none,
+            direction:
+                canRemove ? DismissDirection.endToStart : DismissDirection.none,
             background: const _SwipeToRemoveBackground(),
             onDismissed: (_) => _removeItem(item),
             child: MealItemRow(

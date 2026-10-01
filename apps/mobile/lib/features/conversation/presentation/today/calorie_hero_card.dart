@@ -84,9 +84,7 @@ class _CalorieHeroCardState extends ConsumerState<CalorieHeroCard> {
     final progress = widget.eaten / goal;
     final showRemaining = framing == CalorieFraming.remaining;
     final value = showRemaining ? remaining.abs() : widget.eaten;
-    final caption = showRemaining
-        ? (over ? 'over' : 'left')
-        : 'eaten';
+    final caption = showRemaining ? (over ? 'over' : 'left') : 'eaten';
     final sub = showRemaining
         ? 'Target ${fmt.format(goal.round())} · Eaten ${fmt.format(widget.eaten.round())}'
         : 'of ${fmt.format(goal.round())} · ${fmt.format(math.max(0, remaining).round())} left';
@@ -129,7 +127,8 @@ class _CalorieHeroCardState extends ConsumerState<CalorieHeroCard> {
                         AnimatedSwitcher(
                           duration: motion.settle,
                           transitionBuilder: (child, animation) =>
-                              _FlipTransition(animation: animation, child: child),
+                              _FlipTransition(
+                                  animation: animation, child: child),
                           child: Row(
                             key: ValueKey(framing),
                             crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -226,10 +225,9 @@ class _Equation extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = context.sg;
     final fmt = NumberFormat.decimalPattern();
-    final style = Theme.of(context)
-        .textTheme
-        .labelLarge
-        ?.copyWith(color: tokens.onHero, fontFeatures: const [FontFeature.tabularFigures()]);
+    final style = Theme.of(context).textTheme.labelLarge?.copyWith(
+        color: tokens.onHero,
+        fontFeatures: const [FontFeature.tabularFigures()]);
     final muted = style?.copyWith(color: tokens.onHeroMuted);
     Widget cell(String value, String label) => Column(
           crossAxisAlignment: CrossAxisAlignment.start,

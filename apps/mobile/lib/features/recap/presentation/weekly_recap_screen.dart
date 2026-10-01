@@ -718,9 +718,8 @@ class _StreakPage extends StatelessWidget {
         const SizedBox(height: 32),
         _PageText(
           eyebrow: 'Logging streak',
-          title: s.current == 0
-              ? 'No streak yet'
-              : Labels.count(s.current, 'day'),
+          title:
+              s.current == 0 ? 'No streak yet' : Labels.count(s.current, 'day'),
           body: s.current == 0
               ? 'Day 1 is one meal away.'
               : s.current >= s.best

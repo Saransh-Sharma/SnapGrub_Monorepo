@@ -51,8 +51,7 @@ class Labels {
     };
   }
 
-  static String provenance(String? provenanceType) =>
-      switch (provenanceType) {
+  static String provenance(String? provenanceType) => switch (provenanceType) {
         'ai_photo' || 'photo_ai' => 'Photo estimate',
         'barcode' => 'Barcode match',
         'text_parser' => 'Text estimate',

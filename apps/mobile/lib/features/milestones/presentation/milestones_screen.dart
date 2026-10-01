@@ -29,7 +29,8 @@ class _MilestonesScreenState extends ConsumerState<MilestonesScreen> {
   GlobalKey _keyFor(String id) => _keys.putIfAbsent(id, GlobalKey.new);
 
   void _open(MilestoneStatus status) {
-    final box = _keyFor(status.id).currentContext?.findRenderObject() as RenderBox?;
+    final box =
+        _keyFor(status.id).currentContext?.findRenderObject() as RenderBox?;
     if (box == null || !box.hasSize) return;
     SgHaptics.tap();
     setState(() {
@@ -129,7 +130,8 @@ class _Gallery extends StatelessWidget {
                 children: [
                   Semantics(
                     header: true,
-                    child: Text('Milestones', style: theme.textTheme.displaySmall),
+                    child:
+                        Text('Milestones', style: theme.textTheme.displaySmall),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -144,7 +146,8 @@ class _Gallery extends StatelessWidget {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(4),
                     child: LinearProgressIndicator(
-                      value: milestones.isEmpty ? 0 : earned / milestones.length,
+                      value:
+                          milestones.isEmpty ? 0 : earned / milestones.length,
                       minHeight: 6,
                       color: SgMetal.gold.base,
                       backgroundColor:
@@ -178,7 +181,8 @@ class _Gallery extends StatelessWidget {
                   mainAxisExtent: 168,
                 ),
                 delegate: SliverChildListDelegate([
-                  for (final m in milestones.where((m) => m.definition.group == group))
+                  for (final m
+                      in milestones.where((m) => m.definition.group == group))
                     SgEntrance(
                       index: index++,
                       scale: .9,
@@ -280,7 +284,8 @@ class _FocusLayer extends StatefulWidget {
   State<_FocusLayer> createState() => _FocusLayerState();
 }
 
-class _FocusLayerState extends State<_FocusLayer> with TickerProviderStateMixin {
+class _FocusLayerState extends State<_FocusLayer>
+    with TickerProviderStateMixin {
   late final AnimationController _fly = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 560),
@@ -382,7 +387,8 @@ class _FocusLayerState extends State<_FocusLayer> with TickerProviderStateMixin 
                 child: GestureDetector(
                   onTap: _close,
                   child: BackdropFilter(
-                    filter: ui.ImageFilter.blur(sigmaX: 14 * fade, sigmaY: 14 * fade),
+                    filter: ui.ImageFilter.blur(
+                        sigmaX: 14 * fade, sigmaY: 14 * fade),
                     child: ColoredBox(
                       color: tokens.hero.withValues(alpha: .72 * fade),
                     ),
@@ -581,7 +587,8 @@ class _MedalBack extends StatelessWidget {
             height: size * .86,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: metal.shadow.withValues(alpha: .3), width: 1.5),
+              border: Border.all(
+                  color: metal.shadow.withValues(alpha: .3), width: 1.5),
             ),
             child: face,
           ),
@@ -598,7 +605,8 @@ class _MedalBack extends StatelessWidget {
           Container(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: .92),
+              color: theme.colorScheme.surfaceContainerHighest
+                  .withValues(alpha: .92),
             ),
             margin: EdgeInsets.all(size * .07),
             child: face,

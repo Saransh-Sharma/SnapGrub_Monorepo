@@ -98,7 +98,11 @@ class MacroBar extends StatelessWidget {
     final total = p + c + f;
     final segments = total <= 0
         ? const <(Macro, double)>[]
-        : [(Macro.protein, p / total), (Macro.carbs, c / total), (Macro.fat, f / total)];
+        : [
+            (Macro.protein, p / total),
+            (Macro.carbs, c / total),
+            (Macro.fat, f / total)
+          ];
     return Semantics(
       label: total <= 0
           ? 'No macros yet'
@@ -112,7 +116,10 @@ class MacroBar extends StatelessWidget {
           height: height,
           child: DecoratedBox(
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: .5),
+              color: Theme.of(context)
+                  .colorScheme
+                  .outlineVariant
+                  .withValues(alpha: .5),
             ),
             child: LayoutBuilder(
               builder: (context, constraints) {
@@ -158,7 +165,8 @@ class MacroLegend extends StatelessWidget {
         Container(
           width: 8,
           height: 8,
-          decoration: BoxDecoration(color: palette.color, shape: BoxShape.circle),
+          decoration:
+              BoxDecoration(color: palette.color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 6),
         Text(text, style: Theme.of(context).textTheme.labelMedium),

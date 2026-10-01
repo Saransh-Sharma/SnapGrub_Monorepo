@@ -37,7 +37,8 @@ void main() {
   Future<void> hold(WidgetTester tester, [int ms = 1200]) =>
       tester.runAsync(() => Future<void>.delayed(Duration(milliseconds: ms)));
 
-  Future<void> shot(WidgetTester tester, String name, {int settle = 1800}) async {
+  Future<void> shot(WidgetTester tester, String name,
+      {int settle = 1800}) async {
     await hold(tester, settle);
     // ignore: avoid_print
     print('SHOT:$name');
@@ -175,8 +176,7 @@ void main() {
 
     Future<void> review() async {
       queue.show(heroJob(testUserId, artDir, AnalysisJobStatus.ready));
-      router.push('/meal-editor',
-          extra: queue.state.first.draft);
+      router.push('/meal-editor', extra: queue.state.first.draft);
       await hold(tester, 1800);
       if (visible('meal.item.1')) await tapId(tester, 'meal.item.1', wait: 900);
     }
@@ -193,7 +193,8 @@ void main() {
     // 02: the photo card, finished, with the foods it found.
     queue.show(heroJob(testUserId, artDir, AnalysisJobStatus.ready));
     await scrollToday(-700);
-    await reveal(tester, find.byKey(const ValueKey('today.analysis.marketing-job')),
+    await reveal(
+        tester, find.byKey(const ValueKey('today.analysis.marketing-job')),
         alignment: .12);
     await shot(tester, 'light_02_snap', settle: 1400);
 

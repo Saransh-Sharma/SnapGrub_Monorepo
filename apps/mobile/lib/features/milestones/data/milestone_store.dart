@@ -23,7 +23,8 @@ class MilestoneStore {
     }
   }
 
-  Future<Set<String>> markCelebrated(String userId, Iterable<String> ids) async {
+  Future<Set<String>> markCelebrated(
+      String userId, Iterable<String> ids) async {
     final prefs = await SharedPreferences.getInstance();
     final next = {...?prefs.getStringList(key(userId)), ...ids};
     await prefs.setStringList(key(userId), next.toList()..sort());

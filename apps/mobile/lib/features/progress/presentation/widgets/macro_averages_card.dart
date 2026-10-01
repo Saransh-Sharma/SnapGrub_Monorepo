@@ -30,8 +30,8 @@ class MacroAveragesCard extends StatelessWidget {
                 Text('Macro averages', style: theme.textTheme.titleMedium),
                 const Spacer(),
                 Text('Per logged day',
-                    style: theme.textTheme.labelMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant)),
+                    style: theme.textTheme.labelMedium
+                        ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
               ],
             ),
           ),

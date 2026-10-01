@@ -98,7 +98,10 @@ WeeklyRecap buildWeeklyRecap({
       : kcalByDay.values.reduce((a, b) => a + b) / daysLogged;
 
   Meal? top;
-  final withPhoto = [for (final m in inWeek) if (m.photoAssetId != null) m];
+  final withPhoto = [
+    for (final m in inWeek)
+      if (m.photoAssetId != null) m
+  ];
   final pool = withPhoto.isNotEmpty ? withPhoto : inWeek;
   for (final m in pool) {
     if (top == null || m.caloriesKcal > top.caloriesKcal) top = m;
@@ -147,7 +150,8 @@ RecapFood? _mostLogged(List<Meal> meals) {
     for (final key in counts.keys) {
       if (best == null ||
           counts[key]! > counts[best]! ||
-          (counts[key] == counts[best] && latest[key]!.isAfter(latest[best]!))) {
+          (counts[key] == counts[best] &&
+              latest[key]!.isAfter(latest[best]!))) {
         best = key;
       }
     }

@@ -109,9 +109,12 @@ class _WeeklyCheckInCardState extends ConsumerState<WeeklyCheckInCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          header(trailing: 'Week of ${DateFormat('d MMM').format(summary.weekStart)}'),
+          header(
+              trailing:
+                  'Week of ${DateFormat('d MMM').format(summary.weekStart)}'),
           const SizedBox(height: 12),
-          Text(summary.primaryActionTitle, style: theme.textTheme.headlineSmall),
+          Text(summary.primaryActionTitle,
+              style: theme.textTheme.headlineSmall),
           const SizedBox(height: 6),
           Text(
             summary.primaryActionBody,
@@ -152,7 +155,8 @@ class _WeeklyCheckInCardState extends ConsumerState<WeeklyCheckInCard> {
                 return Column(
                   children: [
                     for (final t in tiles)
-                      Padding(padding: const EdgeInsets.only(bottom: 8), child: t),
+                      Padding(
+                          padding: const EdgeInsets.only(bottom: 8), child: t),
                   ],
                 );
               }

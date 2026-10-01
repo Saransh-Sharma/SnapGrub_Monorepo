@@ -149,7 +149,8 @@ class _ExplainerPoint extends StatelessWidget {
     final theme = Theme.of(context);
     final tokens = context.sg;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: SnapGrubDesignTokens.space8),
+      padding:
+          const EdgeInsets.symmetric(vertical: SnapGrubDesignTokens.space8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -173,8 +174,8 @@ class _ExplainerPoint extends StatelessWidget {
                 const SizedBox(height: SnapGrubDesignTokens.space4),
                 Text(
                   body,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant),
+                  style: theme.textTheme.bodyMedium
+                      ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                 ),
               ],
             ),

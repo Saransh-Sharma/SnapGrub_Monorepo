@@ -55,8 +55,8 @@ class MealReviewHeader extends StatelessWidget {
             style: theme.textTheme.headlineMedium,
             decoration: InputDecoration(
               hintText: 'Meal name',
-              hintStyle: theme.textTheme.headlineMedium
-                  ?.copyWith(color: scheme.onSurfaceVariant.withValues(alpha: .6)),
+              hintStyle: theme.textTheme.headlineMedium?.copyWith(
+                  color: scheme.onSurfaceVariant.withValues(alpha: .6)),
               border: InputBorder.none,
               enabledBorder: InputBorder.none,
               focusedBorder: InputBorder.none,
@@ -237,8 +237,8 @@ class _GradientBand extends StatelessWidget {
               tokens.carbs.soft,
             ],
           ),
-          border: Border.all(
-              color: scheme.outlineVariant.withValues(alpha: .6)),
+          border:
+              Border.all(color: scheme.outlineVariant.withValues(alpha: .6)),
         ),
         alignment: Alignment.centerLeft,
         padding: const EdgeInsets.all(SnapGrubDesignTokens.space20),

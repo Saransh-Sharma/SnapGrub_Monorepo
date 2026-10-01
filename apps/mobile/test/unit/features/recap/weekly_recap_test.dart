@@ -56,7 +56,8 @@ const _streak = StreakSummary(
 void main() {
   final today = DateTime(2026, 9, 25);
 
-  test('window is the 7 days ending today; older and deleted meals ignored', () {
+  test('window is the 7 days ending today; older and deleted meals ignored',
+      () {
     final recap = buildWeeklyRecap(
       meals: [
         meal(DateTime(2026, 9, 25, 12), kcal: 600),

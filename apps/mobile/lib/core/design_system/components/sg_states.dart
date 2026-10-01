@@ -5,7 +5,15 @@ import 'package:snapgrub/core/design_system/effects/effects_scope.dart';
 import 'package:snapgrub/core/design_system/tokens.dart';
 import 'package:snapgrub/core/feedback/friendly_error.dart';
 
-enum SgIllustrationKind { plate, notebook, sunrise, chart, camera, offline, medal }
+enum SgIllustrationKind {
+  plate,
+  notebook,
+  sunrise,
+  chart,
+  camera,
+  offline,
+  medal
+}
 
 /// Small token-built vignettes for empty, error and permission states.
 /// They breathe very slightly while effects animate.
@@ -129,15 +137,16 @@ class _IllustrationPainter extends CustomPainter {
         canvas.drawRRect(r, line);
         for (var i = 0; i < 4; i++) {
           final y = r.top + s * (.14 + i * .1);
-          canvas.drawLine(Offset(r.left + s * .08, y),
+          canvas.drawLine(
+              Offset(r.left + s * .08, y),
               Offset(r.right - s * (i == 3 ? .2 : .08), y),
               line..color = ink.withValues(alpha: .3));
         }
-        canvas.drawCircle(Offset(r.right, r.top + s * .06), s * .06,
-            fill..color = accent);
+        canvas.drawCircle(
+            Offset(r.right, r.top + s * .06), s * .06, fill..color = accent);
       case SgIllustrationKind.sunrise:
-        canvas.drawCircle(c.translate(0, s * .06 - bob * 2), s * .16,
-            fill..color = gold);
+        canvas.drawCircle(
+            c.translate(0, s * .06 - bob * 2), s * .16, fill..color = gold);
         canvas.drawRect(
           Rect.fromLTWH(c.dx - s * .4, c.dy + s * .1, s * .8, s * .3),
           fill..color = soft,
@@ -156,8 +165,8 @@ class _IllustrationPainter extends CustomPainter {
             fill..color = i == 3 ? primary : primary.withValues(alpha: .35),
           );
         }
-        canvas.drawLine(Offset(c.dx - s * .34, base),
-            Offset(c.dx + s * .34, base), line);
+        canvas.drawLine(
+            Offset(c.dx - s * .34, base), Offset(c.dx + s * .34, base), line);
       case SgIllustrationKind.camera:
         final body = RRect.fromRectAndRadius(
           Rect.fromCenter(
@@ -167,10 +176,9 @@ class _IllustrationPainter extends CustomPainter {
         canvas.drawRRect(body, fill..color = paper);
         canvas.drawRRect(body, line);
         canvas.drawCircle(c.translate(0, bob), s * .12, fill..color = primary);
+        canvas.drawCircle(c.translate(0, bob), s * .06, fill..color = soft);
         canvas.drawCircle(
-            c.translate(0, bob), s * .06, fill..color = soft);
-        canvas.drawCircle(c.translate(s * .2, bob - s * .12), s * .03,
-            fill..color = accent);
+            c.translate(s * .2, bob - s * .12), s * .03, fill..color = accent);
       case SgIllustrationKind.offline:
         final path = Path()
           ..addOval(Rect.fromCircle(
@@ -184,8 +192,8 @@ class _IllustrationPainter extends CustomPainter {
         canvas.drawLine(c.translate(-s * .22, -s * .18),
             c.translate(s * .22, s * .2), line..color = accent);
       case SgIllustrationKind.medal:
-        canvas.drawCircle(c.translate(0, s * .06 + bob), s * .2,
-            fill..color = gold);
+        canvas.drawCircle(
+            c.translate(0, s * .06 + bob), s * .2, fill..color = gold);
         canvas.drawCircle(c.translate(0, s * .06 + bob), s * .14,
             line..color = paper.withValues(alpha: .8));
         final ribbon = Path()
@@ -231,8 +239,8 @@ class EmptyState extends StatelessWidget {
     final theme = Theme.of(context);
     return Center(
       child: Padding(
-        padding: EdgeInsets.symmetric(
-            horizontal: 24, vertical: compact ? 16 : 32),
+        padding:
+            EdgeInsets.symmetric(horizontal: 24, vertical: compact ? 16 : 32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

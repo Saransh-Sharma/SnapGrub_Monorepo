@@ -24,7 +24,8 @@ void main() {
   Future<void> hold(WidgetTester tester, [int ms = 1600]) =>
       tester.runAsync(() => Future<void>.delayed(Duration(milliseconds: ms)));
 
-  Future<void> shot(WidgetTester tester, String name, {int settle = 1600}) async {
+  Future<void> shot(WidgetTester tester, String name,
+      {int settle = 1600}) async {
     await hold(tester, settle);
     // ignore: avoid_print
     print('SHOT:$name');
@@ -65,19 +66,40 @@ void main() {
       // Eight days of history for streaks, charts and milestones.
       for (var d = 8; d >= 1; d--) {
         final day = today.subtract(Duration(days: d));
-        await repo.saveDraft(meal('Masala oats', day.add(const Duration(hours: 8)),
-            MealType.breakfast, [('Masala oats', 320, 12, 48, 8)]));
-        await repo.saveDraft(meal('Paneer tikka bowl', day.add(const Duration(hours: 13)),
-            MealType.lunch, [('Paneer tikka', 420, 28, 12, 26), ('Jeera rice', 260, 5, 52, 3)]));
-        await repo.saveDraft(meal('Dal & roti', day.add(const Duration(hours: 20)),
-            MealType.dinner, [('Toor dal', 230, 13, 32, 6), ('Roti ×2', 240, 8, 44, 4)]));
+        await repo.saveDraft(meal(
+            'Masala oats',
+            day.add(const Duration(hours: 8)),
+            MealType.breakfast,
+            [('Masala oats', 320, 12, 48, 8)]));
+        await repo.saveDraft(meal('Paneer tikka bowl',
+            day.add(const Duration(hours: 13)), MealType.lunch, [
+          ('Paneer tikka', 420, 28, 12, 26),
+          ('Jeera rice', 260, 5, 52, 3)
+        ]));
+        await repo.saveDraft(meal(
+            'Dal & roti',
+            day.add(const Duration(hours: 20)),
+            MealType.dinner,
+            [('Toor dal', 230, 13, 32, 6), ('Roti ×2', 240, 8, 44, 4)]));
       }
-      await repo.saveDraft(meal('Greek yogurt & berries', today.add(const Duration(hours: 8, minutes: 10)),
-          MealType.breakfast, [('Greek yogurt', 150, 15, 8, 5), ('Blueberries', 60, 1, 14, 0), ('Honey', 60, 0, 17, 0)]));
-      await repo.saveDraft(meal('Chicken biryani', today.add(const Duration(hours: 13, minutes: 20)),
-          MealType.lunch, [('Chicken biryani', 610, 32, 70, 20), ('Raita', 90, 5, 7, 4)]));
-      await repo.saveDraft(meal('Masala chai', today.add(const Duration(hours: 16, minutes: 45)),
-          MealType.snack, [('Masala chai', 110, 4, 14, 4)]));
+      await repo.saveDraft(meal(
+          'Greek yogurt & berries',
+          today.add(const Duration(hours: 8, minutes: 10)),
+          MealType.breakfast, [
+        ('Greek yogurt', 150, 15, 8, 5),
+        ('Blueberries', 60, 1, 14, 0),
+        ('Honey', 60, 0, 17, 0)
+      ]));
+      await repo.saveDraft(meal(
+          'Chicken biryani',
+          today.add(const Duration(hours: 13, minutes: 20)),
+          MealType.lunch,
+          [('Chicken biryani', 610, 32, 70, 20), ('Raita', 90, 5, 7, 4)]));
+      await repo.saveDraft(meal(
+          'Masala chai',
+          today.add(const Duration(hours: 16, minutes: 45)),
+          MealType.snack,
+          [('Masala chai', 110, 4, 14, 4)]));
     });
 
     await tester.pumpWidget(
@@ -125,8 +147,11 @@ void main() {
 
     router.go('/home');
     router.push('/meal-editor',
-        extra: meal('Chicken biryani', today.add(const Duration(hours: 13)),
-            MealType.lunch, [('Chicken biryani', 610, 32, 70, 20), ('Raita', 90, 5, 7, 4)]));
+        extra: meal(
+            'Chicken biryani',
+            today.add(const Duration(hours: 13)),
+            MealType.lunch,
+            [('Chicken biryani', 610, 32, 70, 20), ('Raita', 90, 5, 7, 4)]));
     await shot(tester, '08_meal_review', settle: 2200);
     router.pop();
 

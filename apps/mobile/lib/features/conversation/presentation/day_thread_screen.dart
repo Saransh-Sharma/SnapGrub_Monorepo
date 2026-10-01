@@ -327,8 +327,7 @@ class _DayPageState extends ConsumerState<_DayPage>
     }
 
     final now = ref.watch(clockProvider)();
-    final localNow =
-        user == null ? now : userLocalTimeFor(now, user.timezone);
+    final localNow = user == null ? now : userLocalTimeFor(now, user.timezone);
     final firstName = profile?.displayName?.trim().split(' ').firstOrNull;
     final loading = mealsAsync.isLoading && !mealsAsync.hasValue;
 
@@ -371,7 +370,9 @@ class _DayPageState extends ConsumerState<_DayPage>
       SgSectionHeader(
         key: const ValueKey('section'),
         title: 'Meals',
-        action: meals.isEmpty ? null : Labels.count(meals.length, 'logged', 'logged'),
+        action: meals.isEmpty
+            ? null
+            : Labels.count(meals.length, 'logged', 'logged'),
       ),
     ];
 
@@ -412,8 +413,8 @@ class _DayPageState extends ConsumerState<_DayPage>
         }
         // Only a real meal can be the deep-link anchor (null == null must not
         // tag every message/proposal row with the same GlobalKey).
-        final isAnchor = widget.anchorMealId != null &&
-            item.meal?.id == widget.anchorMealId;
+        final isAnchor =
+            widget.anchorMealId != null && item.meal?.id == widget.anchorMealId;
         children.add(
           Padding(
             key: isAnchor ? _anchorKey : ValueKey(item.key),
@@ -449,7 +450,8 @@ class _DayPageState extends ConsumerState<_DayPage>
       proteinGoal: user?.proteinGoal,
     );
     if (closeCard != null) {
-      children.add(KeyedSubtree(key: const ValueKey('day-close'), child: closeCard));
+      children.add(
+          KeyedSubtree(key: const ValueKey('day-close'), child: closeCard));
     }
     children.add(const SizedBox(key: ValueKey('end'), height: 16));
 

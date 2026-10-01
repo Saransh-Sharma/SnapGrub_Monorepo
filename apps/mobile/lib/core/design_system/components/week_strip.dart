@@ -40,8 +40,7 @@ class _WeekStripState extends State<WeekStrip> {
   }
 
   int _pageFor(DateTime day) {
-    final weeks =
-        _mondayOf(_today).difference(_mondayOf(day)).inDays ~/ 7;
+    final weeks = _mondayOf(_today).difference(_mondayOf(day)).inDays ~/ 7;
     return (_pages - 1 - weeks).clamp(0, _pages - 1);
   }
 
@@ -179,9 +178,8 @@ class _DayCell extends StatelessWidget {
     final theme = Theme.of(context);
     final tokens = context.sg;
     final fg = selected ? tokens.onHero : theme.colorScheme.onSurface;
-    final muted = selected
-        ? tokens.onHeroMuted
-        : theme.colorScheme.onSurfaceVariant;
+    final muted =
+        selected ? tokens.onHeroMuted : theme.colorScheme.onSurfaceVariant;
     final ringColor = selected ? tokens.onHero : tokens.energy.color;
     final label = DateFormat('EEEE d MMMM').format(day);
     return Semantics(
@@ -208,8 +206,9 @@ class _DayCell extends StatelessWidget {
                 thickness: 3,
                 progress: progress ?? 0,
                 color: ringColor,
-                trackColor: (selected ? tokens.onHero : theme.colorScheme.onSurface)
-                    .withValues(alpha: .12),
+                trackColor:
+                    (selected ? tokens.onHero : theme.colorScheme.onSurface)
+                        .withValues(alpha: .12),
                 semanticsLabel: null,
                 child: FittedBox(
                   child: Text(

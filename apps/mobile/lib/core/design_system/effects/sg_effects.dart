@@ -60,9 +60,9 @@ mixin _EffectClock<T extends StatefulWidget> on State<T>, TickerProvider {
     super.didChangeDependencies();
     final animate = SgEffectsScope.of(context).animates && wantsClock;
     if (animate && _ticker == null) {
-      _ticker = createTicker(
-          (elapsed) => clock.value = elapsed.inMicroseconds / 1e6)
-        ..start();
+      _ticker =
+          createTicker((elapsed) => clock.value = elapsed.inMicroseconds / 1e6)
+            ..start();
     } else if (!animate && _ticker != null) {
       _ticker!.dispose();
       _ticker = null;

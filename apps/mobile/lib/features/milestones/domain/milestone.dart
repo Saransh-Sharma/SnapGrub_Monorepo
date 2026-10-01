@@ -227,7 +227,8 @@ class MilestoneStatus {
 ///
 /// Mirrors the "best streak" rule of `computeStreak`: consecutive days extend
 /// a run, and a single missed day is bridged by the automatic freeze.
-Map<int, DateTime> streakReachedDates(Set<DateTime> loggedDays, List<int> targets) {
+Map<int, DateTime> streakReachedDates(
+    Set<DateTime> loggedDays, List<int> targets) {
   final days = {
     for (final d in loggedDays) DateTime(d.year, d.month, d.day),
   }.toList()

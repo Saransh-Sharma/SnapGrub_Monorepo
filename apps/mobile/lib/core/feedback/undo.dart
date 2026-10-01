@@ -55,7 +55,9 @@ void showSgToast(BuildContext context, String message,
         duration: const Duration(seconds: 2),
         content: Row(
           children: [
-            Icon(icon, size: 18, color: Theme.of(context).colorScheme.onInverseSurface),
+            Icon(icon,
+                size: 18,
+                color: Theme.of(context).colorScheme.onInverseSurface),
             const SizedBox(width: 10),
             Expanded(child: Text(message)),
           ],

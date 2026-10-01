@@ -41,13 +41,11 @@ final intakeSummaryProvider =
     return;
   }
   final today = ref.watch(userDayTickProvider(user.timezone));
-  final start =
-      DateTime(today.year, today.month, today.day - (range.days - 1));
+  final start = DateTime(today.year, today.month, today.day - (range.days - 1));
   yield* ref
       .watch(mealRepositoryProvider)
       .watchRollupsBetween(user.userId, start, today)
-      .map((rollups) =>
-          summarizeIntake(rollups, end: today, days: range.days));
+      .map((rollups) => summarizeIntake(rollups, end: today, days: range.days));
 });
 
 /// The EMA weight trend over the full history (so the line is warm at the

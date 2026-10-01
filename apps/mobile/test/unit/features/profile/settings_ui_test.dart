@@ -118,8 +118,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(container.read(uiPreferencesProvider).effects,
           VisualEffectsLevel.off);
-      expect(find.text('Flat colors. Best for battery.'),
-          findsOneWidget);
+      expect(find.text('Flat colors. Best for battery.'), findsOneWidget);
 
       await tester.tap(find.text('Eaten'));
       await tester.pumpAndSettle();

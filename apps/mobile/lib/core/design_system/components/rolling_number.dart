@@ -26,7 +26,8 @@ class RollingNumber extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = '$prefix${(format ?? NumberFormat.decimalPattern()).format(value)}$suffix';
+    final text =
+        '$prefix${(format ?? NumberFormat.decimalPattern()).format(value)}$suffix';
     final resolved = DefaultTextStyle.of(context).style.merge(style).copyWith(
       fontFeatures: const [FontFeature.tabularFigures()],
     );
@@ -58,7 +59,8 @@ class RollingNumber extends StatelessWidget {
                     size: digitSize,
                     style: resolved,
                     scaler: scaler,
-                    duration: motion.of(Duration(milliseconds: 520 + 40 * (chars.length - i))),
+                    duration: motion.of(
+                        Duration(milliseconds: 520 + 40 * (chars.length - i))),
                   )
                 : Text(chars[i], style: resolved, textScaler: scaler),
         ],
@@ -108,8 +110,8 @@ class _DigitColumn extends StatelessWidget {
                     for (var d = 0; d <= 10; d++)
                       SizedBox(
                         height: size.height,
-                        child: Text('${d % 10}',
-                            style: style, textScaler: scaler),
+                        child:
+                            Text('${d % 10}', style: style, textScaler: scaler),
                       ),
                   ],
                 ),

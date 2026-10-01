@@ -66,8 +66,8 @@ class RecapShareCard extends StatelessWidget {
                       Row(
                         children: [
                           Text('SnapGrub',
-                              style: theme.textTheme.labelLarge?.copyWith(
-                                  color: onHero, letterSpacing: .4)),
+                              style: theme.textTheme.labelLarge
+                                  ?.copyWith(color: onHero, letterSpacing: .4)),
                           const Spacer(),
                           Text(recapRangeLabel(recap),
                               style: theme.textTheme.labelMedium

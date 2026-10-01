@@ -38,8 +38,8 @@ void main() {
     // Provenance is shown in human words, never the raw id.
     expect(find.textContaining('Text estimate', skipOffstage: false),
         findsOneWidget);
-    expect(find.textContaining('text_parser', skipOffstage: false),
-        findsNothing);
+    expect(
+        find.textContaining('text_parser', skipOffstage: false), findsNothing);
   });
 
   testWidgets('barcode miss offers manual fallback into Meal Editor',
@@ -63,8 +63,7 @@ void main() {
     await tester.enterText(find.widgetWithText(TextField, 'Protein'), '6');
     await tester.enterText(find.widgetWithText(TextField, 'Carbs'), '24');
     await tester.enterText(find.widgetWithText(TextField, 'Fat'), '8');
-    await tester
-        .tap(find.widgetWithText(FilledButton, 'Review product'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Review product'));
     await tester.pumpAndSettle();
 
     expect(find.text('Review meal'), findsOneWidget);
@@ -96,8 +95,8 @@ void main() {
     harness.container.read(appRouterProvider).go('/voice-entry');
     await tester.pumpAndSettle();
 
-    expect(find.text('Microphone access is off. Type instead.'),
-        findsOneWidget);
+    expect(
+        find.text('Microphone access is off. Type instead.'), findsOneWidget);
     await tester.tap(find.widgetWithText(TextButton, 'Type instead'));
     await tester.pumpAndSettle();
     expect(find.text('Describe a meal'), findsOneWidget);

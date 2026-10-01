@@ -58,8 +58,9 @@ class SgTabBar extends StatelessWidget {
                     const captureSlot = 76.0;
                     final slot =
                         (constraints.maxWidth - captureSlot) / items.length;
-                    double leftFor(int index) =>
-                        index < half ? index * slot : index * slot + captureSlot;
+                    double leftFor(int index) => index < half
+                        ? index * slot
+                        : index * slot + captureSlot;
                     return Stack(
                       children: [
                         _GooeyIndicator(

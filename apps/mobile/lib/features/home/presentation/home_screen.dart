@@ -174,9 +174,8 @@ class _SyncAttentionCard extends StatelessWidget {
           leading: Icon(status == SyncStatus.conflict
               ? Icons.report_problem_outlined
               : Icons.error_outline),
-          title: Text(status == SyncStatus.conflict
-              ? 'Needs review'
-              : 'Not synced'),
+          title: Text(
+              status == SyncStatus.conflict ? 'Needs review' : 'Not synced'),
           subtitle: Text(status == SyncStatus.conflict
               ? 'A change needs review. Tap to fix.'
               : 'Some changes didn’t sync. We’ll retry soon.'),

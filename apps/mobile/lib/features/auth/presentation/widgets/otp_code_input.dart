@@ -120,9 +120,8 @@ class _OtpCodeInputState extends State<OtpCodeInput>
       animation: Listenable.merge([_shake, _shimmer]),
       builder: (context, _) {
         final t = _shake.value;
-        final dx = _shake.isAnimating
-            ? math.sin(t * math.pi * 6) * 12 * (1 - t)
-            : 0.0;
+        final dx =
+            _shake.isAnimating ? math.sin(t * math.pi * 6) * 12 * (1 - t) : 0.0;
         return Transform.translate(
           offset: Offset(dx, 0),
           child: Row(

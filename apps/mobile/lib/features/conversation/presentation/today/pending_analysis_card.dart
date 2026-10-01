@@ -66,7 +66,8 @@ class PendingAnalysisCard extends ConsumerWidget {
                               ? .35
                               : 0,
                           child: Image.file(
-                            File(job.asset.thumbLocalPath ?? job.asset.localPath),
+                            File(job.asset.thumbLocalPath ??
+                                job.asset.localPath),
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) =>
                                 ColoredBox(color: tokens.energy.soft),
@@ -93,9 +94,10 @@ class PendingAnalysisCard extends ConsumerWidget {
                                   status,
                                   key: ValueKey(status),
                                   style: theme.textTheme.labelLarge?.copyWith(
-                                    color: job.status == AnalysisJobStatus.failed
-                                        ? tokens.warning
-                                        : theme.colorScheme.primary,
+                                    color:
+                                        job.status == AnalysisJobStatus.failed
+                                            ? tokens.warning
+                                            : theme.colorScheme.primary,
                                   ),
                                 ),
                               ),

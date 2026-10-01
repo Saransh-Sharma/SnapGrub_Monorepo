@@ -49,11 +49,14 @@ class _AmbientPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 80);
-    paint.color = (dark ? SnapGrubDesignTokens.nightMistGlow : SnapGrubDesignTokens.mist)
-        .withValues(alpha: dark ? .10 : .42);
+    paint.color =
+        (dark ? SnapGrubDesignTokens.nightMistGlow : SnapGrubDesignTokens.mist)
+            .withValues(alpha: dark ? .10 : .42);
     canvas.drawCircle(Offset(size.width * .92, size.height * .12),
         size.shortestSide * .34, paint);
-    paint.color = (dark ? SnapGrubDesignTokens.nightBlushGlow : SnapGrubDesignTokens.blush)
+    paint.color = (dark
+            ? SnapGrubDesignTokens.nightBlushGlow
+            : SnapGrubDesignTokens.blush)
         .withValues(alpha: dark ? .07 : .25);
     canvas.drawCircle(Offset(size.width * .06, size.height * .72),
         size.shortestSide * .28, paint);
@@ -260,7 +263,8 @@ class _PremiumPressableState extends State<PremiumPressable> {
             child: DecoratedBox(
               position: DecorationPosition.foreground,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(SnapGrubDesignTokens.radiusMd),
+                borderRadius:
+                    BorderRadius.circular(SnapGrubDesignTokens.radiusMd),
                 border: _focused
                     ? Border.all(color: scheme.primary, width: 2.5)
                     : null,

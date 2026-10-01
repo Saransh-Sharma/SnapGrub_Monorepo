@@ -34,7 +34,10 @@ final milestoneFactsProvider = Provider<AsyncValue<MilestoneFacts>>((ref) {
       !templates.hasValue) {
     return const AsyncLoading();
   }
-  final live = [for (final m in meals.requireValue) if (!m.isDeleted) m];
+  final live = [
+    for (final m in meals.requireValue)
+      if (!m.isDeleted) m
+  ];
   return AsyncData(MilestoneFacts(
     mealTimes: [for (final m in live) m.loggedAt.toLocal()],
     loggedDays: ref.watch(loggedDaysProvider),
@@ -56,7 +59,10 @@ final milestonesProvider = Provider<AsyncValue<List<MilestoneStatus>>>((ref) {
 /// Earned milestones, most recent first (for the Progress shelf).
 final earnedMilestonesProvider = Provider<List<MilestoneStatus>>((ref) {
   final all = ref.watch(milestonesProvider).valueOrNull ?? const [];
-  final earned = [for (final m in all) if (m.earned) m];
+  final earned = [
+    for (final m in all)
+      if (m.earned) m
+  ];
   earned.sort((a, b) {
     final at = a.earnedAt;
     final bt = b.earnedAt;
@@ -91,7 +97,8 @@ class CelebratedMilestones extends AsyncNotifier<Set<String>?> {
   Future<void> mark(Iterable<String> ids) async {
     final userId = _userId;
     if (userId == null) return;
-    final next = await ref.read(milestoneStoreProvider).markCelebrated(userId, ids);
+    final next =
+        await ref.read(milestoneStoreProvider).markCelebrated(userId, ids);
     state = AsyncData(next);
   }
 }

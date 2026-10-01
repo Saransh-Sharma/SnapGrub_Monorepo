@@ -172,9 +172,7 @@ class _ConversationComposerState extends ConsumerState<ConversationComposer> {
                   E2eId(
                     id: 'conversation.add_menu',
                     child: IconButton(
-                      tooltip: _trayOpen
-                          ? 'Close'
-                          : 'Add food options',
+                      tooltip: _trayOpen ? 'Close' : 'Add food options',
                       onPressed: state.isSending
                           ? null
                           : () {
@@ -341,8 +339,7 @@ class _WavePainter extends CustomPainter {
       ..strokeWidth = 3
       ..strokeCap = StrokeCap.round;
     for (var i = 0; i < bars; i++) {
-      final wobble =
-          (math.sin((phase * 2 * math.pi) + i * .9) + 1) / 2; // 0..1
+      final wobble = (math.sin((phase * 2 * math.pi) + i * .9) + 1) / 2; // 0..1
       final h = size.height * (.18 + .82 * (.25 + .75 * level) * wobble);
       final x = gap * i + gap / 2;
       canvas.drawLine(Offset(x, (size.height - h) / 2),

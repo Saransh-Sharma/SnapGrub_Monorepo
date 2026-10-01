@@ -757,8 +757,8 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
       if (mounted) context.go('/auth');
     } catch (error) {
       if (mounted) {
-        setState(() => _error =
-            'Account not deleted. ${friendlyError(error).message}');
+        setState(() =>
+            _error = 'Account not deleted. ${friendlyError(error).message}');
       }
     } finally {
       if (mounted) setState(() => _deleting = false);

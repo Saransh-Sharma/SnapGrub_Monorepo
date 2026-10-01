@@ -30,7 +30,8 @@ class MacroCardsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final large = MediaQuery.textScalerOf(context).scale(1) > 1.35;
     final cards = [
-      _MacroCard(day: day, macro: Macro.protein, grams: proteinG, goal: proteinGoal),
+      _MacroCard(
+          day: day, macro: Macro.protein, grams: proteinG, goal: proteinGoal),
       _MacroCard(day: day, macro: Macro.carbs, grams: carbsG, goal: carbsGoal),
       _MacroCard(day: day, macro: Macro.fat, grams: fatG, goal: fatGoal),
     ];

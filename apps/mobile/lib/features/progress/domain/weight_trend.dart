@@ -29,7 +29,8 @@ class WeightSample {
 /// One day on the trend: the (averaged) raw weigh-in and the smoothed value.
 @immutable
 class WeightPoint {
-  const WeightPoint({required this.day, required this.raw, required this.trend});
+  const WeightPoint(
+      {required this.day, required this.raw, required this.trend});
 
   final DateTime day;
   final double raw;
@@ -74,8 +75,10 @@ class WeightTrend {
   double? get startRaw => points.isEmpty ? null : points.first.raw;
 
   /// Points whose day is on or after [from].
-  List<WeightPoint> since(DateTime from) =>
-      [for (final p in points) if (!p.day.isBefore(from)) p];
+  List<WeightPoint> since(DateTime from) => [
+        for (final p in points)
+          if (!p.day.isBefore(from)) p
+      ];
 }
 
 DateTime _day(DateTime t) => DateTime(t.year, t.month, t.day);
@@ -148,7 +151,9 @@ double? _slope(List<WeightPoint> points, int windowDays) {
   final span = window.last.day.difference(window.first.day).inDays;
   if (span < 5) return null;
   final origin = window.first.day;
-  final xs = [for (final p in window) p.day.difference(origin).inDays.toDouble()];
+  final xs = [
+    for (final p in window) p.day.difference(origin).inDays.toDouble()
+  ];
   final ys = [for (final p in window) p.trend];
   final n = xs.length;
   final mx = xs.reduce((a, b) => a + b) / n;

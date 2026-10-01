@@ -102,8 +102,9 @@ FriendlyError friendlyError(Object error) {
 /// Short, specific auth copy. Distinguishes the common cases so users know
 /// what to fix instead of a single generic failure.
 String authErrorMessage(Object error) {
-  final text = (error is AuthException ? '${error.code} ${error.message}' : '$error')
-      .toLowerCase();
+  final text =
+      (error is AuthException ? '${error.code} ${error.message}' : '$error')
+          .toLowerCase();
   if (text.contains('invalid_credentials') ||
       text.contains('invalid login') ||
       text.contains('invalid credentials')) {
@@ -114,16 +115,20 @@ String authErrorMessage(Object error) {
       text.contains('token has expired')) {
     return 'Code expired. Get a new one.';
   }
-  if (text.contains('otp') || text.contains('token') && text.contains('invalid')) {
+  if (text.contains('otp') ||
+      text.contains('token') && text.contains('invalid')) {
     return 'Wrong code. Check your latest email.';
   }
-  if (text.contains('user_already_exists') || text.contains('already registered')) {
+  if (text.contains('user_already_exists') ||
+      text.contains('already registered')) {
     return 'You already have an account. Sign in instead.';
   }
   if (text.contains('weak_password') || text.contains('password should')) {
     return 'Use at least 8 characters.';
   }
-  if (text.contains('rate') || text.contains('too many') || text.contains('429')) {
+  if (text.contains('rate') ||
+      text.contains('too many') ||
+      text.contains('429')) {
     return 'Too many tries. Wait a minute and try again.';
   }
   if (text.contains('email_not_confirmed') || text.contains('not confirmed')) {

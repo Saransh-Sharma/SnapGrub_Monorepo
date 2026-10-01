@@ -166,8 +166,8 @@ class _TextEntryScreenState extends ConsumerState<TextEntryScreen> {
       if (mounted) context.continueTo('/meal-editor', extra: draft);
     } catch (error) {
       if (mounted) {
-        setState(() => _error =
-            'Couldn’t estimate that. ${friendlyError(error).message}');
+        setState(() =>
+            _error = 'Couldn’t estimate that. ${friendlyError(error).message}');
       }
     } finally {
       if (mounted) setState(() => _loading = false);

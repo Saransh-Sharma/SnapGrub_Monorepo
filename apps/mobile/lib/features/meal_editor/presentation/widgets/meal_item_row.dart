@@ -258,8 +258,8 @@ class _MealItemRowState extends State<MealItemRow> {
                   children: [
                     Text(
                       '${item.caloriesKcal.round()}',
-                      style: tokens.metricSmall
-                          .copyWith(color: scheme.onSurface),
+                      style:
+                          tokens.metricSmall.copyWith(color: scheme.onSurface),
                     ),
                     Text(
                       'kcal',
@@ -301,7 +301,8 @@ class _MealItemRowState extends State<MealItemRow> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Divider(height: 1, color: scheme.outlineVariant.withValues(alpha: .6)),
+          Divider(
+              height: 1, color: scheme.outlineVariant.withValues(alpha: .6)),
           const SizedBox(height: SnapGrubDesignTokens.space12),
           Wrap(
             alignment: WrapAlignment.spaceBetween,
@@ -366,7 +367,8 @@ class _MealItemRowState extends State<MealItemRow> {
                 id: 'meal.item.$i.edit_nutrition',
                 child: TextButton.icon(
                   style: TextButton.styleFrom(
-                    minimumSize: const Size(0, SnapGrubDesignTokens.minTapTarget),
+                    minimumSize:
+                        const Size(0, SnapGrubDesignTokens.minTapTarget),
                   ),
                   onPressed: () {
                     SgHaptics.tap();
@@ -377,7 +379,8 @@ class _MealItemRowState extends State<MealItemRow> {
                     duration: motion.settle,
                     child: const Icon(Icons.expand_more_rounded),
                   ),
-                  label: Text(_nutritionOpen ? 'Hide nutrition' : 'Edit nutrition'),
+                  label: Text(
+                      _nutritionOpen ? 'Hide nutrition' : 'Edit nutrition'),
                 ),
               ),
               if (widget.onRemove != null)
@@ -440,7 +443,8 @@ class _MealItemRowState extends State<MealItemRow> {
                   value: _shown('qty', item.quantity),
                   nullable: true,
                   textInputAction: TextInputAction.next,
-                  onChanged: (v) => _raw('qty', v, (v) => item.quantity = v ?? 0),
+                  onChanged: (v) =>
+                      _raw('qty', v, (v) => item.quantity = v ?? 0),
                 ),
               ),
               E2eId(

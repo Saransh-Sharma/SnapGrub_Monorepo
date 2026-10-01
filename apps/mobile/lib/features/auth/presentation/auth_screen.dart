@@ -69,8 +69,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     final isLoading = auth.isLoading;
     final canUseAuth = config.hasSupabaseConfig || config.isE2eMock;
     final media = MediaQuery.of(context);
-    final isCompact = media.size.height < 720 ||
-        media.textScaler.scale(16) > 16 * 1.5;
+    final isCompact =
+        media.size.height < 720 || media.textScaler.scale(16) > 16 * 1.5;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final motion = SgMotion.of(context);
@@ -719,8 +719,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       );
 
   Future<void> _requestPasswordRecovery() async {
-    final email =
-        _mode == _AuthMode.recoveryOtp ? _email : _validatedEmail();
+    final email = _mode == _AuthMode.recoveryOtp ? _email : _validatedEmail();
     if (email == null || email.isEmpty) return;
     await _runAuthAction(
       () => ref
@@ -833,9 +832,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   String? _validatedOtp() {
     final token = _otpController.text.trim();
     if (token.length != _otpLength) {
-      _showError(token.isEmpty
-          ? 'Enter the code.'
-          : 'Enter all $_otpLength digits.');
+      _showError(
+          token.isEmpty ? 'Enter the code.' : 'Enter all $_otpLength digits.');
       return null;
     }
     return token;

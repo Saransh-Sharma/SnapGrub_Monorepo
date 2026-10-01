@@ -10,7 +10,9 @@ import '../../../helpers/mobile_test_harness.dart';
 void main() {
   // Regression: several non-meal rows (chat, proposal, photo job) used to
   // share one GlobalKey because `null == null` marked them all as the anchor.
-  testWidgets('Today timeline with chat + photo rows scrolls without key clashes', (tester) async {
+  testWidgets(
+      'Today timeline with chat + photo rows scrolls without key clashes',
+      (tester) async {
     await tester.binding.setSurfaceSize(const Size(440, 956));
     final harness = await MobileTestHarness.create(overrides: [
       clockProvider.overrideWithValue(() => marketingNow),
@@ -19,7 +21,10 @@ void main() {
     ]);
     addTearDown(harness.dispose);
     await tester.runAsync(() => seedMarketingData(
-        db: harness.db, container: harness.container, userId: testUserId, timezone: testTimezone));
+        db: harness.db,
+        container: harness.container,
+        userId: testUserId,
+        timezone: testTimezone));
     await harness.pumpRouter(tester);
     harness.container.read(appRouterProvider).go('/home');
     for (var i = 0; i < 10; i++) {

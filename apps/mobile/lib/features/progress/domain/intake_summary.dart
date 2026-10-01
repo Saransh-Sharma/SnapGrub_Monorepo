@@ -42,7 +42,10 @@ class IntakeSummary {
   /// Every day in the window, oldest first, including unlogged days.
   final List<DayIntake> days;
 
-  List<DayIntake> get loggedDays => [for (final d in days) if (d.logged) d];
+  List<DayIntake> get loggedDays => [
+        for (final d in days)
+          if (d.logged) d
+      ];
   int get daysLogged => loggedDays.length;
 
   /// Averages are over *logged* days only — an unlogged day is missing data,
@@ -105,6 +108,8 @@ class ProgressTargets {
 
   double? get validKcal => _valid(kcal);
   bool get hasMacros =>
-      _valid(proteinG) != null && _valid(carbsG) != null && _valid(fatG) != null;
+      _valid(proteinG) != null &&
+      _valid(carbsG) != null &&
+      _valid(fatG) != null;
   bool get isEmpty => validKcal == null && !hasMacros;
 }

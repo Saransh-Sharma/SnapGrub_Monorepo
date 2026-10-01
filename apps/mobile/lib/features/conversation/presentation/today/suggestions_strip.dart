@@ -69,8 +69,8 @@ class SuggestionsStrip extends ConsumerWidget {
                     decoration: BoxDecoration(
                       color: theme.cardTheme.color,
                       borderRadius: BorderRadius.circular(18),
-                      border: Border.all(
-                          color: theme.colorScheme.outlineVariant),
+                      border:
+                          Border.all(color: theme.colorScheme.outlineVariant),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,

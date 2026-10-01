@@ -438,7 +438,8 @@ class _PlanCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final tokens = context.sg;
-    final kcal = NumberFormat.decimalPattern().format(goal.caloriesKcal.round());
+    final kcal =
+        NumberFormat.decimalPattern().format(goal.caloriesKcal.round());
     return E2eId(
       id: 'settings.goal',
       child: SgCard(
@@ -550,16 +551,27 @@ class _SyncPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final (label, icon, tone) = switch (status) {
       null => ('Checking…', Icons.cloud_outlined, StatusTone.neutral),
-      SyncStatus.idle ||
-      SyncStatus.synced =>
-        ('Synced', Icons.cloud_done_outlined, StatusTone.positive),
-      SyncStatus.pending =>
-        ('Saved on phone', Icons.cloud_upload_outlined, StatusTone.neutral),
+      SyncStatus.idle || SyncStatus.synced => (
+          'Synced',
+          Icons.cloud_done_outlined,
+          StatusTone.positive
+        ),
+      SyncStatus.pending => (
+          'Saved on phone',
+          Icons.cloud_upload_outlined,
+          StatusTone.neutral
+        ),
       SyncStatus.syncing => ('Syncing…', Icons.sync_rounded, StatusTone.info),
-      SyncStatus.failed =>
-        ('Not synced', Icons.sync_problem_rounded, StatusTone.attention),
-      SyncStatus.conflict =>
-        ('Needs review', Icons.report_outlined, StatusTone.attention),
+      SyncStatus.failed => (
+          'Not synced',
+          Icons.sync_problem_rounded,
+          StatusTone.attention
+        ),
+      SyncStatus.conflict => (
+          'Needs review',
+          Icons.report_outlined,
+          StatusTone.attention
+        ),
     };
     // StatusPill doesn't wrap; scale it down rather than overflow at very
     // large text sizes.

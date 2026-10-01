@@ -21,7 +21,8 @@ class SmartFoodSuggestionRanker {
       if (suggestion.mealTypeHint == currentMealType &&
           currentMealType != MealType.unknown) {
         score += 40;
-        reasons.add('Usual for ${Labels.mealType(currentMealType).toLowerCase()}');
+        reasons
+            .add('Usual for ${Labels.mealType(currentMealType).toLowerCase()}');
       }
       if (suggestion.origin == SmartFoodSuggestionOrigin.frequentDefault &&
           (suggestion.useCount ?? 0) >= 3) {

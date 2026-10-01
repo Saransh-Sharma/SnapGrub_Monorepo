@@ -119,8 +119,8 @@ class ConversationController extends Notifier<ConversationComposerState> {
               );
             case 'tool.started':
               state = state.copyWith(
-                activity: event.data['label'] as String? ??
-                    'Checking your history…',
+                activity:
+                    event.data['label'] as String? ?? 'Checking your history…',
               );
             case 'proposal.ready':
               final rawDraft = event.data['draft'];

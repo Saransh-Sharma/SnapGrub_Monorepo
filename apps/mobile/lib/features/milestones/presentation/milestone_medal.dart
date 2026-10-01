@@ -43,9 +43,8 @@ class MilestoneMedal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tier = this.tier;
-    final Widget medal = earned && tier != null
-        ? _metal(context, tier)
-        : _porcelain(context);
+    final Widget medal =
+        earned && tier != null ? _metal(context, tier) : _porcelain(context);
     return Semantics(
       label: semanticLabel,
       image: semanticLabel != null,
@@ -70,7 +69,8 @@ class MilestoneMedal extends StatelessWidget {
               width: size < 48 ? 1 : 1.4,
             ),
           ),
-          child: Center(child: _Emboss(icon: icon, size: size * .4, metal: metal)),
+          child:
+              Center(child: _Emboss(icon: icon, size: size * .4, metal: metal)),
         ),
       ),
     );

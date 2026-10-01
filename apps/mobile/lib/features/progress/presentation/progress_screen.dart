@@ -129,12 +129,12 @@ class _ProgressBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final range = ref.watch(progressRangeProvider);
-    final targets = ref.watch(progressTargetsProvider) ?? const ProgressTargets();
+    final targets =
+        ref.watch(progressTargetsProvider) ?? const ProgressTargets();
     final intake = ref.watch(intakeSummaryProvider(range));
     final today = ref.watch(userDayTickProvider(user.timezone));
 
-    Widget intakeSection(Widget Function(IntakeSummary) builder) =>
-        intake.when(
+    Widget intakeSection(Widget Function(IntakeSummary) builder) => intake.when(
           skipLoadingOnReload: true,
           loading: () => const SgCard(child: _CardSkeleton()),
           error: (error, _) => SgCard(
@@ -279,15 +279,18 @@ class _Repeats extends ConsumerWidget {
       return suggestions.when(
         skipLoadingOnReload: true,
         loading: () => const SgCard(child: _CardSkeleton()),
-        error: (error, _) => SgCard(child: ErrorState(error: error, compact: true)),
-        data: (items) => SmartFoodsSection(suggestions: items, contextData: user),
+        error: (error, _) =>
+            SgCard(child: ErrorState(error: error, compact: true)),
+        data: (items) =>
+            SmartFoodsSection(suggestions: items, contextData: user),
       );
     }
     final defaults = ref.watch(frequentFoodDefaultsProvider(user.userId));
     return defaults.when(
       skipLoadingOnReload: true,
       loading: () => const SgCard(child: _CardSkeleton()),
-      error: (error, _) => SgCard(child: ErrorState(error: error, compact: true)),
+      error: (error, _) =>
+          SgCard(child: ErrorState(error: error, compact: true)),
       data: (items) => FrequentMealsSection(
         defaults: items,
         contextData: user,

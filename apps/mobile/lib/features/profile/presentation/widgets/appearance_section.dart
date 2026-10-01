@@ -158,7 +158,8 @@ class _AppIconPickerState extends ConsumerState<_AppIconPicker> {
   }
 
   Future<void> _load() async {
-    final supported = await DeviceCapabilities.instance.supportsAlternateIcons();
+    final supported =
+        await DeviceCapabilities.instance.supportsAlternateIcons();
     AppIconChoice current = AppIconChoice.standard;
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -188,7 +189,8 @@ class _AppIconPickerState extends ConsumerState<_AppIconPicker> {
     }
     setState(() => _busy = true);
     SgHaptics.tap();
-    final ok = await DeviceCapabilities.instance.setAlternateIcon(choice.iosName);
+    final ok =
+        await DeviceCapabilities.instance.setAlternateIcon(choice.iosName);
     if (!mounted) return;
     if (ok) {
       try {

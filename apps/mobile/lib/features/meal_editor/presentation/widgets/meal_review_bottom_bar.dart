@@ -77,7 +77,8 @@ class MealReviewBottomBar extends StatelessWidget {
               ),
               const SizedBox(width: SnapGrubDesignTokens.space8),
             ] else ...[
-              const Icon(Icons.check_rounded, size: SnapGrubDesignTokens.iconMd),
+              const Icon(Icons.check_rounded,
+                  size: SnapGrubDesignTokens.iconMd),
               const SizedBox(width: SnapGrubDesignTokens.space8),
             ],
             Text(saving ? 'Saving…' : actionLabel),

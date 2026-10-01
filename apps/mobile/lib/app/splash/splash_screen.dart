@@ -55,8 +55,8 @@ class _SplashScreenState extends State<SplashScreen>
             child: AnimatedBuilder(
               animation: _c,
               builder: (context, _) {
-                double drop(double start) => Curves.elasticOut.transform(
-                    ((_c.value - start) / .5).clamp(0.0, 1.0));
+                double drop(double start) => Curves.elasticOut
+                    .transform(((_c.value - start) / .5).clamp(0.0, 1.0));
                 final a = drop(0);
                 final b = drop(.08);
                 final c = drop(.16);
@@ -85,8 +85,7 @@ class _SplashScreenState extends State<SplashScreen>
                             ),
                           ),
                           Transform.translate(
-                            offset:
-                                Offset(15, -12 - 70 * (1 - b)),
+                            offset: Offset(15, -12 - 70 * (1 - b)),
                             child: Opacity(
                               opacity: b.clamp(0.0, 1.0),
                               child: SizedBox.square(

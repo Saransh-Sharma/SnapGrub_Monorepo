@@ -172,8 +172,8 @@ void main() {
     });
 
     test('needs data with a single weigh-in', () {
-      final trend = computeWeightTrend([w(DateTime(2026, 8, 1), 90)],
-          goalKg: 80);
+      final trend =
+          computeWeightTrend([w(DateTime(2026, 8, 1), 90)], goalKg: 80);
       expect(projectGoal(trend, 80).status, ProjectionStatus.needsData);
     });
   });

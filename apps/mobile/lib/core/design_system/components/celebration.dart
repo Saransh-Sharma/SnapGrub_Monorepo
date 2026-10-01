@@ -20,7 +20,11 @@ class Celebration {
   static Future<bool> play(
     BuildContext context, {
     required String key,
-    List<SgMetal> metals = const [SgMetal.gold, SgMetal.titanium, SgMetal.copper],
+    List<SgMetal> metals = const [
+      SgMetal.gold,
+      SgMetal.titanium,
+      SgMetal.copper
+    ],
     Offset? origin,
     bool oncePerDay = false,
     bool onceEver = false,
@@ -178,9 +182,7 @@ class _FlakePainter extends CustomPainter {
       canvas.drawRRect(
         RRect.fromRectAndRadius(
           Rect.fromCenter(
-              center: Offset.zero,
-              width: f.size.width,
-              height: f.size.height),
+              center: Offset.zero, width: f.size.width, height: f.size.height),
           const Radius.circular(1.5),
         ),
         paint,

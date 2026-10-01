@@ -29,7 +29,8 @@ class PortionBase {
       protein: item.proteinG / quantity,
       carbs: item.carbsG / quantity,
       fat: item.fatG / quantity,
-      grams: item.gramsEstimated == null ? null : item.gramsEstimated! / quantity,
+      grams:
+          item.gramsEstimated == null ? null : item.gramsEstimated! / quantity,
     );
   }
 
@@ -114,9 +115,8 @@ String itemContentSignature(MealDraftItem item) => [
 /// the current items plus their correction, so the parser returns a whole
 /// revised meal rather than just the correction.
 String correctionPrompt(MealDraft draft, String correction) {
-  final items = draft.items
-      .where((item) => item.name.trim().isNotEmpty)
-      .map((item) {
+  final items =
+      draft.items.where((item) => item.name.trim().isNotEmpty).map((item) {
     final unit = item.unit.trim();
     final quantity = formatNumber(item.quantity, decimals: 2);
     return unit.isEmpty

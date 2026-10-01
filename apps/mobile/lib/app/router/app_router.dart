@@ -103,8 +103,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           transitionDuration: const Duration(milliseconds: 420),
           reverseTransitionDuration: const Duration(milliseconds: 280),
           child: CaptureScreen(
-            initialMode: CaptureMode.fromName(
-                state.uri.queryParameters['mode']),
+            initialMode:
+                CaptureMode.fromName(state.uri.queryParameters['mode']),
           ),
           transitionsBuilder: (context, animation, secondary, child) {
             final curved = CurvedAnimation(

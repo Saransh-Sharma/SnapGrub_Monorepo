@@ -49,16 +49,15 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
     await tester.pump(const Duration(milliseconds: 600));
 
-    await tester.drag(
-        find.byKey(const ValueKey('today.calorie_hero')), const Offset(0, -500));
+    await tester.drag(find.byKey(const ValueKey('today.calorie_hero')),
+        const Offset(0, -500));
     await tester.pump(const Duration(milliseconds: 600));
     expect(find.text('Paneer bowl'), findsOneWidget);
     expect(find.text('Midday'), findsOneWidget);
     expect(find.text('Snap your first meal'), findsNothing);
   });
 
-  testWidgets('tapping the hero flips between left and eaten',
-      (tester) async {
+  testWidgets('tapping the hero flips between left and eaten', (tester) async {
     await pumpToday(tester);
     expect(find.text('left'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('today.calorie_hero')));

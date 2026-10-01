@@ -239,16 +239,14 @@ class SnapGrubTokens extends ThemeExtension<SnapGrubTokens> {
         soft: dark
             ? SnapGrubDesignTokens.nightSecondaryContainer
             : const Color(0xFFFBE3D9),
-        onSoft: dark
-            ? const Color(0xFFFFD8C7)
-            : SnapGrubDesignTokens.persimmonDeep,
+        onSoft:
+            dark ? const Color(0xFFFFD8C7) : SnapGrubDesignTokens.persimmonDeep,
         metal: SgMetal.copper,
       ),
       carbs: MacroPalette(
         color: dark ? const Color(0xFFE6C06A) : SnapGrubDesignTokens.gold,
         soft: dark ? const Color(0xFF4A3D1C) : const Color(0xFFF6ECCF),
-        onSoft:
-            dark ? const Color(0xFFF7E3B0) : SnapGrubDesignTokens.goldDeep,
+        onSoft: dark ? const Color(0xFFF7E3B0) : SnapGrubDesignTokens.goldDeep,
         metal: SgMetal.gold,
       ),
       fat: MacroPalette(
@@ -260,7 +258,8 @@ class SnapGrubTokens extends ThemeExtension<SnapGrubTokens> {
       success: dark ? const Color(0xFF8FC9A0) : SnapGrubDesignTokens.success,
       warning: dark ? const Color(0xFFF0C067) : SnapGrubDesignTokens.warning,
       info: dark ? const Color(0xFF9DB9DC) : SnapGrubDesignTokens.info,
-      hero: dark ? SnapGrubDesignTokens.nightHero : SnapGrubDesignTokens.inkHero,
+      hero:
+          dark ? SnapGrubDesignTokens.nightHero : SnapGrubDesignTokens.inkHero,
       onHero: SnapGrubDesignTokens.onInkHero,
       onHeroMuted: SnapGrubDesignTokens.inkHeroMuted,
       outlineStrong: dark
