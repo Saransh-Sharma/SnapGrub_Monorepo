@@ -12,8 +12,9 @@ create index if not exists idx_branded_products_normalized_name_trgm
 on public.branded_products using gin (normalized_name gin_trgm_ops);
 
 -- Active catalog foods whose name or alias contains p_query, best first:
--- exact (4), "query ..." prefix (3), whole word (2), other prefix (1.5),
--- substring (1), plus trigram similarity to order within a tier.
+-- exact (4), "query ..." prefix (3), whole word (2), substring (1). Trigram
+-- similarity, always below 1 for a non-exact match, orders within a tier and
+-- can never lift a match into the next one.
 create or replace function public.search_canonical_foods(
   p_query text,
   p_limit integer default 25
@@ -51,7 +52,6 @@ as $$
           when h.matched = q.text then 4
           when h.matched like q.text || ' %' then 3
           when ' ' || h.matched || ' ' like '% ' || q.text || ' %' then 2
-          when h.matched like q.text || '%' then 1.5
           else 1
         end + similarity(h.matched, q.text)
       )::real as score,
