@@ -28,11 +28,13 @@ Deno.test("a case is scored on energy, protein and items found", () => {
     calories_kcal: 440,
     protein_g: 15,
     items: ["Chapati", "Salad"],
+    grounded: 1,
   });
   assertEquals(score.caloriesError.toFixed(2), "0.10", "10% over on energy");
   assertEquals(score.proteinError.toFixed(2), "0.25", "25% under on protein");
   assertEquals(score.itemRecall, 0.5, "one of two expected items was found");
   assertEquals(score.extraItems, 1, "the salad was not expected");
+  assertEquals(score.groundedShare, 0.5, "one of two items came from the catalog");
 });
 
 Deno.test("one parsed item cannot satisfy two expected items", () => {
@@ -40,15 +42,16 @@ Deno.test("one parsed item cannot satisfy two expected items", () => {
     calories_kcal: 400,
     protein_g: 20,
     items: ["Roti with dal"],
+    grounded: 0,
   });
   assertEquals(score.itemRecall, 0.5, "a merged item counts once");
 });
 
 Deno.test("the summary reports mean, median and the share within 20%", () => {
   const summary = summarize([
-    { id: "a", caloriesError: 0.1, proteinError: 0.2, itemRecall: 1, extraItems: 0 },
-    { id: "b", caloriesError: 0.3, proteinError: 0.4, itemRecall: 0.5, extraItems: 0 },
-    { id: "c", caloriesError: 0.2, proteinError: 0, itemRecall: 1, extraItems: 1 },
+    { id: "a", caloriesError: 0.1, proteinError: 0.2, itemRecall: 1, extraItems: 0, groundedShare: 1 },
+    { id: "b", caloriesError: 0.3, proteinError: 0.4, itemRecall: 0.5, extraItems: 0, groundedShare: 0.5 },
+    { id: "c", caloriesError: 0.2, proteinError: 0, itemRecall: 1, extraItems: 1, groundedShare: 0 },
   ], 1);
   assertEquals(summary.cases, 4, "failed cases are counted");
   assertEquals(summary.failed, 1, "and reported");
@@ -56,4 +59,5 @@ Deno.test("the summary reports mean, median and the share within 20%", () => {
   assertEquals(summary.calories_median_error, 0.2, "median");
   assertEquals(summary.calories_within_20pct.toFixed(2), "0.67", "2 of 3");
   assertEquals(summary.item_recall.toFixed(2), "0.83", "mean recall");
+  assertEquals(summary.grounded_share, 0.5, "mean grounded share");
 });

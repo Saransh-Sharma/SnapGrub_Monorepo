@@ -2,7 +2,12 @@
 /// the item in a parsed result.
 export type EvalCase = {
   id: string;
-  text: string;
+  /// What the person typed. A case has either `text` or `image`.
+  text?: string;
+  /// Path to a meal photo, relative to the case file.
+  image?: string;
+  /// Optional note sent with a photo, as the app's hint field would.
+  hint?: string;
   locale?: string;
   cuisine_hints?: string[];
   expected: {
@@ -16,6 +21,9 @@ export type ParsedMeal = {
   calories_kcal: number;
   protein_g: number;
   items: string[];
+  /// How many of the items took their nutrition from the catalog or the
+  /// user's own foods rather than a model estimate.
+  grounded: number;
 };
 
 export type CaseScore = {
@@ -27,6 +35,8 @@ export type CaseScore = {
   itemRecall: number;
   /// Items in the result that match no expected item.
   extraItems: number;
+  /// Share of parsed items grounded in the catalog or the user's foods.
+  groundedShare: number;
 };
 
 export function scoreCase(evalCase: EvalCase, parsed: ParsedMeal): CaseScore {
@@ -54,6 +64,7 @@ export function scoreCase(evalCase: EvalCase, parsed: ParsedMeal): CaseScore {
       ? 1
       : found / evalCase.expected.items.length,
     extraItems: names.length - used.size,
+    groundedShare: names.length === 0 ? 0 : parsed.grounded / names.length,
   };
 }
 
@@ -69,6 +80,7 @@ export function summarize(scores: CaseScore[], failed: number) {
       : calories.filter((error) => error <= 0.2).length / scores.length,
     protein_mean_error: mean(scores.map((score) => score.proteinError)),
     item_recall: mean(scores.map((score) => score.itemRecall)),
+    grounded_share: mean(scores.map((score) => score.groundedShare)),
   };
 }
 
