@@ -1,0 +1,5 @@
+# Commits that only reformat code. Used by `git blame --ignore-revs-file`.
+# Enable locally with: git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# style(mobile): apply dart format across lib, test and integration_test
+afd95bd208286bf05374c0be0b5e457a411cd580
